@@ -62,10 +62,8 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  // 404 handler for any route not matched by a controller.
-  app.use((req: Request, res: Response, _next: NextFunction) => {
-    res.status(404).json({ error: `not found: ${req.method} ${req.path}` });
-  });
+  // 404 handler for any route not matched by a controller is handled natively by NestJS throwing a NotFoundException,
+  // which is then caught and formatted by the AllExceptionsFilter above.
 
   const config = app.get(ConfigService);
   const port = config.get<number>('port');
