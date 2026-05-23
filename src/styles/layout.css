@@ -217,9 +217,6 @@ main { background: var(--surface); }
   width: 100%;
   background: var(--surface);
 }
-.page-head {
-  display: flex;
-
 @media (max-width: 1080px) {
   .app,
   .app.no-right,
