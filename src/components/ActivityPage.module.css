@@ -1,0 +1,208 @@
+.page { }
+
+/* ── Page head ── */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+}
+.headText h1 {
+  font-size: 32px;
+  line-height: 1.05;
+  margin: 0 0 6px;
+}
+.headText p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 58ch;
+  margin: 0;
+}
+.headStats {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.statBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 10px 14px;
+  text-align: center;
+}
+.statBadge b {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+}
+.statBadge span {
+  color: var(--muted);
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-top: 5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.statBadge.active b { color: var(--accent); }
+.statBadge.done b { color: var(--moss); }
+.statBadge.failed b { color: var(--rust); }
+
+/* ── Filter tabs ── */
+.filters {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.filterBtn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 5px 10px;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.filterBtn:hover { color: var(--ink-2); }
+.filterBtn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* ── Job list ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Job card ── */
+.job {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-2);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+}
+.job.queued      { border-left-color: var(--muted-2); }
+.job.researching { border-left-color: var(--accent); }
+.job.saved       { border-left-color: var(--moss); }
+.job.failed      { border-left-color: var(--rust); }
+.job.fallback    { border-left-color: var(--ochre); }
+
+.jobMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.jobState {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.job.queued      .jobState { color: var(--muted-2); }
+.job.researching .jobState { color: var(--accent); }
+.job.saved       .jobState { color: var(--moss); }
+.job.failed      .jobState { color: var(--rust); }
+.job.fallback    .jobState { color: var(--ochre); }
+
+.pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.job.researching .pulse {
+  animation: pulse 1.1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50%       { opacity: 1;    transform: scale(1.1); }
+}
+
+.jobDot {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--muted-2);
+  flex-shrink: 0;
+}
+.jobTime {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+.jobCat {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 1px 5px;
+  letter-spacing: 0.03em;
+  margin-left: auto;
+}
+
+.jobTitle {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-2);
+  text-align: left;
+  width: 100%;
+}
+.jobTitle:not(:disabled) { cursor: pointer; }
+.jobTitle:not(:disabled):hover { color: var(--accent); }
+.jobTitle:disabled { opacity: 1; }
+
+.jobError {
+  color: var(--rust);
+  font-size: 12.5px;
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
+/* ── Empty ── */
+.empty {
+  color: var(--muted);
+  font-size: 14px;
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* ── Dense mode ── */
+:global(.app.dense) .headText h1 { font-size: 24px; }
+:global(.app.dense) .statBadge { padding: 8px 10px; min-width: 50px; }
+:global(.app.dense) .statBadge b { font-size: 18px; }
+:global(.app.dense) .job { padding: 9px 12px; }
+:global(.app.dense) .jobTitle { font-size: 13.5px; }
