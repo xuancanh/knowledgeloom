@@ -1,0 +1,181 @@
+/* ——— Search overlay ——— */
+.search-overlay {
+  position: fixed; inset: 0;
+  background: rgba(20, 14, 6, 0.42);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 8vh;
+  z-index: 100;
+  animation: fadeIn 120ms ease;
+}
+[data-theme="dark"] .search-overlay { background: rgba(0,0,0,0.55); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.search-panel {
+  width: min(720px, 92vw);
+  background: var(--surface);
+  border: 1px solid var(--rule-2);
+  border-radius: 8px;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.4), 0 8px 20px -8px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.search-input {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-input .glyph {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--accent);
+  font-size: 18px;
+}
+.search-input input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-family: "Source Serif 4", serif;
+  font-size: 19px;
+  color: var(--ink);
+}
+.search-input input::placeholder { color: var(--muted); font-style: italic; }
+.search-input .esc {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+.search-results {
+  max-height: 56vh;
+  overflow: auto;
+}
+.search-grp {
+  padding: 8px 20px 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--rule);
+  position: sticky; top: 0;
+  font-weight: 600;
+}
+.search-hit {
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+}
+.search-hit:hover, .search-hit.active { background: var(--surface-2); }
+.search-hit.active { box-shadow: inset 2px 0 0 var(--accent); }
+.search-hit .h-title {
+  font-size: 15.5px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.search-hit .h-snip {
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.search-hit .h-meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: right;
+  white-space: nowrap;
+}
+.search-hit mark {
+  background: var(--highlight);
+  color: var(--ink);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.search-foot {
+  padding: 10px 20px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--paper-2);
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 18px;
+}
+.search-foot kbd {
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 1px 4px;
+  margin-right: 4px;
+  color: var(--ink-2);
+}
+.app.dense .search-overlay {
+  padding-top: 5vh;
+}
+.app.dense .search-panel {
+  border-radius: 6px;
+  width: min(560px, 88vw);
+}
+.app.dense .search-input {
+  gap: 8px;
+  padding: 9px 12px;
+}
+.app.dense .search-input .glyph {
+  font-size: 14px;
+}
+.app.dense .search-input input {
+  font-size: 14.5px;
+}
+.app.dense .search-input .esc {
+  font-size: 9.5px;
+  padding: 1px 5px;
+}
+.app.dense .search-results {
+  max-height: 46vh;
+}
+.app.dense .search-grp {
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  padding: 5px 12px 3px;
+}
+.app.dense .search-hit {
+  gap: 8px;
+  padding: 7px 12px;
+}
+.app.dense .search-hit .h-title {
+  font-size: 13.5px;
+}
+.app.dense .search-hit .h-snip {
+  font-size: 11.5px;
+  line-height: 1.3;
+  margin-top: 1px;
+}
+.app.dense .search-hit .h-meta {
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+}
+.app.dense .search-foot {
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+.app.dense .search-foot kbd {
+  padding: 0 3px;
+  margin-right: 2px;
+}
+

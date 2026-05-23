@@ -1,0 +1,69 @@
+/* ——— Right context panel ——— */
+.context {
+  border-left: 1px solid var(--rule-2);
+  background: var(--paper-2);
+  padding: 28px 22px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+}
+.context h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.context .ctx-block + .ctx-block { margin-top: 26px; }
+.link-list { list-style: none; padding: 0; margin: 0; }
+.link-list li {
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--rule);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.link-list li:hover .ltitle { color: var(--accent); }
+.link-list li .arrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.link-list li .ltitle {
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.link-list li .lcat {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 3px;
+}
+
+/* mini graph */
+.mini-graph {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 10px;
+}
+.mini-graph svg { display: block; width: 100%; height: 200px; }
+.mini-graph .legend {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  gap: 10px;
+}
+
