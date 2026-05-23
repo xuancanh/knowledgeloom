@@ -28,7 +28,8 @@
  *  else; their providers are visible to every module automatically.
  */
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { StatusModule } from './status/status.module';
@@ -43,6 +44,15 @@ import { LearnModule } from './learn/learn.module';
     // Global providers — no need to import these in feature modules.
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     DatabaseModule,
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get<string>('redisHost'),
+          port: config.get<number>('redisPort'),
+        },
+      }),
+    }),
 
     // Feature modules — each owns its own controllers/services/repos.
     StatusModule,
