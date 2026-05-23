@@ -77,8 +77,8 @@ export class KnowledgeService {
 
     if (!this.readOnly) {
       await this.noteRepo.writeIndexJson(state);
-      await this.searchService.sync(state).catch((err: Error) => {
-        console.warn(`Meilisearch sync skipped: ${err.message}`);
+      await this.searchService.sync(notes).catch((err: Error) => {
+        console.warn(`Search sync skipped: ${err.message}`);
       });
     }
 

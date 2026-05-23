@@ -1,3 +1,20 @@
+/**
+ * note-parser.util.ts — pure functions for reading and writing markdown notes.
+ *
+ * Shared by NoteFileRepository (reading), NotesService (composing updates),
+ * CodexService (parsing AI output), and KnowledgeService (slug generation).
+ *
+ * All functions are stateless and have no side effects. They can be imported
+ * anywhere without creating circular dependencies.
+ *
+ * Key functions:
+ *  - parseNote(file, markdown)  — extract typed KnowledgeNote from frontmatter
+ *  - composeMarkdown(fields)    — write canonical markdown from note data
+ *  - slugify(value)             — URL-safe note id from title
+ *  - uniqueNoteSlug(title, dir) — collision-free slug for new notes
+ *  - noteRelativePath(id, cat)  — maps note id + category to filesystem path
+ *  - stripFrontmatter(markdown) — body-only markdown for the editor
+ */
 import { existsSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import type { KnowledgeNote } from '../types';

@@ -46,6 +46,18 @@ export default () => {
     meiliMasterKey: process.env.MEILI_MASTER_KEY || '',
     meiliIndex,
     meiliSyncPath: join(knowledgeDir, `meili-sync-${meiliIndex.replace(/[^a-zA-Z0-9_-]/g, '_')}.json`),
+    // Note storage backend: 'local' (default) or 's3'
+    noteStorage: process.env.NOTE_STORAGE || 'local',
+    s3Endpoint: process.env.S3_ENDPOINT || '',
+    s3Bucket: process.env.S3_BUCKET || '',
+    s3Region: process.env.S3_REGION || 'auto',
+    s3AccessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+    s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+    s3Prefix: process.env.S3_PREFIX || 'notes/',
+
+    // Search provider: 'meilisearch' (default) or 'inmemory'
+    searchProvider: process.env.SEARCH_PROVIDER || 'meilisearch',
+
     // AI provider selection: 'codex' (default) or 'openrouter'
     aiProvider: process.env.AI_PROVIDER || 'codex',
     aiApiKey: process.env.AI_API_KEY || '',
