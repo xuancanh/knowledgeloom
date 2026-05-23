@@ -1,3 +1,13 @@
+/**
+ * types.ts — shared domain types for the Knowledge Loom backend.
+ *
+ * These interfaces define the data shapes that flow between controllers,
+ * services, and repositories. They mirror (and extend) the types in
+ * `src/types.ts` used by the React frontend.
+ *
+ * Rule: keep types minimal and literal. Do not add class decorators or
+ * runtime metadata here — this file is for pure TypeScript interfaces only.
+ */
 export interface KnowledgeNote {
   id: string;
   fileName: string;
