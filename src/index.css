@@ -98,6 +98,7 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 
 /* ——— App shell ——— */
+main { background: var(--surface); }
 .app {
   display: grid;
   grid-template-columns: 264px 1fr 320px;
