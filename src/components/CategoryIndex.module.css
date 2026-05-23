@@ -1,118 +1,7 @@
-/* ——— Category index ——— */
-.cat-hero {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 24px 26px;
-  margin-bottom: 22px;
-  position: relative;
-  overflow: hidden;
-}
-.cat-hero::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
-  background: var(--accent);
-}
-.cat-hero .label {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  font-weight: 500;
-}
-.cat-hero h1 {
-  font-size: 30px;
-  font-weight: 500;
-  margin: 6px 0 12px;
-  letter-spacing: -0.015em;
-}
-.cat-hero p {
-  font-size: 16px;
-  color: var(--ink-2);
-  margin: 0 0 14px;
-  text-wrap: pretty;
-  max-width: 60ch;
-}
-.cat-hero .stats {
-  display: flex;
-  gap: 22px;
-  border-top: 1px solid var(--rule);
-  padding-top: 12px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.cat-hero .stats b { color: var(--ink); font-weight: 600; }
-.hero-link {
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 3px 8px;
-  text-transform: uppercase;
-}
-.hero-link:hover {
-  background: var(--surface-2);
-  border-color: var(--rule-2);
-}
-.tag-hero {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  margin-bottom: 22px;
-  padding: 22px 24px;
-}
-.tag-hero .label {
-  color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.tag-hero h1 {
-  font-size: 30px;
-  font-weight: 500;
-  margin: 6px 0 8px;
-}
-.tag-hero p {
-  color: var(--ink-2);
-  font-size: 16px;
-  margin: 0 0 14px;
-}
-.tag-hero .stats {
-  border-top: 1px solid var(--rule);
-  color: var(--muted);
-  display: flex;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  gap: 18px;
-  letter-spacing: 0.04em;
-  padding-top: 10px;
-  text-transform: uppercase;
-}
-.tag-hero .stats b {
-  color: var(--ink);
-}
-
-
-
-/* ═══════════════════════════════════════════════════════
-   Category Index  (ci-*)
-   ═══════════════════════════════════════════════════════ */
-
-.ci-page { }
+.page { }
 
 /* ── Breadcrumb ── */
-.ci-crumbs {
+.crumbs {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -125,37 +14,29 @@
   font-weight: 500;
   margin-bottom: 14px;
 }
-.ci-crumb-home {
-  cursor: pointer;
-  transition: color 120ms;
-}
-.ci-crumb-home:hover { color: var(--accent); }
-.ci-crumb-seg { display: flex; align-items: center; }
-.ci-crumb-sep { margin: 0 6px; opacity: 0.4; }
-.ci-crumb-link {
-  color: var(--muted);
-  transition: color 120ms;
-}
-.ci-crumb-link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.ci-crumb-current { color: var(--ink-2); font-weight: 600; }
+.crumbHome { cursor: pointer; transition: color 120ms; }
+.crumbHome:hover { color: var(--accent); }
+.crumbSeg { display: flex; align-items: center; }
+.crumbSep { margin: 0 6px; opacity: 0.4; }
+.crumbLink { color: var(--muted); transition: color 120ms; }
+.crumbLink:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.crumbCurrent { color: var(--ink-2); font-weight: 600; }
 
-/* ── Compact inline header ── */
-.ci-head {
-  margin-bottom: 14px;
-}
-.ci-head-row {
+/* ── Header ── */
+.head { margin-bottom: 14px; }
+.headRow {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
-.ci-head-dot {
+.headDot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.ci-head-title {
+.headTitle {
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -163,13 +44,13 @@
   color: var(--ink);
   line-height: 1.2;
 }
-.ci-head-chips {
+.headChips {
   display: flex;
   align-items: center;
   gap: 5px;
   flex-wrap: wrap;
 }
-.ci-chip {
+.chip {
   font-family: "JetBrains Mono", monospace;
   font-size: 10.5px;
   font-weight: 600;
@@ -181,17 +62,17 @@
   padding: 2px 7px;
   white-space: nowrap;
 }
-.ci-chip-action {
+.chipAction {
   color: var(--cat-color, var(--accent));
   border-color: color-mix(in srgb, var(--cat-color, var(--accent)) 30%, var(--rule));
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 7%, var(--surface));
   cursor: pointer;
   transition: background 130ms, border-color 130ms;
 }
-.ci-chip-action:hover {
+.chipAction:hover {
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 14%, var(--surface));
 }
-.ci-head-summary {
+.headSummary {
   font-size: 13px;
   color: var(--muted);
   line-height: 1.5;
@@ -200,14 +81,14 @@
   text-wrap: pretty;
 }
 
-/* ── Compact strip rows ── */
-.ci-strip {
+/* ── Strip rows ── */
+.strip {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   margin-bottom: 10px;
 }
-.ci-strip-label {
+.stripLabel {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   font-weight: 700;
@@ -218,15 +99,15 @@
   padding-top: 4px;
   min-width: 40px;
 }
-.ci-strip-items {
+.stripItems {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   align-items: center;
 }
 
-/* Subcategory pills */
-.ci-subcat-pill {
+/* ── Subcategory pills ── */
+.subcatPill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -240,18 +121,18 @@
   cursor: pointer;
   transition: border-color 130ms, background 130ms, transform 130ms;
 }
-.ci-subcat-pill:hover {
+.subcatPill:hover {
   border-color: var(--cat-color, var(--accent));
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 7%, var(--surface));
   transform: translateY(-1px);
 }
-.ci-subcat-dot {
+.subcatDot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.ci-subcat-pill em {
+.subcatPill em {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   color: var(--muted);
@@ -260,8 +141,8 @@
   margin-left: 2px;
 }
 
-/* Tag chips */
-.ci-tag-chip {
+/* ── Tag navigation chips ── */
+.tagChip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -277,11 +158,11 @@
   cursor: pointer;
   transition: background 120ms, border-color 120ms;
 }
-.ci-tag-chip:hover {
+.tagChip:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
   border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
 }
-.ci-tag-chip em {
+.tagChip em {
   font-size: 9.5px;
   color: var(--muted);
   font-style: normal;
@@ -289,7 +170,7 @@
 }
 
 /* ── Notes section head ── */
-.ci-section-head {
+.sectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -298,7 +179,7 @@
   padding-bottom: 8px;
   margin-bottom: 14px;
 }
-.ci-notes-label {
+.notesLabel {
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
   font-weight: 700;
@@ -310,20 +191,15 @@
   align-items: center;
   gap: 7px;
 }
-.ci-notes-count {
+.notesCount {
   font-weight: 400;
   color: var(--muted);
   font-size: 10px;
 }
 
 /* ── Sort tabs ── */
-.ci-sort-tabs,
-.ti-sort-tabs {
-  display: flex;
-  gap: 4px;
-}
-.ci-sort-tabs button,
-.ti-sort-tabs button {
+.sortTabs { display: flex; gap: 4px; }
+.sortTabs button {
   font-family: "JetBrains Mono", monospace;
   font-size: 10.5px;
   font-weight: 700;
@@ -335,21 +211,20 @@
   padding: 4px 8px;
   transition: color 120ms, border-color 120ms, background 120ms;
 }
-.ci-sort-tabs button.active,
-.ti-sort-tabs button.active {
+.sortTabs button.active {
   color: var(--accent);
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
-/* ── Tag filter chips (category index) ── */
-.notes-tag-filter {
+/* ── Tag filter chips ── */
+.tagFilter {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 14px;
 }
-.ntf-chip {
+.filterChip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -365,13 +240,13 @@
   cursor: pointer;
   transition: color 120ms, border-color 120ms, background 120ms;
 }
-.ntf-chip:hover { color: var(--ink); border-color: var(--rule-2); }
-.ntf-chip.active {
+.filterChip:hover { color: var(--ink); border-color: var(--rule-2); }
+.filterChipActive {
   color: var(--accent);
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
-.ntf-clear {
+.filterClear {
   font-size: 9px;
   color: var(--accent);
   margin-left: 2px;
@@ -379,8 +254,6 @@
 
 /* ── Mobile ── */
 @media (max-width: 760px) {
-  .ci-head-title { font-size: 16px; }
-  .ci-section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .headTitle { font-size: 16px; }
+  .sectionHead { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
-
-

@@ -1,12 +1,5 @@
 import type { KnowledgeCategory, KnowledgeNote, LearnJob } from '../types';
 
-export type View =
-  | { kind: 'home' }
-  | { kind: 'activity' }
-  | { kind: 'flashcards'; scope?: 'all' | 'category' | 'tag'; value?: string }
-  | { kind: 'note'; id: string }
-  | { kind: 'category'; id: string }
-  | { kind: 'tag'; tag: string; page?: number };
 export type UiCategory = KnowledgeCategory & { id: string; color: string; summary: string };
 export type CategoryTreeNode = {
   id: string;

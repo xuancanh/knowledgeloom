@@ -1,18 +1,18 @@
-import type { View } from '../lib/view';
+import { useLocation } from 'react-router-dom';
 import { categoryLabel, type CategoryTreeNode, type UiCategory } from '../lib/view';
 
 const TAG_INITIAL_LIMIT = 18;
 
 function renderCategoryNode(
   node: CategoryTreeNode,
-  view: View,
+  activeCategoryId: string | null,
   openCategory: (id: string) => void,
   closeRail: () => void,
 ): React.ReactNode {
   return (
     <div key={node.id} className="category-tree-node">
       <button
-        className={`nav-item category-nav depth-${Math.min(node.depth, 4)}${view.kind === 'category' && view.id === node.id ? ' active' : ''}`}
+        className={`nav-item category-nav depth-${Math.min(node.depth, 4)}${activeCategoryId === node.id ? ' active' : ''}`}
         onClick={() => { openCategory(node.id); closeRail(); }}
         title={node.id}
       >
@@ -23,7 +23,7 @@ function renderCategoryNode(
       </button>
       {!!node.children.length && (
         <div className="category-tree-children">
-          {node.children.map((child) => renderCategoryNode(child, view, openCategory, closeRail))}
+          {node.children.map((child) => renderCategoryNode(child, activeCategoryId, openCategory, closeRail))}
         </div>
       )}
     </div>
@@ -31,7 +31,6 @@ function renderCategoryNode(
 }
 
 export default function Rail({
-  view,
   categories,
   categoryTree,
   flashcardCount,
@@ -50,7 +49,6 @@ export default function Rail({
   openTag,
   closeRail,
 }: {
-  view: View;
   categories: UiCategory[];
   categoryTree: CategoryTreeNode[];
   flashcardCount: number;
@@ -69,6 +67,19 @@ export default function Rail({
   openTag: (tag: string) => void;
   closeRail: () => void;
 }) {
+  const location = useLocation();
+  const path = location.pathname;
+
+  const isHome = path === '/';
+  const isActivity = path === '/activity';
+  const isFlashcards = path.startsWith('/flashcards');
+  const activeCategoryId = path.startsWith('/categories/')
+    ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
+    : null;
+  const activeTag = path.startsWith('/tags/')
+    ? decodeURIComponent(path.slice('/tags/'.length))
+    : null;
+
   const filteredCategories = (() => {
     const q = catSearch.trim().toLowerCase();
     if (!q) return null;
@@ -94,7 +105,7 @@ export default function Rail({
 
       <nav className="rail-nav">
         <div className="rail-nav-group">
-          <button className={`nav-item${view.kind === 'home' ? ' active' : ''}`} onClick={() => { onHome(); closeRail(); }}>
+          <button className={`nav-item${isHome ? ' active' : ''}`} onClick={() => { onHome(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>✦</span> Capture
             <span className="kbd">/</span>
           </button>
@@ -102,11 +113,14 @@ export default function Rail({
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⌕</span> Search
             <span className="kbd">⌘K</span>
           </button>
-          <button className={`nav-item activity-nav${view.kind === 'activity' ? ' active' : ''}${inFlightCount ? ' researching' : ''}`} onClick={() => { onActivity(); closeRail(); }}>
+          <button
+            className={`nav-item activity-nav${isActivity ? ' active' : ''}${inFlightCount ? ' researching' : ''}`}
+            onClick={() => { onActivity(); closeRail(); }}
+          >
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Activity
             <span className="count">{inFlightCount}</span>
           </button>
-          <button className={`nav-item${view.kind === 'flashcards' ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
+          <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> Flashcards
             <span className="count">{flashcardCount}</span>
           </button>
@@ -138,7 +152,7 @@ export default function Rail({
               return (
                 <button
                   key={cat.id}
-                  className={`nav-item${view.kind === 'category' && view.id === cat.id ? ' active' : ''}`}
+                  className={`nav-item${activeCategoryId === cat.id ? ' active' : ''}`}
                   onClick={() => { openCategory(cat.id); onCatSearchChange(''); closeRail(); }}
                   title={cat.id}
                 >
@@ -155,7 +169,7 @@ export default function Rail({
             <div className="rail-empty">No categories match</div>
           )
         ) : (
-          categoryTree.map((node) => renderCategoryNode(node, view, openCategory, closeRail))
+          categoryTree.map((node) => renderCategoryNode(node, activeCategoryId, openCategory, closeRail))
         )}
 
         <div className="rail-section-head">
@@ -182,7 +196,7 @@ export default function Rail({
           visibleTags.map(([tag, count]) => (
             <button
               key={tag}
-              className={`nav-item${view.kind === 'tag' && view.tag === tag ? ' active' : ''}`}
+              className={`nav-item${activeTag === tag ? ' active' : ''}`}
               onClick={() => { openTag(tag); closeRail(); }}
             >
               <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0, fontFamily: 'monospace' }}>#</span>
