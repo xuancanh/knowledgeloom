@@ -75,6 +75,7 @@ export interface Job {
   summary?: string;
   tags?: string[];
   links?: string[];
+  guidance?: string;
   attempts: number;
   maxAttempts: number;
   createdAt: string;
