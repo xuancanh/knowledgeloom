@@ -1,6 +1,7 @@
 import type { KnowledgeNote } from '../types';
 import { categoryId, formatCreated, type UiCategory } from '../lib/view';
 
+/** Note list display mode: list rows, grid cards, or compact rows. */
 export type ViewMode = 'list' | 'grid' | 'compact';
 
 function CategoryDot({ catId, categories }: { catId: string; categories: UiCategory[] }) {

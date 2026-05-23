@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { Flashcard, KnowledgeNote } from '../types';
-import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../lib/view';
-import NoteList, { type ViewMode } from './NoteList';
+import type { Flashcard, KnowledgeNote } from '../../types';
+import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../../lib/view';
+import NoteList, { type ViewMode } from '../NoteList';
 import styles from './CategoryIndex.module.css';
 
+/** Maps category colour names to their CSS variable values for inline styles. */
 const COLOR_VAR: Record<string, string> = {
   oxblood: 'var(--accent)',
   moss: 'var(--moss)',

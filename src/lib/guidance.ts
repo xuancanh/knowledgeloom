@@ -1,5 +1,7 @@
+/** Template applicability: research mode, link mode, or both. */
 export type GuidanceMode = 'research' | 'link' | 'both';
 
+/** A writing-guidance template that can be injected into a capture request. */
 export type GuidanceTemplate = {
   id: string;
   label: string;
@@ -8,6 +10,7 @@ export type GuidanceTemplate = {
   builtIn?: boolean;
 };
 
+/** localStorage key for the persisted template list. */
 const STORAGE_KEY = 'knowledge-loom:guidance-templates';
 
 export const DEFAULT_TEMPLATES: GuidanceTemplate[] = [

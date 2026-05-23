@@ -2,6 +2,12 @@ import type { KnowledgeNote } from '../types';
 import { formatCreated } from '../lib/view';
 import MiniGraph from './MiniGraph';
 
+/**
+ * Right sidebar shown when a note is selected.
+ *
+ * Displays: connection graph (MiniGraph), outgoing links, backlinks, and file
+ * metadata. All data is pure presentation — no state, no fetch.
+ */
 export default function ContextPanel({
   note,
   notes,

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { Flashcard, KnowledgeNote } from '../types';
-import { categoryId, formatCreated, type UiCategory } from '../lib/view';
-import NoteList, { type ViewMode } from './NoteList';
+import type { Flashcard, KnowledgeNote } from '../../types';
+import { categoryId, formatCreated, type UiCategory } from '../../lib/view';
+import NoteList, { type ViewMode } from '../NoteList';
 import styles from './TagIndex.module.css';
 
+/** Notes per page in the paginated tag view. */
 const PAGE_SIZE = 10;
 
 const COLOR_VAR: Record<string, string> = {
@@ -25,7 +26,6 @@ export default function TagIndex({
   page,
   onOpen,
   onOpenTag,
-  onOpenCategory,
   onOpenFlashcards,
   onPage,
 }: {
@@ -36,7 +36,6 @@ export default function TagIndex({
   page: number;
   onOpen: (id: string) => void;
   onOpenTag: (tag: string) => void;
-  onOpenCategory: (id: string) => void;
   onOpenFlashcards: (tag: string) => void;
   onPage: (page: number) => void;
 }) {

@@ -1,3 +1,4 @@
+/** A single knowledge note with frontmatter metadata. */
 export type KnowledgeNote = {
   id: string;
   fileName: string;

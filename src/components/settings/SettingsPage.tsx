@@ -6,9 +6,10 @@ import {
   updateTemplate,
   type GuidanceMode,
   type GuidanceTemplate,
-} from '../lib/guidance';
+} from '../../lib/guidance';
 import styles from './SettingsPage.module.css';
 
+/** Maps template modes to display labels for the settings UI. */
 const MODE_LABELS: Record<GuidanceMode, string> = {
   research: 'Research',
   link: 'From Link',

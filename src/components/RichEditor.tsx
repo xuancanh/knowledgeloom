@@ -4,6 +4,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { Markdown } from '@tiptap/markdown';
 import { forwardRef, useImperativeHandle } from 'react';
 
+/** Imperative handle for RichEditor: getMarkdown, clear, focus. */
 export type RichEditorHandle = {
   getMarkdown: () => string;
   clear: () => void;
