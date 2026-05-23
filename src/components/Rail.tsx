@@ -45,6 +45,7 @@ export default function Rail({
   onSearch,
   onActivity,
   onFlashcards,
+  onSettings,
   openCategory,
   openTag,
   closeRail,
@@ -63,6 +64,7 @@ export default function Rail({
   onSearch: () => void;
   onActivity: () => void;
   onFlashcards: () => void;
+  onSettings: () => void;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
   closeRail: () => void;
@@ -73,6 +75,7 @@ export default function Rail({
   const isHome = path === '/';
   const isActivity = path === '/activity';
   const isFlashcards = path.startsWith('/flashcards');
+  const isSettings = path === '/settings';
   const activeCategoryId = path.startsWith('/categories/')
     ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
     : null;
@@ -123,6 +126,9 @@ export default function Rail({
           <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> Flashcards
             <span className="count">{flashcardCount}</span>
+          </button>
+          <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> Settings
           </button>
         </div>
 

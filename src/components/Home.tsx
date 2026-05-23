@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CreateNoteRequest, KnowledgeNote, Reminder } from '../types';
 import { formatCreated, type UiCategory } from '../lib/view';
+import type { GuidanceTemplate } from '../lib/guidance';
 import CaptureBox from './CaptureBox';
 import NoteList from './NoteList';
 
@@ -17,6 +18,7 @@ export default function Home({
   onCompleteReminder,
   onSubmit,
   readOnly,
+  templates,
 }: {
   notes: KnowledgeNote[];
   categories: UiCategory[];
@@ -26,6 +28,7 @@ export default function Home({
   onCompleteReminder: (id: string) => void;
   onSubmit: (payload: CreateNoteRequest) => void;
   readOnly: boolean;
+  templates: GuidanceTemplate[];
 }) {
   const recent = useMemo(
     () => [...notes].sort((a, b) => formatCreated(b.createdAt).localeCompare(formatCreated(a.createdAt))).slice(0, 8),
@@ -42,7 +45,7 @@ export default function Home({
   return (
       <div className="home">
       <div className="crumbs"><span>Desk</span><span className="sep">/</span><span>Capture</span></div>
-      <CaptureBox onSubmit={onSubmit} readOnly={readOnly} />
+      <CaptureBox onSubmit={onSubmit} readOnly={readOnly} templates={templates} />
 
       <div className="section-label">
         <h2>Reminders</h2>
