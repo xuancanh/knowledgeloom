@@ -1,0 +1,464 @@
+/* ── Container ── */
+.capture {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+/* ── Left accent stripe per mode ── */
+.mode-research { border-left: 3px solid var(--accent); }
+.mode-link     { border-left: 3px solid var(--indigo); }
+.mode-write    { border-left: 3px solid var(--moss); }
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px 9px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface-2);
+}
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+}
+.promptStar { color: var(--accent); }
+
+/* ── Mode switcher ── */
+.modeSwitcher {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.modeBtn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 10px;
+  transition: color 120ms, border-color 120ms, background 120ms;
+  white-space: nowrap;
+}
+.modeBtn:hover { color: var(--ink-2); border-color: var(--rule-2); }
+
+.modeBtnActive.modeBtn-research {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+.modeBtnActive.modeBtn-link {
+  color: var(--indigo);
+  border-color: var(--indigo);
+  background: color-mix(in srgb, var(--indigo) 9%, var(--surface));
+}
+.modeBtnActive.modeBtn-write {
+  color: var(--moss);
+  border-color: var(--moss);
+  background: color-mix(in srgb, var(--moss) 9%, var(--surface));
+}
+
+/* ── Body ── */
+.body {
+  padding: 14px 18px 16px;
+}
+
+/* ── Primary input zone — the main visible field ── */
+.primaryZone {
+  background: var(--paper);
+  border: 1.5px solid var(--rule-2);
+  border-radius: 6px;
+  padding: 0 14px;
+  margin-bottom: 14px;
+  transition: border-color 150ms, box-shadow 150ms;
+  cursor: text;
+}
+.primaryZone:focus-within {
+  border-color: var(--rule-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-2) 14%, transparent);
+}
+.mode-research .primaryZone:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.mode-link .primaryZone:focus-within {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--indigo) 12%, transparent);
+}
+.mode-write .primaryZone:focus-within {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--moss) 12%, transparent);
+}
+
+.primary {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: "Source Serif 4", serif;
+  font-size: 21px;
+  line-height: 1.3;
+  padding: 13px 0 11px;
+}
+.primary::placeholder { color: var(--muted); font-style: italic; }
+
+.writeTitle {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: "Source Serif 4", serif;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 13px 0 11px;
+}
+.writeTitle::placeholder { color: var(--muted); font-style: italic; font-weight: 400; }
+
+/* ── URL row — lives inside primaryZone ── */
+.urlRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 0 4px;
+}
+.urlGlyph {
+  color: var(--indigo);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.urlInput {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  min-width: 0;
+}
+.urlInput::placeholder { color: var(--muted); }
+
+/* Thin divider between URL and title hint, both inside primaryZone */
+.titleHint {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  outline: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-family: "Source Serif 4", serif;
+  font-size: 15px;
+  font-style: italic;
+  padding: 6px 0 10px;
+}
+.titleHint::placeholder { color: var(--muted); }
+
+/* ── Guidance section — intentionally low-profile ── */
+/* Looks like a labelled form section, NOT a boxed input panel */
+.guidance {
+  margin-bottom: 8px;
+}
+.guidanceTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.guidanceLabel {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  flex-shrink: 0;
+}
+/* Hairline after the label to fill the row */
+.guidanceLine {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+.guidanceManage {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+  transition: color 120ms;
+  flex-shrink: 0;
+}
+.guidanceManage:hover { color: var(--accent); }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.chip {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.chip:hover { color: var(--ink-2); border-color: var(--rule-2); }
+.chipActive {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.mode-link .chipActive {
+  color: var(--indigo);
+  border-color: var(--indigo);
+  background: color-mix(in srgb, var(--indigo) 8%, var(--surface));
+}
+
+/* Guidance free-text input — sits at the bottom of the guidance section */
+.guidanceInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 5px 9px;
+}
+.guidanceInputIcon {
+  font-size: 11px;
+  color: var(--muted-2);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.guidanceInput {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 0;
+}
+.guidanceInput::placeholder { color: var(--muted); font-style: italic; }
+
+/* ── Meta row ── */
+.metaRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.metaInput {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 9px;
+  min-width: 0;
+  transition: border-color 120ms;
+}
+.metaInput:focus { outline: none; border-color: var(--rule-2); }
+.metaInput::placeholder { color: var(--muted); font-style: italic; opacity: 0.7; }
+
+/* ── AI polish toggle ── */
+.polishToggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.polishToggle input { accent-color: var(--moss); margin-top: 2px; flex-shrink: 0; }
+.polishLabel {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+.polishLabel em {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-style: normal;
+  margin-top: 1px;
+}
+
+/* ── More options ── */
+.moreToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-top: 10px;
+  transition: color 120ms;
+}
+.moreToggle:hover { color: var(--muted); }
+.moreOpen { color: var(--muted); }
+.moreArrow { font-size: 8px; }
+.moreBody {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fieldLabel {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+  margin-bottom: 3px;
+}
+.seedArea {
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.4;
+  padding: 7px 9px;
+  resize: none;
+  transition: border-color 120ms;
+}
+.seedArea:focus { outline: none; border-color: var(--rule-2); }
+.seedArea::placeholder { color: var(--muted); font-style: italic; }
+.ctxInput {
+  display: block;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+  font-family: "Source Serif 4", serif;
+  padding: 2px 0;
+}
+.ctxInput::placeholder { color: var(--muted); }
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px 11px;
+  border-top: 1px solid var(--rule);
+  background: var(--surface-2);
+}
+.hint {
+  flex: 1;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.hint kbd {
+  border: 1px solid var(--rule-2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin: 0 2px;
+  color: var(--ink-2);
+  font-size: 10px;
+  background: var(--surface);
+}
+.submit {
+  background: var(--accent);
+  color: #faf3e2;
+  padding: 7px 16px;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  transition: opacity 120ms;
+  white-space: nowrap;
+}
+.mode-link .submit { background: var(--indigo); }
+.mode-write .submit { background: var(--moss); }
+.submit:hover { opacity: 0.85; }
+.submit:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Mobile ── */
+@media (max-width: 760px) {
+  .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .metaRow { grid-template-columns: 1fr; }
+  .body { padding: 0 14px 12px; }
+  .footer { padding: 9px 14px 11px; }
+}
+
+/* ── Write-mode live editor focus ring color ── */
+/* .live-md-editor is a global class, so we target it through :global */
+.mode-write :global(.live-md-editor):focus-within {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--moss) 14%, transparent);
+}
+
+/* ── Dense mode ── */
+:global(.app.dense) .capture {
+  margin-bottom: 16px;
+}
+:global(.app.dense) .header {
+  padding: 8px 14px 7px;
+}
+:global(.app.dense) .body {
+  padding: 10px 14px 12px;
+}
+:global(.app.dense) .primaryZone {
+  padding: 0 11px;
+  margin-bottom: 10px;
+}
+:global(.app.dense) .primary,
+:global(.app.dense) .writeTitle {
+  font-size: 17px;
+  padding-top: 10px;
+  padding-bottom: 8px;
+}
+:global(.app.dense) .footer {
+  padding: 7px 14px 9px;
+}
+:global(.app.dense) .submit {
+  font-size: 10.5px;
+  padding: 5px 11px;
+}

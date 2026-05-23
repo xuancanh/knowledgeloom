@@ -1,222 +1,35 @@
-/* ——— Capture box ——— */
-.capture {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 18px 20px 14px;
-  box-shadow: var(--shadow);
-  margin-bottom: 28px;
-  position: relative;
-}
-.capture .prompt {
-  font-style: italic;
-  color: var(--muted);
-  font-size: 12px;
-  font-family: "JetBrains Mono", monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-style: normal;
-  font-weight: 600;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.capture .prompt .pen { color: var(--accent); }
-.mode-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 14px;
-}
-.mode-tabs button {
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-  padding: 9px 10px;
-  text-align: left;
-}
-.mode-tabs button.active {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  color: var(--ink);
-}
-.mode-tabs span {
-  display: block;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.mode-tabs small {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.35;
-  margin-top: 4px;
-}
-.capture .title-input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ink);
-  font-family: "Source Serif 4", serif;
-  font-size: 24px;
-  line-height: 1.2;
-  margin-bottom: 8px;
-}
-.capture .title-input::placeholder { color: var(--muted); font-style: italic; }
-.capture .link-input {
-  width: 100%;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 13.5px;
-  margin: 0 0 8px;
-  outline: 0;
-  padding: 8px 9px;
-}
-.capture .link-input::placeholder {
-  color: var(--muted);
-  font-style: normal;
-}
-.capture textarea {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 19px;
-  line-height: 1.45;
-  resize: none;
-  font-family: "Source Serif 4", serif;
-  min-height: 56px;
-}
-.capture textarea::placeholder { color: var(--muted); font-style: italic; }
-.ai-polish-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-  margin-top: 10px;
-  padding: 8px 10px;
-}
-.ai-polish-option input {
-  accent-color: var(--accent);
-  margin-top: 3px;
-}
-.ai-polish-option b,
-.ai-polish-option em {
-  display: block;
-}
-.ai-polish-option b {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.ai-polish-option em {
-  color: var(--muted);
-  font-size: 12.5px;
-  font-style: normal;
-  line-height: 1.35;
-  margin-top: 2px;
-}
-.metadata-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--rule);
-}
-.metadata-grid input {
-  min-width: 0;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-  font: inherit;
-  font-size: 13.5px;
-  padding: 8px 9px;
-}
-.metadata-grid input::placeholder {
+/* ── Live markdown editor sizing inside CaptureBox (write mode) ─────────── */
+/* common.css supplies the base .live-md-editor styles.
+   These rules set the capture-specific sizes and write-mode focus color.   */
+
+/* The .live-md-editor global rule already has position: relative (common.css).
+   Placeholder is safe to absolute-position inside the editor. */
+.live-md-placeholder {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
   color: var(--muted);
   font-style: italic;
+  font-size: 15px;
+  pointer-events: none;
+  line-height: 1.6;
 }
-.capture .ctx {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ink-2);
-  font-size: 14.5px;
-  font-family: "Source Serif 4", serif;
-  font-style: italic;
-  margin-top: 6px;
+
+.live-md-editor--disabled {
+  opacity: 0.45;
+  pointer-events: none;
 }
-.capture .ctx::placeholder { color: var(--muted); }
-.capture .row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--rule);
+
+/* Capture box overrides: smaller size + stronger border to match primaryZone */
+.capture-editor {
+  min-height: 140px;
+  max-height: 480px;
+  border-width: 1.5px;
+  border-color: var(--rule-2);
+  background: var(--paper);
 }
-.capture .hint {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  color: var(--muted);
-  margin-right: auto;
-}
-.capture .hint kbd {
-  border: 1px solid var(--rule-2);
-  border-radius: 3px;
-  padding: 1px 5px;
-  margin: 0 2px;
-  color: var(--ink-2);
-}
-.capture .submit {
-  background: var(--accent);
-  color: #faf3e2;
-  padding: 8px 18px;
-  border-radius: 4px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-}
-.capture .submit:hover { background: var(--accent-2); }
-.capture .submit:disabled { opacity: 0.4; cursor: not-allowed; }
 
 @media (max-width: 760px) {
-  .mode-tabs,
-  .metadata-grid,
-  .flashcard-toolbar,
-  .flashcard-filters,
-  .flashcard-layout {
-    grid-template-columns: 1fr;
-  }
-  .flashcard-list {
-    border-left: 0;
-    border-top: 1px solid var(--rule);
-    padding: 12px 0 0;
-  }
-  .flashcard-picker {
-    border-left: 0;
-    border-top: 1px solid var(--rule);
-    padding: 12px 0 0;
-  }
+  .capture-editor { min-height: 90px; }
 }
-
