@@ -1,7 +1,20 @@
+/**
+ * Dev runner — starts the NestJS server (via ts-node) and the Vite frontend
+ * in parallel so a single `npm run dev` brings up the full stack.
+ *
+ * ts-node transpiles the TypeScript source on-the-fly without a separate build
+ * step, keeping the dev loop fast. The server/tsconfig.json is explicitly
+ * passed so ts-node uses CommonJS module output (required by NestJS) rather
+ * than inheriting the root tsconfig which targets ESM for the Vite frontend.
+ */
 import { spawn } from 'node:child_process';
 
 const children = [
-  spawn('node', ['server/index.mjs'], { stdio: 'inherit' }),
+  spawn(
+    'npx',
+    ['ts-node', '--project', 'server/tsconfig.json', 'server/src/main.ts'],
+    { stdio: 'inherit' },
+  ),
   spawn('npx', ['vite', '--host', '0.0.0.0'], { stdio: 'inherit' }),
 ];
 
