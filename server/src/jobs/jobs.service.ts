@@ -1,69 +1,60 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * JobsService — durable Codex job queue.
+ * JobsService — durable Codex job queue using BullMQ.
  *
  * Design rationale:
- *  - Jobs are persisted to SQLite so they survive server restarts.
- *  - An in-memory Map mirrors the database for O(1) lookup by id.
- *  - Only one job runs at a time. Serial execution avoids overlapping writes
- *    to markdown files, category indexes, and Meilisearch.
- *  - Failed jobs are retried up to maxAttempts with a configurable delay.
- *    Permanently failed jobs remain visible in the activity rail.
- *
- * Lifecycle:
- *  - onModuleInit()  — loads persisted jobs, normalises interrupted state,
- *    and kicks the queue processor.
- *  - onModuleDestroy() — clears the pending timer so the process exits cleanly.
- *
- * The queue processor is intentionally not an interval; it reschedules itself
- * after each job (or after calculating the next retry delay) to avoid
- * concurrent processing.
+ *  - Jobs are persisted to SQLite so they survive server restarts and populate the UI history.
+ *  - BullMQ/Redis manages the active scheduling, delays, retries, and sequential execution.
+ *  - In-memory job state caching is removed to prevent memory leaks in long-running processes.
+ *  - Satisfies the single job serialization constraint by configuring Worker concurrency to 1.
  */
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { slugify } from '../common/note-parser.util';
 import { JobRepository } from './job.repository';
-import { CodexService } from '../codex/codex.service';
 import type { Job, JobMode } from '../types';
 
 @Injectable()
-export class JobsService implements OnModuleInit, OnModuleDestroy {
-  /** In-memory mirror of persisted job state. */
-  readonly jobs = new Map<string, Job>();
-
-  private activeJobId: string | null = null;
-  private queueTimer: ReturnType<typeof setTimeout> | null = null;
+export class JobsService implements OnModuleInit {
+  private readonly logger = new Logger(JobsService.name);
   private readonly readOnly: boolean;
   private readonly maxAttempts: number;
   private readonly retryMs: number;
 
   constructor(
+    @InjectQueue('codex-jobs') private readonly codexQueue: Queue,
     private readonly repo: JobRepository,
-    private readonly codexService: CodexService,
     private readonly config: ConfigService,
   ) {
-    this.readOnly = config.get<boolean>('readOnly');
-    this.maxAttempts = config.get<number>('codexJobMaxAttempts');
-    this.retryMs = config.get<number>('codexJobRetryMs');
+    this.readOnly = config.get<boolean>('readOnly') || false;
+    this.maxAttempts = config.get<number>('codexJobMaxAttempts') || 3;
+    this.retryMs = config.get<number>('codexJobRetryMs') || 60000;
   }
 
   async onModuleInit(): Promise<void> {
     if (this.readOnly) return;
-    const persisted = this.repo.listAll();
-    for (const job of persisted) {
-      // Treat jobs that were mid-flight at shutdown as queued for retry.
-      const resumable = job.status === 'running' || (job.status === 'error' && job.attempts < job.maxAttempts);
-      this.jobs.set(job.id, {
-        ...job,
-        status: resumable ? 'queued' : job.status,
-        nextRunAt: resumable ? new Date().toISOString() : job.nextRunAt,
+
+    // Reset jobs in SQLite that were running when the process was killed,
+    // and re-enqueue them to BullMQ if necessary.
+    const running = await this.repo.getRunningJobs();
+    for (const job of running) {
+      this.logger.log(`Recovering interrupted job on boot: ${job.id}`);
+      job.status = 'queued';
+      job.nextRunAt = new Date().toISOString();
+      await this.repo.save(job);
+
+      // Re-add to BullMQ queue so it gets processed
+      await this.codexQueue.add('process-job', job, {
+        jobId: job.id,
+        attempts: job.maxAttempts || this.maxAttempts,
+        backoff: {
+          type: 'fixed',
+          delay: this.retryMs,
+        },
       });
     }
-    this.saveAll();
-    this.scheduleQueue();
-  }
-
-  onModuleDestroy(): void {
-    if (this.queueTimer) clearTimeout(this.queueTimer);
   }
 
   /**
@@ -95,9 +86,21 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
       nextRunAt: now,
       error: null,
     };
-    this.jobs.set(jobId, job);
-    this.repo.save(job);
-    this.scheduleQueue();
+
+    await this.repo.save(job);
+
+    if (!this.readOnly) {
+      await this.codexQueue.add('process-job', job, {
+        jobId: job.id,
+        attempts: this.maxAttempts,
+        backoff: {
+          type: 'fixed',
+          delay: this.retryMs,
+        },
+      });
+      this.logger.log(`Enqueued Codex job to BullMQ: ${job.id}`);
+    }
+
     return job;
   }
 
@@ -130,82 +133,21 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
       error: null,
       ...result,
     };
-    this.jobs.set(job.id, job);
-    this.repo.save(job);
+    await this.repo.save(job);
     return job;
   }
 
-  /** Schedules or reschedules the queue processor with an optional delay. */
-  scheduleQueue(delay = 0): void {
-    if (this.readOnly) return;
-    if (this.queueTimer) clearTimeout(this.queueTimer);
-    this.queueTimer = setTimeout(() => {
-      this.queueTimer = null;
-      this.processQueue().catch((err: Error) => console.error(`Queue processor failed: ${err.message}`));
-    }, delay);
+  /**
+   * Returns all historical jobs from database.
+   */
+  async listAll(): Promise<Job[]> {
+    return this.repo.listAll();
   }
 
-  // ---------------------------------------------------------------------------
-  // Private queue processing
-  // ---------------------------------------------------------------------------
-
-  private async processQueue(): Promise<void> {
-    if (this.activeJobId) return;
-    const job = this.nextQueuedJob();
-    if (!job) {
-      const delay = this.nextQueuedDelay();
-      if (delay !== null) this.scheduleQueue(delay);
-      return;
-    }
-
-    this.activeJobId = job.id;
-    this.mutate(job.id, { status: 'running', attempts: job.attempts + 1, startedAt: new Date().toISOString(), error: null });
-
-    try {
-      const result = await this.codexService.createNote(this.jobs.get(job.id)!);
-      this.mutate(job.id, { status: 'done', finishedAt: new Date().toISOString(), nextRunAt: null, ...result });
-    } catch (err: any) {
-      const current = this.jobs.get(job.id)!;
-      const canRetry = current.attempts < current.maxAttempts;
-      this.mutate(job.id, {
-        status: canRetry ? 'queued' : 'error',
-        error: err.message,
-        finishedAt: canRetry ? null : new Date().toISOString(),
-        nextRunAt: canRetry ? new Date(Date.now() + this.retryMs).toISOString() : null,
-      });
-    } finally {
-      this.activeJobId = null;
-      this.saveAll();
-      this.scheduleQueue();
-    }
-  }
-
-  private mutate(id: string, patch: Partial<Job>): void {
-    const current = this.jobs.get(id)!;
-    const updated = { ...current, ...patch } as Job;
-    this.jobs.set(id, updated);
-    this.repo.save(updated);
-  }
-
-  private saveAll(): void {
-    this.repo.replaceAll(
-      [...this.jobs.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
-    );
-  }
-
-  private nextQueuedJob(): Job | null {
-    const now = Date.now();
-    return (
-      [...this.jobs.values()]
-        .filter((j) => j.status === 'queued' && Date.parse(j.nextRunAt || j.createdAt) <= now)
-        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0] || null
-    );
-  }
-
-  private nextQueuedDelay(): number | null {
-    const queued = [...this.jobs.values()].filter((j) => j.status === 'queued');
-    if (!queued.length) return null;
-    const next = Math.min(...queued.map((j) => Date.parse(j.nextRunAt || j.createdAt)));
-    return Math.max(0, next - Date.now());
+  /**
+   * Returns a single job by id from database.
+   */
+  async getJob(id: string): Promise<Job | null> {
+    return this.repo.findById(id);
   }
 }

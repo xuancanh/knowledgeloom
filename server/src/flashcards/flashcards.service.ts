@@ -29,7 +29,7 @@ export class FlashcardsService {
   ) {}
 
   async sync(noteSources: NoteSource[], { force = false } = {}): Promise<Flashcard[]> {
-    const cache = this.cacheRepo.load();
+    const cache = await this.cacheRepo.load();
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled');
 
     if (disabled) {
@@ -54,7 +54,7 @@ export class FlashcardsService {
       nextNotes[note.id] = { hash, cards, generatedAt: new Date().toISOString() };
     }
 
-    this.cacheRepo.replace(nextNotes);
+    await this.cacheRepo.replace(nextNotes);
     return Object.values(nextNotes).flatMap((entry: any) => entry.cards || []);
   }
 
