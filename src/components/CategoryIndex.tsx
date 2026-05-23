@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Flashcard, KnowledgeNote } from '../types';
 import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../lib/view';
-import NoteList from './NoteList';
+import NoteList, { type ViewMode } from './NoteList';
 
 const COLOR_VAR: Record<string, string> = {
   oxblood: 'var(--accent)',
@@ -34,6 +34,9 @@ export default function CategoryIndex({
   onOpenFlashcards: (category: string) => void;
 }) {
   const [sort, setSort] = useState<SortKey>('recent');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [noteSearch, setNoteSearch] = useState('');
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
 
   const inCat = useMemo(
     () =>
@@ -48,6 +51,20 @@ export default function CategoryIndex({
     if (sort === 'links') return [...inCat].sort((a, b) => b.links.length - a.links.length);
     return inCat;
   }, [inCat, sort]);
+
+  const filtered = useMemo(() => {
+    let result = sorted;
+    if (tagFilter) {
+      result = result.filter((n) => n.tags.some((t) => t.toLowerCase() === tagFilter.toLowerCase()));
+    }
+    const q = noteSearch.trim().toLowerCase();
+    if (q) {
+      result = result.filter((n) =>
+        `${n.title} ${n.summary} ${n.tags.join(' ')}`.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [sorted, tagFilter, noteSearch]);
 
   const relatedFlashcards = useMemo(
     () => flashcards.filter((card) => categoryContains(category.id, categoryId(card.category))),
@@ -77,10 +94,15 @@ export default function CategoryIndex({
 
   const accentColor = COLOR_VAR[category.color] || 'var(--accent)';
   const pathParts = category.id.split('/');
+  const isFiltered = !!(tagFilter || noteSearch.trim());
+
+  function toggleTagFilter(tag: string) {
+    setTagFilter((prev) => (prev === tag ? null : tag));
+  }
 
   return (
     <div className="ci-page">
-      {/* Clickable breadcrumb */}
+      {/* Breadcrumb */}
       <nav className="ci-crumbs" aria-label="Category path">
         <span className="ci-crumb-home" onClick={() => onOpenCategory('')}>Categories</span>
         {pathParts.map((part, i) => {
@@ -92,16 +114,14 @@ export default function CategoryIndex({
               {isLast ? (
                 <span className="ci-crumb-current">{part}</span>
               ) : (
-                <button className="ci-crumb-link" onClick={() => onOpenCategory(id)}>
-                  {part}
-                </button>
+                <button className="ci-crumb-link" onClick={() => onOpenCategory(id)}>{part}</button>
               )}
             </span>
           );
         })}
       </nav>
 
-      {/* Compact inline header — no box, no card */}
+      {/* Header */}
       <div className="ci-head" style={{ '--cat-color': accentColor } as React.CSSProperties}>
         <div className="ci-head-row">
           <span className="ci-head-dot" style={{ background: accentColor }} />
@@ -113,12 +133,8 @@ export default function CategoryIndex({
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {tagCounts.length > 0 && (
-              <span className="ci-chip">{tagCounts.length} tags</span>
-            )}
-            {totalLinks > 0 && (
-              <span className="ci-chip">{totalLinks} links</span>
-            )}
+            {tagCounts.length > 0 && <span className="ci-chip">{tagCounts.length} tags</span>}
+            {totalLinks > 0 && <span className="ci-chip">{totalLinks} links</span>}
           </div>
         </div>
         {category.summary && category.summary !== 'No summary yet.' && (
@@ -126,16 +142,14 @@ export default function CategoryIndex({
         )}
       </div>
 
-      {/* Subcategories — compact chip strip */}
+      {/* Subcategories */}
       {childCategories.length > 0 && (
         <div className="ci-strip ci-subcat-strip">
           <span className="ci-strip-label">Folders</span>
           <div className="ci-strip-items">
             {childCategories.map((cat) => {
               const catColor = COLOR_VAR[cat.color] || 'var(--accent)';
-              const catNoteCount = notes.filter((n) =>
-                categoryContains(cat.id, categoryId(n.category)),
-              ).length;
+              const catNoteCount = notes.filter((n) => categoryContains(cat.id, categoryId(n.category))).length;
               return (
                 <button
                   key={cat.id}
@@ -153,7 +167,7 @@ export default function CategoryIndex({
         </div>
       )}
 
-      {/* Tag chips — compact strip */}
+      {/* Tag chips — clicking navigates to the tag page */}
       {tagCounts.length > 0 && (
         <div className="ci-strip ci-tags-strip">
           <span className="ci-strip-label">Tags</span>
@@ -170,25 +184,70 @@ export default function CategoryIndex({
 
       <div className="divider" />
 
-      {/* Notes */}
+      {/* Notes toolbar: search + tag filter + sort + view mode */}
       <div className="ci-section-head">
         <h2 className="ci-notes-label">
           Notes
-          <span className="ci-notes-count">{inCat.length}</span>
+          <span className="ci-notes-count">{isFiltered ? `${filtered.length} / ${inCat.length}` : inCat.length}</span>
         </h2>
         <div className="ci-sort-tabs">
           {(['recent', 'oldest', 'links'] as SortKey[]).map((key) => (
-            <button
-              key={key}
-              className={sort === key ? 'active' : ''}
-              onClick={() => setSort(key)}
-            >
+            <button key={key} className={sort === key ? 'active' : ''} onClick={() => setSort(key)}>
               {key === 'recent' ? 'Recent' : key === 'oldest' ? 'Oldest' : 'Most linked'}
             </button>
           ))}
         </div>
       </div>
-      <NoteList notes={sorted} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} />
+
+      <div className="notes-toolbar">
+        <div className="notes-search-wrap">
+          <span className="notes-search-icon">⌕</span>
+          <input
+            className="notes-search"
+            value={noteSearch}
+            onChange={(e) => setNoteSearch(e.target.value)}
+            placeholder="Search notes…"
+            spellCheck={false}
+          />
+          {noteSearch && (
+            <button className="notes-search-clear" onClick={() => setNoteSearch('')}>✕</button>
+          )}
+        </div>
+        <div className="view-mode-btns">
+          {(['list', 'grid', 'compact'] as ViewMode[]).map((m) => (
+            <button
+              key={m}
+              className={`view-mode-btn${viewMode === m ? ' active' : ''}`}
+              onClick={() => setViewMode(m)}
+              title={m.charAt(0).toUpperCase() + m.slice(1)}
+            >
+              {m === 'list' ? '☰' : m === 'grid' ? '⊞' : '≡'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tag filter chips */}
+      {tagCounts.length > 0 && (
+        <div className="notes-tag-filter">
+          {tagCounts.slice(0, 20).map(([tag]) => (
+            <button
+              key={tag}
+              className={`ntf-chip${tagFilter === tag ? ' active' : ''}`}
+              onClick={() => toggleTagFilter(tag)}
+            >
+              #{tag}
+              {tagFilter === tag && <span className="ntf-clear">✕</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {filtered.length === 0 && isFiltered ? (
+        <div className="empty">No notes match — <button onClick={() => { setNoteSearch(''); setTagFilter(null); }}>clear filters</button></div>
+      ) : (
+        <NoteList notes={filtered} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} viewMode={viewMode} />
+      )}
     </div>
   );
 }

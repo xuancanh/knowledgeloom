@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Flashcard, KnowledgeNote } from '../types';
 import { categoryId, formatCreated, type UiCategory } from '../lib/view';
-import NoteList from './NoteList';
+import NoteList, { type ViewMode } from './NoteList';
 
 const PAGE_SIZE = 10;
 
@@ -40,6 +40,9 @@ export default function TagIndex({
   onPage: (page: number) => void;
 }) {
   const [sort, setSort] = useState<SortKey>('recent');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [noteSearch, setNoteSearch] = useState('');
+  const [catFilter, setCatFilter] = useState<string | null>(null);
 
   const taggedNotes = useMemo(
     () =>
@@ -81,10 +84,25 @@ export default function TagIndex({
     return taggedNotes;
   }, [sort, taggedNotes]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedAll.length / PAGE_SIZE));
+  const filtered = useMemo(() => {
+    let result = sortedAll;
+    if (catFilter) {
+      result = result.filter((n) => categoryId(n.category) === catFilter);
+    }
+    const q = noteSearch.trim().toLowerCase();
+    if (q) {
+      result = result.filter((n) =>
+        `${n.title} ${n.summary} ${n.tags.join(' ')}`.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [sortedAll, catFilter, noteSearch]);
+
+  const isFiltered = !!(catFilter || noteSearch.trim());
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), totalPages);
   const start = (safePage - 1) * PAGE_SIZE;
-  const visibleNotes = sortedAll.slice(start, start + PAGE_SIZE);
+  const visibleNotes = viewMode === 'grid' ? filtered : filtered.slice(start, start + PAGE_SIZE);
 
   function changePage(next: number) {
     onPage(Math.min(Math.max(1, next), totalPages));
@@ -92,6 +110,11 @@ export default function TagIndex({
 
   function changeSort(next: SortKey) {
     setSort(next);
+    onPage(1);
+  }
+
+  function toggleCatFilter(cid: string) {
+    setCatFilter((prev) => (prev === cid ? null : cid));
     onPage(1);
   }
 
@@ -105,7 +128,7 @@ export default function TagIndex({
         <span>#{tag}</span>
       </div>
 
-      {/* Compact inline header */}
+      {/* Header */}
       <div className="ti-head">
         <div className="ti-head-row">
           <h1 className="ti-head-tag">
@@ -118,14 +141,12 @@ export default function TagIndex({
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {coTags.length > 0 && (
-              <span className="ti-chip">{coTags.length} related tags</span>
-            )}
+            {coTags.length > 0 && <span className="ti-chip">{coTags.length} related tags</span>}
           </div>
         </div>
       </div>
 
-      {/* Inline: categories this tag spans */}
+      {/* Category distribution — pills toggle filter */}
       {catCounts.length > 0 && (
         <div className="ti-strip">
           <span className="ti-strip-label">In</span>
@@ -133,16 +154,19 @@ export default function TagIndex({
             {catCounts.map(([cid, count]) => {
               const cat = categories.find((c) => c.id === cid);
               const color = COLOR_VAR[cat?.color || 'oxblood'] || 'var(--accent)';
+              const isActive = catFilter === cid;
               return (
                 <button
                   key={cid}
-                  className="ti-cat-pill"
-                  onClick={() => onOpenCategory(cid)}
+                  className={`ti-cat-pill${isActive ? ' active' : ''}`}
+                  onClick={() => toggleCatFilter(cid)}
                   style={{ '--cat-color': color } as React.CSSProperties}
+                  title={isActive ? 'Click to clear filter' : 'Click to filter by this category'}
                 >
                   <span className="ti-cat-dot" style={{ background: color }} />
                   {cat?.name || cid}
                   <em>{count}</em>
+                  {isActive && <span className="ti-pill-clear">✕</span>}
                 </button>
               );
             })}
@@ -150,7 +174,7 @@ export default function TagIndex({
         </div>
       )}
 
-      {/* Inline: related (co-occurring) tags */}
+      {/* Related tags */}
       {coTags.length > 0 && (
         <div className="ti-strip">
           <span className="ti-strip-label">Related</span>
@@ -175,38 +199,70 @@ export default function TagIndex({
 
       <div className="divider" />
 
-      {/* Notes */}
+      {/* Notes toolbar */}
       <div className="ti-section-head">
         <h2 className="ti-notes-label">
           Articles
           <span className="ti-notes-range">
-            {taggedNotes.length
-              ? ` · ${start + 1}–${Math.min(start + PAGE_SIZE, sortedAll.length)} of ${sortedAll.length}`
+            {filtered.length
+              ? isFiltered
+                ? ` · ${filtered.length} / ${taggedNotes.length}`
+                : ` · ${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} of ${filtered.length}`
               : ''}
           </span>
         </h2>
         <div className="ti-sort-tabs">
           {(['recent', 'oldest', 'links'] as SortKey[]).map((key) => (
-            <button
-              key={key}
-              className={sort === key ? 'active' : ''}
-              onClick={() => changeSort(key)}
-            >
+            <button key={key} className={sort === key ? 'active' : ''} onClick={() => changeSort(key)}>
               {key === 'recent' ? 'Recent' : key === 'oldest' ? 'Oldest' : 'Most linked'}
             </button>
           ))}
         </div>
       </div>
 
-      <NoteList notes={visibleNotes} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} />
+      <div className="notes-toolbar">
+        <div className="notes-search-wrap">
+          <span className="notes-search-icon">⌕</span>
+          <input
+            className="notes-search"
+            value={noteSearch}
+            onChange={(e) => { setNoteSearch(e.target.value); onPage(1); }}
+            placeholder="Search notes…"
+            spellCheck={false}
+          />
+          {noteSearch && (
+            <button className="notes-search-clear" onClick={() => setNoteSearch('')}>✕</button>
+          )}
+        </div>
+        <div className="view-mode-btns">
+          {(['list', 'grid', 'compact'] as ViewMode[]).map((m) => (
+            <button
+              key={m}
+              className={`view-mode-btn${viewMode === m ? ' active' : ''}`}
+              onClick={() => setViewMode(m)}
+              title={m.charAt(0).toUpperCase() + m.slice(1)}
+            >
+              {m === 'list' ? '☰' : m === 'grid' ? '⊞' : '≡'}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {totalPages > 1 && (
+      {filtered.length === 0 ? (
+        <div className="empty">
+          {isFiltered
+            ? <span>No notes match — <button onClick={() => { setNoteSearch(''); setCatFilter(null); }}>clear filters</button></span>
+            : 'No notes with this tag yet.'}
+        </div>
+      ) : (
+        <NoteList notes={visibleNotes} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} viewMode={viewMode} />
+      )}
+
+      {viewMode !== 'grid' && totalPages > 1 && (
         <div className="pagination">
           <button onClick={() => changePage(safePage - 1)} disabled={safePage === 1}>Previous</button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button key={p} className={p === safePage ? 'active' : ''} onClick={() => changePage(p)}>
-              {p}
-            </button>
+            <button key={p} className={p === safePage ? 'active' : ''} onClick={() => changePage(p)}>{p}</button>
           ))}
           <button onClick={() => changePage(safePage + 1)} disabled={safePage === totalPages}>Next</button>
         </div>
