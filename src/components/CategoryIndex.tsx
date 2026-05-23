@@ -38,6 +38,8 @@ export default function CategoryIndex({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [showFolders, setShowFolders] = useState(false);
+  const [showTags, setShowTags] = useState(false);
 
   const inCat = useMemo(
     () =>
@@ -131,7 +133,22 @@ export default function CategoryIndex({
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {tagCounts.length > 0 && <span className={styles.chip}>{tagCounts.length} tags</span>}
+            {childCategories.length > 0 && (
+              <button
+                className={`${styles.chip} ${styles.chipAction}${showFolders ? ` ${styles.chipOpen}` : ''}`}
+                onClick={() => setShowFolders((v) => !v)}
+              >
+                {childCategories.length} {childCategories.length === 1 ? 'folder' : 'folders'}
+              </button>
+            )}
+            {tagCounts.length > 0 && (
+              <button
+                className={`${styles.chip} ${styles.chipAction}${showTags ? ` ${styles.chipOpen}` : ''}`}
+                onClick={() => setShowTags((v) => !v)}
+              >
+                {tagCounts.length} tags
+              </button>
+            )}
             {totalLinks > 0 && <span className={styles.chip}>{totalLinks} links</span>}
           </div>
         </div>
@@ -141,7 +158,7 @@ export default function CategoryIndex({
       </div>
 
       {/* Subcategories */}
-      {childCategories.length > 0 && (
+      {showFolders && childCategories.length > 0 && (
         <div className={styles.strip}>
           <span className={styles.stripLabel}>Folders</span>
           <div className={styles.stripItems}>
@@ -166,7 +183,7 @@ export default function CategoryIndex({
       )}
 
       {/* Tag chips — navigate to tag page */}
-      {tagCounts.length > 0 && (
+      {showTags && tagCounts.length > 0 && (
         <div className={styles.strip}>
           <span className={styles.stripLabel}>Tags</span>
           <div className={styles.stripItems}>

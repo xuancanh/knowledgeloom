@@ -48,6 +48,10 @@
 .chipAction:hover {
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
 }
+.chipOpen {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: var(--accent);
+}
 
 /* ── Strip rows ── */
 .strip {

@@ -72,6 +72,10 @@
 .chipAction:hover {
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 14%, var(--surface));
 }
+.chipOpen {
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 12%, var(--surface));
+  border-color: var(--cat-color, var(--accent));
+}
 .headSummary {
   font-size: 13px;
   color: var(--muted);
