@@ -160,7 +160,8 @@
   100% { background: var(--surface); transform: translateY(0); }
 }
 
-
+.page-head {
+  display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
