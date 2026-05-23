@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Flashcard, KnowledgeNote } from '../types';
 import { categoryId, formatCreated, type UiCategory } from '../lib/view';
 import NoteList, { type ViewMode } from './NoteList';
+import styles from './TagIndex.module.css';
 
 const PAGE_SIZE = 10;
 
@@ -121,7 +122,7 @@ export default function TagIndex({
   const maxCoCount = coTags[0]?.[1] || 1;
 
   return (
-    <div className="ti-page">
+    <div className={styles.page}>
       <div className="crumbs">
         <span>Tags</span>
         <span className="sep">/</span>
@@ -129,28 +130,28 @@ export default function TagIndex({
       </div>
 
       {/* Header */}
-      <div className="ti-head">
-        <div className="ti-head-row">
-          <h1 className="ti-head-tag">
-            <span className="ti-hash">#</span>{tag}
+      <div className={styles.head}>
+        <div className={styles.headRow}>
+          <h1 className={styles.headTag}>
+            <span className={styles.hash}>#</span>{tag}
           </h1>
-          <div className="ti-head-chips">
-            <span className="ti-chip">{taggedNotes.length} notes</span>
+          <div className={styles.headChips}>
+            <span className={styles.chip}>{taggedNotes.length} notes</span>
             {relatedFlashcards.length > 0 && (
-              <button className="ti-chip ti-chip-action" onClick={() => onOpenFlashcards(tag)}>
+              <button className={`${styles.chip} ${styles.chipAction}`} onClick={() => onOpenFlashcards(tag)}>
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {coTags.length > 0 && <span className="ti-chip">{coTags.length} related tags</span>}
+            {coTags.length > 0 && <span className={styles.chip}>{coTags.length} related tags</span>}
           </div>
         </div>
       </div>
 
-      {/* Category distribution — pills toggle filter */}
+      {/* Category filter pills */}
       {catCounts.length > 0 && (
-        <div className="ti-strip">
-          <span className="ti-strip-label">In</span>
-          <div className="ti-strip-items">
+        <div className={styles.strip}>
+          <span className={styles.stripLabel}>In</span>
+          <div className={styles.stripItems}>
             {catCounts.map(([cid, count]) => {
               const cat = categories.find((c) => c.id === cid);
               const color = COLOR_VAR[cat?.color || 'oxblood'] || 'var(--accent)';
@@ -158,15 +159,15 @@ export default function TagIndex({
               return (
                 <button
                   key={cid}
-                  className={`ti-cat-pill${isActive ? ' active' : ''}`}
+                  className={`${styles.catPill}${isActive ? ` ${styles.catPillActive}` : ''}`}
                   onClick={() => toggleCatFilter(cid)}
                   style={{ '--cat-color': color } as React.CSSProperties}
                   title={isActive ? 'Click to clear filter' : 'Click to filter by this category'}
                 >
-                  <span className="ti-cat-dot" style={{ background: color }} />
+                  <span className={styles.catDot} style={{ background: color }} />
                   {cat?.name || cid}
                   <em>{count}</em>
-                  {isActive && <span className="ti-pill-clear">✕</span>}
+                  {isActive && <span className={styles.pillClear}>✕</span>}
                 </button>
               );
             })}
@@ -176,15 +177,15 @@ export default function TagIndex({
 
       {/* Related tags */}
       {coTags.length > 0 && (
-        <div className="ti-strip">
-          <span className="ti-strip-label">Related</span>
-          <div className="ti-strip-items ti-cotags-items">
+        <div className={styles.strip}>
+          <span className={styles.stripLabel}>Related</span>
+          <div className={styles.stripItems}>
             {coTags.map(([coTag, count]) => {
               const weight = count / maxCoCount;
               return (
                 <button
                   key={coTag}
-                  className="ti-co-tag"
+                  className={styles.coTag}
                   onClick={() => onOpenTag(coTag)}
                   style={{ '--co-weight': weight } as React.CSSProperties}
                 >
@@ -200,10 +201,10 @@ export default function TagIndex({
       <div className="divider" />
 
       {/* Notes toolbar */}
-      <div className="ti-section-head">
-        <h2 className="ti-notes-label">
+      <div className={styles.sectionHead}>
+        <h2 className={styles.notesLabel}>
           Articles
-          <span className="ti-notes-range">
+          <span className={styles.notesRange}>
             {filtered.length
               ? isFiltered
                 ? ` · ${filtered.length} / ${taggedNotes.length}`
@@ -211,7 +212,7 @@ export default function TagIndex({
               : ''}
           </span>
         </h2>
-        <div className="ti-sort-tabs">
+        <div className={styles.sortTabs}>
           {(['recent', 'oldest', 'links'] as SortKey[]).map((key) => (
             <button key={key} className={sort === key ? 'active' : ''} onClick={() => changeSort(key)}>
               {key === 'recent' ? 'Recent' : key === 'oldest' ? 'Oldest' : 'Most linked'}

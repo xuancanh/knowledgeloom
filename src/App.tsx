@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   assistNoteEdit,
   createReminder,
-  deleteReminder,
   deleteNote,
+  deleteReminder,
   fetchJobs,
   fetchKnowledge,
   fetchNoteMarkdown,
   fetchReminders,
   fetchStatus,
   submitLearning,
-  updateReminder,
   updateNote,
+  updateReminder,
   type NoteUpdate,
 } from './api';
 import ActivityPage from './components/ActivityPage';
@@ -23,38 +24,204 @@ import NoteDetail from './components/NoteDetail';
 import Rail from './components/Rail';
 import SearchOverlay from './components/SearchOverlay';
 import TagIndex from './components/TagIndex';
-import { pathFromView, sameView, viewFromPath } from './lib/routing';
 import {
   makeCategoryTree,
   makeUiCategories,
   type CategoryTreeNode,
-  type View,
+  type UiCategory,
 } from './lib/view';
-import type { CreateNoteRequest, KnowledgeState, LearnJob, Reminder } from './types';
+import type { CreateNoteRequest, Flashcard, KnowledgeNote, KnowledgeState, LearnJob, Reminder } from './types';
 
-const emptyState: KnowledgeState = { notes: [], categories: [], graph: [], flashcards: [] };
+// ── Types ────────────────────────────────────────────────────────────────────
+
 type Theme = 'light' | 'white' | 'dark';
 type Toast = { id: string; kind: 'info' | 'success' | 'error'; message: string };
 
+const emptyState: KnowledgeState = { notes: [], categories: [], graph: [], flashcards: [] };
+const preferenceKeys = { theme: 'knowledge-loom:theme', compactMode: 'knowledge-loom:compact-mode' };
 const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
   light: { icon: '◐', next: 'white', label: 'White' },
   white: { icon: '☾', next: 'dark', label: 'Dark' },
   dark: { icon: '☀', next: 'light', label: 'Light' },
 };
-const preferenceKeys = { theme: 'knowledge-loom:theme', compactMode: 'knowledge-loom:compact-mode' };
 
 function loadTheme(): Theme {
   const v = window.localStorage.getItem(preferenceKeys.theme);
   return v === 'light' || v === 'white' || v === 'dark' ? v : 'light';
 }
 
+// ── Route wrapper components ─────────────────────────────────────────────────
+// Defined at module level so React doesn't remount them on re-renders.
+
+type SharedHandlers = {
+  onOpen: (id: string) => void;
+  onOpenTag: (tag: string) => void;
+  onOpenCategory: (id: string) => void;
+  onOpenFlashcards: (scope: 'all' | 'category' | 'tag', value?: string) => void;
+};
+
+function NoteRoute({
+  notes, categories, readOnly, reminders,
+  onOpenCategory, onOpenTag,
+  onSave, onAssist, onDelete,
+  onCreateReminder, onCompleteReminder, onDeleteReminder,
+}: {
+  notes: KnowledgeNote[];
+  categories: UiCategory[];
+  readOnly: boolean;
+  reminders: Reminder[];
+  onOpenCategory: (id: string) => void;
+  onOpenTag: (tag: string) => void;
+  onSave: (id: string, update: NoteUpdate) => Promise<void>;
+  onAssist: (id: string, prompt: string, draft: NoteUpdate) => Promise<NoteUpdate>;
+  onDelete: (note: KnowledgeNote) => Promise<void>;
+  onCreateReminder: (noteId: string, remindAt: string, message: string) => Promise<void>;
+  onCompleteReminder: (id: string) => Promise<void>;
+  onDeleteReminder: (id: string) => Promise<void>;
+}) {
+  const { id } = useParams<{ id: string }>();
+  const [markdown, setMarkdown] = useState('');
+  const note = notes.find((n) => n.id === id) ?? null;
+
+  useEffect(() => {
+    if (!note) return;
+    fetchNoteMarkdown(note.id).then(setMarkdown).catch(() => setMarkdown(''));
+  }, [note?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!note) return null;
+  return (
+    <NoteDetail
+      note={note}
+      notes={notes}
+      categories={categories}
+      markdown={markdown}
+      readOnly={readOnly}
+      reminders={reminders.filter((r) => r.noteId === note.id)}
+      onOpenCategory={onOpenCategory}
+      onOpenTag={onOpenTag}
+      onSave={onSave}
+      onAssist={onAssist}
+      onDelete={() => onDelete(note)}
+      onCreateReminder={onCreateReminder}
+      onCompleteReminder={onCompleteReminder}
+      onDeleteReminder={onDeleteReminder}
+    />
+  );
+}
+
+function CategoryRoute({
+  notes, categories, categoryById, flashcards,
+  onOpen, onOpenTag, onOpenCategory, onOpenFlashcards,
+}: {
+  notes: KnowledgeNote[];
+  categories: UiCategory[];
+  categoryById: Map<string, CategoryTreeNode>;
+  flashcards: Flashcard[];
+} & SharedHandlers) {
+  const params = useParams<{ '*': string }>();
+  const id = params['*'] ?? '';
+  const node = categoryById.get(id) ?? null;
+  if (!node) return null;
+
+  const category = {
+    ...(node.category ?? {
+      slug: node.id, summaries: [], notes: [],
+      summary: `Folder containing ${node.count} notes across nested categories.`,
+    }),
+    id: node.id,
+    name: node.id,
+    count: node.count,
+    color: node.color,
+    summary: node.category?.summary ?? `Folder containing ${node.count} notes across nested categories.`,
+  };
+
+  return (
+    <CategoryIndex
+      category={category}
+      notes={notes}
+      categories={categories}
+      flashcards={flashcards}
+      onOpen={onOpen}
+      onOpenTag={onOpenTag}
+      onOpenCategory={onOpenCategory}
+      onOpenFlashcards={(cat) => onOpenFlashcards('category', cat)}
+    />
+  );
+}
+
+function TagRoute({
+  notes, categories, flashcards,
+  onOpen, onOpenTag, onOpenCategory, onOpenFlashcards,
+}: {
+  notes: KnowledgeNote[];
+  categories: UiCategory[];
+  flashcards: Flashcard[];
+} & SharedHandlers) {
+  const { tag } = useParams<{ tag: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get('page') || '1');
+
+  function handlePage(p: number) {
+    if (p <= 1) setSearchParams({});
+    else setSearchParams({ page: String(p) });
+  }
+
+  if (!tag) return null;
+  return (
+    <TagIndex
+      tag={decodeURIComponent(tag)}
+      notes={notes}
+      categories={categories}
+      flashcards={flashcards}
+      page={page}
+      onOpen={onOpen}
+      onOpenTag={onOpenTag}
+      onOpenCategory={onOpenCategory}
+      onOpenFlashcards={(t) => onOpenFlashcards('tag', t)}
+      onPage={handlePage}
+    />
+  );
+}
+
+function FlashcardsRoute({
+  flashcards, notes, categories, tagCounts, onScopeChange, onOpenNote,
+}: {
+  flashcards: Flashcard[];
+  notes: KnowledgeNote[];
+  categories: UiCategory[];
+  tagCounts: [string, number][];
+  onScopeChange: (scope: 'all' | 'category' | 'tag', value?: string) => void;
+  onOpenNote: (id: string) => void;
+}) {
+  const [searchParams] = useSearchParams();
+  const category = searchParams.get('category') || '';
+  const tag = searchParams.get('tag') || '';
+  const scope: 'all' | 'category' | 'tag' = category ? 'category' : tag ? 'tag' : 'all';
+
+  return (
+    <FlashcardsPage
+      flashcards={flashcards}
+      notes={notes}
+      categories={categories}
+      tagCounts={tagCounts}
+      scope={scope}
+      value={category || tag || ''}
+      onScopeChange={onScopeChange}
+      onOpenNote={onOpenNote}
+    />
+  );
+}
+
+// ── App ──────────────────────────────────────────────────────────────────────
+
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [state, setState] = useState<KnowledgeState>(emptyState);
   const [jobs, setJobs] = useState<LearnJob[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [view, setView] = useState<View>(() => viewFromPath(window.location.pathname));
   const [searchOpen, setSearchOpen] = useState(false);
-  const [markdown, setMarkdown] = useState('');
   const [theme, setTheme] = useState<Theme>(loadTheme);
   const [compactMode, setCompactMode] = useState(
     () => window.localStorage.getItem(preferenceKeys.compactMode) === 'true',
@@ -66,11 +233,15 @@ export default function App() {
   const [tagSearch, setTagSearch] = useState('');
   const hasLoadedJobs = useRef(false);
 
+  // ── Toasts ──────────────────────────────────────────────────────────────
+
   const pushToast = useCallback((kind: Toast['kind'], message: string) => {
     const id = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
     setToasts((prev) => [...prev, { id, kind, message }].slice(-4));
     window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4200);
   }, []);
+
+  // ── Data loading ─────────────────────────────────────────────────────────
 
   const loadAll = useCallback(async () => {
     const [knowledge, jobState, status, reminderState] = await Promise.all([
@@ -99,6 +270,8 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, [loadAll]);
 
+  // ── Preferences ──────────────────────────────────────────────────────────
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem(preferenceKeys.theme, theme);
@@ -108,12 +281,7 @@ export default function App() {
     window.localStorage.setItem(preferenceKeys.compactMode, String(compactMode));
   }, [compactMode]);
 
-  useEffect(() => {
-    window.history.replaceState({ view }, '', pathFromView(view));
-    const onPop = () => setView(viewFromPath(window.location.pathname));
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, [view]);
+  // ── Keyboard shortcuts ───────────────────────────────────────────────────
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setRailOpen(false); };
@@ -148,6 +316,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // ── Derived state ────────────────────────────────────────────────────────
+
   const categories = useMemo(() => makeUiCategories(state.categories), [state.categories]);
   const categoryTree = useMemo(() => makeCategoryTree(categories), [categories]);
   const categoryById = useMemo(() => {
@@ -164,50 +334,48 @@ export default function App() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   }, [state.notes]);
 
-  const currentNote = view.kind === 'note' ? state.notes.find((n) => n.id === view.id) ?? null : null;
-  const currentCategoryNode = view.kind === 'category' ? categoryById.get(view.id) ?? null : null;
-  const currentCategory = currentCategoryNode ? {
-    ...(currentCategoryNode.category || {
-      slug: currentCategoryNode.id,
-      summaries: [],
-      notes: [],
-      summary: `Folder containing ${currentCategoryNode.count} notes across nested categories.`,
-    }),
-    id: currentCategoryNode.id,
-    name: currentCategoryNode.id,
-    count: currentCategoryNode.count,
-    color: currentCategoryNode.color,
-    summary: currentCategoryNode.category?.summary ?? `Folder containing ${currentCategoryNode.count} notes across nested categories.`,
-  } : null;
+  // Derive current note from URL for the context panel (outside Routes)
+  const noteIdMatch = location.pathname.match(/^\/notes\/(.+)$/);
+  const currentNoteId = noteIdMatch ? decodeURIComponent(noteIdMatch[1]) : null;
+  const currentNote = currentNoteId ? state.notes.find((n) => n.id === currentNoteId) ?? null : null;
+  const showContextPanel = !!currentNote;
 
-  useEffect(() => {
-    if (!currentNote) return;
-    fetchNoteMarkdown(currentNote.id).then(setMarkdown).catch(() => setMarkdown(''));
-  }, [currentNote]);
+  // ── Navigation ───────────────────────────────────────────────────────────
 
-  const navigate = useCallback((nextView: View, opts: { replace?: boolean } = {}) => {
-    setView((cur) => {
-      const nextPath = pathFromView(nextView);
-      if (!sameView(cur, nextView)) {
-        if (opts.replace) window.history.replaceState({ view: nextView }, '', nextPath);
-        else window.history.pushState({ view: nextView }, '', nextPath);
-      } else if (window.location.pathname !== nextPath) {
-        window.history.replaceState({ view: nextView }, '', nextPath);
-      }
-      return nextView;
-    });
-  }, []);
-
-  const openNote = useCallback((id: string) => navigate({ kind: 'note', id }), [navigate]);
-  const openCategory = useCallback((id: string) => navigate({ kind: 'category', id }), [navigate]);
-  const openTag = useCallback((tag: string) => navigate({ kind: 'tag', tag, page: 1 }), [navigate]);
-  const openTagPage = useCallback((tag: string, page: number) => navigate({ kind: 'tag', tag, page }), [navigate]);
-  const goHome = useCallback(() => navigate({ kind: 'home' }), [navigate]);
-  const openActivity = useCallback(() => navigate({ kind: 'activity' }), [navigate]);
-  const openFlashcards = useCallback(
-    (scope: 'all' | 'category' | 'tag' = 'all', value?: string) => navigate({ kind: 'flashcards', scope, value }),
+  const openNote = useCallback((id: string) => navigate(`/notes/${encodeURIComponent(id)}`), [navigate]);
+  const openCategory = useCallback(
+    (id: string) => navigate(`/categories/${id.split('/').map(encodeURIComponent).join('/')}`),
     [navigate],
   );
+  const openTag = useCallback((tag: string) => navigate(`/tags/${encodeURIComponent(tag)}`), [navigate]);
+  const goHome = useCallback(() => navigate('/'), [navigate]);
+  const openActivity = useCallback(() => navigate('/activity'), [navigate]);
+  const openFlashcards = useCallback(
+    (scope: 'all' | 'category' | 'tag' = 'all', value?: string) => {
+      if (scope === 'category' && value) navigate(`/flashcards?category=${encodeURIComponent(value)}`);
+      else if (scope === 'tag' && value) navigate(`/flashcards?tag=${encodeURIComponent(value)}`);
+      else navigate('/flashcards');
+    },
+    [navigate],
+  );
+
+  // ── Note handlers ────────────────────────────────────────────────────────
+
+  async function handleDelete(note: KnowledgeNote) {
+    if (!window.confirm(`Delete "${note.title}"? This removes the markdown source file.`)) return;
+    const result = await deleteNote(note.id);
+    setState(result.state);
+    navigate('/', { replace: true });
+  }
+
+  async function handleSaveNote(id: string, update: NoteUpdate) {
+    const result = await updateNote(id, update);
+    setState(result.state);
+  }
+
+  async function handleAssistNote(id: string, prompt: string, draft: NoteUpdate) {
+    return (await assistNoteEdit(id, prompt, draft)).update;
+  }
 
   async function submitCapture(payload: CreateNoteRequest) {
     try {
@@ -216,33 +384,17 @@ export default function App() {
       if (result.state) {
         pushToast('success', `Saved note: ${result.note?.title || payload.title}`);
         setState(result.state);
-        if (result.note?.id) navigate({ kind: 'note', id: result.note.id });
+        if (result.note?.id) navigate(`/notes/${encodeURIComponent(result.note.id)}`);
         return;
       }
-      const label = payload.mode === 'link' ? 'Link queued for research' : payload.mode === 'polish' ? 'Draft queued for polishing' : 'Research queued';
+      const label = payload.mode === 'link' ? 'Link queued' : payload.mode === 'polish' ? 'Draft queued for polishing' : 'Research queued';
       pushToast('info', `${label}: ${payload.title}`);
     } catch (error) {
       pushToast('error', error instanceof Error ? error.message : 'Failed to submit request');
     }
   }
 
-  async function handleDelete() {
-    if (!currentNote) return;
-    if (!window.confirm(`Delete "${currentNote.title}"? This removes the markdown source file.`)) return;
-    const result = await deleteNote(currentNote.id);
-    setState(result.state);
-    navigate({ kind: 'home' }, { replace: true });
-  }
-
-  async function handleSaveNote(id: string, update: NoteUpdate) {
-    const result = await updateNote(id, update);
-    setState(result.state);
-    setMarkdown(result.markdown);
-  }
-
-  async function handleAssistNote(id: string, prompt: string, draft: NoteUpdate) {
-    return (await assistNoteEdit(id, prompt, draft)).update;
-  }
+  // ── Reminder handlers ────────────────────────────────────────────────────
 
   async function handleCreateReminder(noteId: string, remindAt: string, message: string) {
     await createReminder({ noteId, remindAt, message });
@@ -260,13 +412,13 @@ export default function App() {
   }
 
   const inFlightCount = jobs.filter((j) => j.status === 'queued' || j.status === 'running').length;
-  const showContextPanel = view.kind === 'note' && !!currentNote;
+
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className={`app${showContextPanel ? '' : ' no-right'}${compactMode ? ' dense' : ''}`}>
 
       <Rail
-        view={view}
         categories={categories}
         categoryTree={categoryTree}
         flashcardCount={state.flashcards?.length || 0}
@@ -299,15 +451,15 @@ export default function App() {
             <kbd>⌘K</kbd>
           </button>
           <div className="util-actions">
-            <button className="theme-toggle" onClick={() => setTheme((v) => themeLabels[v].next)} title={themeLabels[theme].label}>
+            <button onClick={() => setTheme((v) => themeLabels[v].next)} title={themeLabels[theme].label}>
               <span className="glyph">{themeLabels[theme].icon}</span>
               <span className="util-label">{themeLabels[theme].label}</span>
             </button>
-            <button className="density-toggle" onClick={() => setCompactMode((v) => !v)} title={compactMode ? 'Comfort' : 'Compact'}>
+            <button onClick={() => setCompactMode((v) => !v)} title={compactMode ? 'Comfort' : 'Compact'}>
               <span className="glyph">{compactMode ? '□' : '▤'}</span>
               <span className="util-label">{compactMode ? 'Comfort' : 'Compact'}</span>
             </button>
-            <button className="desk-btn" onClick={goHome} title="Desk">
+            <button onClick={goHome} title="Desk">
               <span className="glyph">✦</span>
               <span className="util-label">Desk</span>
             </button>
@@ -315,77 +467,72 @@ export default function App() {
         </div>
 
         <div className="main">
-          {view.kind === 'home' && (
-            <Home
-              notes={state.notes}
-              categories={categories}
-              reminders={reminders}
-              onOpen={openNote}
-              onOpenTag={openTag}
-              onCompleteReminder={handleCompleteReminder}
-              onSubmit={submitCapture}
-              readOnly={readOnly}
-            />
-          )}
-          {view.kind === 'activity' && (
-            <ActivityPage jobs={jobs} onOpenNote={openNote} />
-          )}
-          {view.kind === 'flashcards' && (
-            <FlashcardsPage
-              flashcards={state.flashcards || []}
-              notes={state.notes}
-              categories={categories}
-              tagCounts={tagCounts}
-              scope={view.scope || 'all'}
-              value={view.value || ''}
-              onScopeChange={openFlashcards}
-              onOpenNote={openNote}
-            />
-          )}
-          {view.kind === 'note' && currentNote && (
-            <NoteDetail
-              note={currentNote}
-              notes={state.notes}
-              categories={categories}
-              markdown={markdown}
-              onOpenCategory={openCategory}
-              onOpenTag={openTag}
-              onDelete={handleDelete}
-              onAssist={handleAssistNote}
-              onCreateReminder={handleCreateReminder}
-              onCompleteReminder={handleCompleteReminder}
-              onDeleteReminder={handleDeleteReminder}
-              onSave={handleSaveNote}
-              reminders={reminders.filter((r) => r.noteId === currentNote.id)}
-              readOnly={readOnly}
-            />
-          )}
-          {view.kind === 'category' && currentCategory && (
-            <CategoryIndex
-              category={currentCategory}
-              notes={state.notes}
-              categories={categories}
-              flashcards={state.flashcards || []}
-              onOpen={openNote}
-              onOpenTag={openTag}
-              onOpenCategory={openCategory}
-              onOpenFlashcards={(cat) => openFlashcards('category', cat)}
-            />
-          )}
-          {view.kind === 'tag' && (
-            <TagIndex
-              tag={view.tag}
-              notes={state.notes}
-              categories={categories}
-              flashcards={state.flashcards || []}
-              page={view.page || 1}
-              onOpen={openNote}
-              onOpenTag={openTag}
-              onOpenCategory={openCategory}
-              onOpenFlashcards={(tag) => openFlashcards('tag', tag)}
-              onPage={(page) => openTagPage(view.tag, page)}
-            />
-          )}
+          <Routes>
+            <Route path="/" element={
+              <Home
+                notes={state.notes}
+                categories={categories}
+                reminders={reminders}
+                onOpen={openNote}
+                onOpenTag={openTag}
+                onCompleteReminder={handleCompleteReminder}
+                onSubmit={submitCapture}
+                readOnly={readOnly}
+              />
+            } />
+            <Route path="/activity" element={
+              <ActivityPage jobs={jobs} onOpenNote={openNote} />
+            } />
+            <Route path="/flashcards" element={
+              <FlashcardsRoute
+                flashcards={state.flashcards || []}
+                notes={state.notes}
+                categories={categories}
+                tagCounts={tagCounts}
+                onScopeChange={openFlashcards}
+                onOpenNote={openNote}
+              />
+            } />
+            <Route path="/notes/:id" element={
+              <NoteRoute
+                notes={state.notes}
+                categories={categories}
+                readOnly={readOnly}
+                reminders={reminders}
+                onOpenCategory={openCategory}
+                onOpenTag={openTag}
+                onSave={handleSaveNote}
+                onAssist={handleAssistNote}
+                onDelete={handleDelete}
+                onCreateReminder={handleCreateReminder}
+                onCompleteReminder={handleCompleteReminder}
+                onDeleteReminder={handleDeleteReminder}
+              />
+            } />
+            <Route path="/categories/*" element={
+              <CategoryRoute
+                notes={state.notes}
+                categories={categories}
+                categoryById={categoryById}
+                flashcards={state.flashcards || []}
+                onOpen={openNote}
+                onOpenTag={openTag}
+                onOpenCategory={openCategory}
+                onOpenFlashcards={openFlashcards}
+              />
+            } />
+            <Route path="/tags/:tag" element={
+              <TagRoute
+                notes={state.notes}
+                categories={categories}
+                flashcards={state.flashcards || []}
+                onOpen={openNote}
+                onOpenTag={openTag}
+                onOpenCategory={openCategory}
+                onOpenFlashcards={openFlashcards}
+              />
+            } />
+          </Routes>
         </div>
       </main>
 

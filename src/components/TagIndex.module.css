@@ -1,20 +1,14 @@
-/* ═══════════════════════════════════════════════════════
-   Tag Index  (ti-*)
-   ═══════════════════════════════════════════════════════ */
+.page { }
 
-.ti-page { }
-
-/* ── Compact inline header ── */
-.ti-head {
-  margin-bottom: 14px;
-}
-.ti-head-row {
+/* ── Header ── */
+.head { margin-bottom: 14px; }
+.headRow {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
-.ti-head-tag {
+.headTag {
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -22,17 +16,17 @@
   color: var(--ink);
   line-height: 1.2;
 }
-.ti-hash {
+.hash {
   color: var(--accent);
   font-weight: 700;
 }
-.ti-head-chips {
+.headChips {
   display: flex;
   align-items: center;
   gap: 5px;
   flex-wrap: wrap;
 }
-.ti-chip {
+.chip {
   font-family: "JetBrains Mono", monospace;
   font-size: 10.5px;
   font-weight: 600;
@@ -44,25 +38,25 @@
   padding: 2px 7px;
   white-space: nowrap;
 }
-.ti-chip-action {
+.chipAction {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 30%, var(--rule));
   background: color-mix(in srgb, var(--accent) 7%, var(--surface));
   cursor: pointer;
   transition: background 130ms, border-color 130ms;
 }
-.ti-chip-action:hover {
+.chipAction:hover {
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
 }
 
-/* ── Compact strip rows ── */
-.ti-strip {
+/* ── Strip rows ── */
+.strip {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   margin-bottom: 10px;
 }
-.ti-strip-label {
+.stripLabel {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   font-weight: 700;
@@ -73,15 +67,15 @@
   padding-top: 4px;
   min-width: 40px;
 }
-.ti-strip-items {
+.stripItems {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   align-items: center;
 }
 
-/* Category pills in tag page */
-.ti-cat-pill {
+/* ── Category filter pills ── */
+.catPill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -95,18 +89,23 @@
   cursor: pointer;
   transition: border-color 130ms, background 130ms, transform 130ms;
 }
-.ti-cat-pill:hover {
+.catPill:hover {
   border-color: var(--cat-color, var(--accent));
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 7%, var(--surface));
   transform: translateY(-1px);
 }
-.ti-cat-dot {
+.catPillActive {
+  border-color: var(--cat-color, var(--accent));
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 10%, var(--surface));
+  color: var(--ink);
+}
+.catDot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.ti-cat-pill em {
+.catPill em {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   color: var(--muted);
@@ -114,19 +113,14 @@
   letter-spacing: 0.03em;
   margin-left: 2px;
 }
-.ti-cat-pill.active {
-  border-color: var(--cat-color, var(--accent));
-  background: color-mix(in srgb, var(--cat-color, var(--accent)) 10%, var(--surface));
-  color: var(--ink);
-}
-.ti-pill-clear {
+.pillClear {
   font-size: 9px;
   color: var(--cat-color, var(--accent));
   margin-left: 2px;
 }
 
-/* Co-occurring tag cloud */
-.ti-co-tag {
+/* ── Co-occurring tags ── */
+.coTag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -143,12 +137,12 @@
   transition: background 120ms, border-color 120ms, opacity 120ms;
   cursor: pointer;
 }
-.ti-co-tag:hover {
+.coTag:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
   border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
   opacity: 1;
 }
-.ti-co-tag em {
+.coTag em {
   font-size: 9.5px;
   color: var(--muted);
   font-style: normal;
@@ -156,7 +150,7 @@
 }
 
 /* ── Notes section head ── */
-.ti-section-head {
+.sectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -165,7 +159,7 @@
   padding-bottom: 8px;
   margin-bottom: 14px;
 }
-.ti-notes-label {
+.notesLabel {
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
   font-weight: 700;
@@ -177,14 +171,34 @@
   align-items: baseline;
   gap: 0;
 }
-.ti-notes-range {
+.notesRange {
   color: var(--muted);
   font-weight: 400;
   font-size: 10px;
 }
 
+/* ── Sort tabs ── */
+.sortTabs { display: flex; gap: 4px; }
+.sortTabs button {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 4px 8px;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.sortTabs button.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
 /* ── Mobile ── */
 @media (max-width: 760px) {
-  .ti-head-tag { font-size: 16px; }
-  .ti-section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .headTag { font-size: 16px; }
+  .sectionHead { flex-direction: column; align-items: flex-start; gap: 8px; }
 }

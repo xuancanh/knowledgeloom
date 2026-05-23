@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Flashcard, KnowledgeNote } from '../types';
 import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../lib/view';
 import NoteList, { type ViewMode } from './NoteList';
+import styles from './CategoryIndex.module.css';
 
 const COLOR_VAR: Record<string, string> = {
   oxblood: 'var(--accent)',
@@ -84,10 +85,7 @@ export default function CategoryIndex({
       categories.filter((cat) => {
         const catParts = cat.id.split('/');
         const thisParts = category.id.split('/');
-        return (
-          catParts.length === thisParts.length + 1 &&
-          cat.id.startsWith(category.id + '/')
-        );
+        return catParts.length === thisParts.length + 1 && cat.id.startsWith(category.id + '/');
       }),
     [categories, category.id],
   );
@@ -101,20 +99,20 @@ export default function CategoryIndex({
   }
 
   return (
-    <div className="ci-page">
+    <div className={styles.page}>
       {/* Breadcrumb */}
-      <nav className="ci-crumbs" aria-label="Category path">
-        <span className="ci-crumb-home" onClick={() => onOpenCategory('')}>Categories</span>
+      <nav className={styles.crumbs} aria-label="Category path">
+        <span className={styles.crumbHome} onClick={() => onOpenCategory('')}>Categories</span>
         {pathParts.map((part, i) => {
           const id = pathParts.slice(0, i + 1).join('/');
           const isLast = i === pathParts.length - 1;
           return (
-            <span key={id} className="ci-crumb-seg">
-              <span className="ci-crumb-sep">/</span>
+            <span key={id} className={styles.crumbSeg}>
+              <span className={styles.crumbSep}>/</span>
               {isLast ? (
-                <span className="ci-crumb-current">{part}</span>
+                <span className={styles.crumbCurrent}>{part}</span>
               ) : (
-                <button className="ci-crumb-link" onClick={() => onOpenCategory(id)}>{part}</button>
+                <button className={styles.crumbLink} onClick={() => onOpenCategory(id)}>{part}</button>
               )}
             </span>
           );
@@ -122,42 +120,42 @@ export default function CategoryIndex({
       </nav>
 
       {/* Header */}
-      <div className="ci-head" style={{ '--cat-color': accentColor } as React.CSSProperties}>
-        <div className="ci-head-row">
-          <span className="ci-head-dot" style={{ background: accentColor }} />
-          <h1 className="ci-head-title">{categoryLabel(category.name)}</h1>
-          <div className="ci-head-chips">
-            <span className="ci-chip">{inCat.length} notes</span>
+      <div className={styles.head} style={{ '--cat-color': accentColor } as React.CSSProperties}>
+        <div className={styles.headRow}>
+          <span className={styles.headDot} style={{ background: accentColor }} />
+          <h1 className={styles.headTitle}>{categoryLabel(category.name)}</h1>
+          <div className={styles.headChips}>
+            <span className={styles.chip}>{inCat.length} notes</span>
             {relatedFlashcards.length > 0 && (
-              <button className="ci-chip ci-chip-action" onClick={() => onOpenFlashcards(category.name)}>
+              <button className={`${styles.chip} ${styles.chipAction}`} onClick={() => onOpenFlashcards(category.name)}>
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {tagCounts.length > 0 && <span className="ci-chip">{tagCounts.length} tags</span>}
-            {totalLinks > 0 && <span className="ci-chip">{totalLinks} links</span>}
+            {tagCounts.length > 0 && <span className={styles.chip}>{tagCounts.length} tags</span>}
+            {totalLinks > 0 && <span className={styles.chip}>{totalLinks} links</span>}
           </div>
         </div>
         {category.summary && category.summary !== 'No summary yet.' && (
-          <p className="ci-head-summary">{category.summary}</p>
+          <p className={styles.headSummary}>{category.summary}</p>
         )}
       </div>
 
       {/* Subcategories */}
       {childCategories.length > 0 && (
-        <div className="ci-strip ci-subcat-strip">
-          <span className="ci-strip-label">Folders</span>
-          <div className="ci-strip-items">
+        <div className={styles.strip}>
+          <span className={styles.stripLabel}>Folders</span>
+          <div className={styles.stripItems}>
             {childCategories.map((cat) => {
               const catColor = COLOR_VAR[cat.color] || 'var(--accent)';
               const catNoteCount = notes.filter((n) => categoryContains(cat.id, categoryId(n.category))).length;
               return (
                 <button
                   key={cat.id}
-                  className="ci-subcat-pill"
+                  className={styles.subcatPill}
                   onClick={() => onOpenCategory(cat.id)}
                   style={{ '--cat-color': catColor } as React.CSSProperties}
                 >
-                  <span className="ci-subcat-dot" style={{ background: catColor }} />
+                  <span className={styles.subcatDot} style={{ background: catColor }} />
                   {categoryLabel(cat.name)}
                   <em>{catNoteCount}</em>
                 </button>
@@ -167,13 +165,13 @@ export default function CategoryIndex({
         </div>
       )}
 
-      {/* Tag chips — clicking navigates to the tag page */}
+      {/* Tag chips — navigate to tag page */}
       {tagCounts.length > 0 && (
-        <div className="ci-strip ci-tags-strip">
-          <span className="ci-strip-label">Tags</span>
-          <div className="ci-strip-items">
+        <div className={styles.strip}>
+          <span className={styles.stripLabel}>Tags</span>
+          <div className={styles.stripItems}>
             {tagCounts.slice(0, 14).map(([tag, count]) => (
-              <button key={tag} className="ci-tag-chip" onClick={() => onOpenTag(tag)}>
+              <button key={tag} className={styles.tagChip} onClick={() => onOpenTag(tag)}>
                 #{tag}
                 <em>{count}</em>
               </button>
@@ -184,13 +182,13 @@ export default function CategoryIndex({
 
       <div className="divider" />
 
-      {/* Notes toolbar: search + tag filter + sort + view mode */}
-      <div className="ci-section-head">
-        <h2 className="ci-notes-label">
+      {/* Notes toolbar */}
+      <div className={styles.sectionHead}>
+        <h2 className={styles.notesLabel}>
           Notes
-          <span className="ci-notes-count">{isFiltered ? `${filtered.length} / ${inCat.length}` : inCat.length}</span>
+          <span className={styles.notesCount}>{isFiltered ? `${filtered.length} / ${inCat.length}` : inCat.length}</span>
         </h2>
-        <div className="ci-sort-tabs">
+        <div className={styles.sortTabs}>
           {(['recent', 'oldest', 'links'] as SortKey[]).map((key) => (
             <button key={key} className={sort === key ? 'active' : ''} onClick={() => setSort(key)}>
               {key === 'recent' ? 'Recent' : key === 'oldest' ? 'Oldest' : 'Most linked'}
@@ -229,15 +227,15 @@ export default function CategoryIndex({
 
       {/* Tag filter chips */}
       {tagCounts.length > 0 && (
-        <div className="notes-tag-filter">
+        <div className={styles.tagFilter}>
           {tagCounts.slice(0, 20).map(([tag]) => (
             <button
               key={tag}
-              className={`ntf-chip${tagFilter === tag ? ' active' : ''}`}
+              className={`${styles.filterChip}${tagFilter === tag ? ` ${styles.filterChipActive}` : ''}`}
               onClick={() => toggleTagFilter(tag)}
             >
               #{tag}
-              {tagFilter === tag && <span className="ntf-clear">✕</span>}
+              {tagFilter === tag && <span className={styles.filterClear}>✕</span>}
             </button>
           ))}
         </div>
