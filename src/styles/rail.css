@@ -1,0 +1,266 @@
+/* ——— Left rail ——— */
+.rail {
+  background: var(--paper-2);
+  border-right: 1px solid var(--rule-2);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+.rail-head {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+.wordmark .mark {
+  width: 22px; height: 22px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  transform: translateY(4px);
+}
+.wordmark .mark::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+}
+.wordmark .mark::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: -3px; bottom: -3px;
+  width: 1px;
+  background: var(--ink);
+  transform: rotate(22deg);
+  transform-origin: center;
+}
+.wordmark .name {
+  font-size: 19px;
+  font-weight: 600;
+  font-style: italic;
+}
+.wordmark .name em { font-style: normal; font-weight: 500; }
+.rail-sub {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.rail-nav {
+  padding: 8px 10px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Rail nav group (top-level items) ── */
+.rail-nav-group {
+  margin-bottom: 4px;
+}
+
+/* ── Rail section headers ── */
+.rail-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 8px 5px;
+  margin-top: 2px;
+  border-top: 1px solid var(--rule);
+}
+.rail-section-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.rail-section-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  color: var(--muted-2);
+}
+
+/* ── Rail filter inputs ── */
+.rail-filter-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0 0 6px;
+}
+.rail-filter-icon {
+  position: absolute;
+  left: 9px;
+  font-size: 12px;
+  color: var(--muted);
+  pointer-events: none;
+  line-height: 1;
+}
+.rail-filter {
+  width: 100%;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ink);
+  padding: 5px 28px 5px 26px;
+  outline: none;
+  transition: border-color 140ms;
+}
+.rail-filter:focus { border-color: color-mix(in srgb, var(--accent) 60%, var(--rule)); }
+.rail-filter::placeholder { color: var(--muted-2); }
+.rail-filter-clear {
+  position: absolute;
+  right: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 2px 5px;
+  border-radius: 3px;
+  line-height: 1;
+  transition: color 120ms, background 120ms;
+}
+.rail-filter-clear:hover { color: var(--ink); background: var(--surface-2); }
+
+/* ── Filtered category result path ── */
+.rail-filter-path {
+  display: block;
+  font-size: 10px;
+  color: var(--muted-2);
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+/* ── Empty / "more" states ── */
+.rail-empty {
+  padding: 6px 10px 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+.rail-more {
+  padding: 4px 10px 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  color: var(--muted-2);
+}
+
+/* ── Mobile close / toggle ── */
+.rail-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  transition: color 120ms, border-color 120ms;
+}
+.rail-close:hover { color: var(--ink); border-color: var(--rule-2); }
+.rail-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-size: 15px;
+  color: var(--ink-2);
+  background: var(--surface);
+  transition: background 120ms, border-color 120ms;
+}
+.rail-toggle:hover { background: var(--surface-2); border-color: var(--rule-2); }
+.rail-backdrop {
+  display: none;
+}
+
+/* Retain old grp-label for any leftover usage */
+.rail-nav .grp-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  padding: 10px 8px 6px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  font-size: 14.5px;
+  color: var(--ink-2);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--surface-2); }
+.nav-item.active { background: var(--surface); color: var(--ink); box-shadow: inset 2px 0 0 var(--accent); }
+.activity-nav.researching .count {
+  color: var(--accent);
+  animation: countPulse 1.15s ease-in-out infinite;
+}
+.category-tree-node {
+  margin: 1px 0;
+}
+.category-tree-children {
+  margin-left: 10px;
+  border-left: 1px dashed var(--rule);
+  padding-left: 4px;
+}
+.category-nav.depth-1 { padding-left: 14px; }
+.category-nav.depth-2 { padding-left: 20px; }
+.category-nav.depth-3 { padding-left: 26px; }
+.category-nav.depth-4 { padding-left: 32px; }
+.nav-item .count {
+  margin-left: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.nav-item .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--rule-2);
+  flex-shrink: 0;
+}
+.nav-item .dot.oxblood { background: var(--accent); }
+.nav-item .dot.moss { background: var(--moss); }
+.nav-item .dot.indigo { background: var(--indigo); }
+.nav-item .dot.ochre { background: var(--ochre); }
+.nav-item .dot.teal { background: var(--teal); }
+.nav-item .dot.rust { background: var(--rust); }
+.nav-item .kbd {
+  margin-left: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+

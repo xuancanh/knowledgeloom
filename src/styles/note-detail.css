@@ -1,0 +1,270 @@
+/* ——— Note detail ——— */
+.note-detail .head {
+  margin-bottom: 18px;
+}
+.note-detail .h-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.note-detail .h-meta .cat-pill {
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.note-detail .h-meta .cat-pill .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.note-detail h1 {
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+.note-detail .lede {
+  font-size: 17px;
+  color: var(--ink-2);
+  margin: 0 0 18px;
+  font-style: italic;
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  text-wrap: pretty;
+}
+.note-detail .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+.source-note {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--muted);
+  display: grid;
+  gap: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  margin: 12px 0 0;
+  padding: 9px 11px;
+}
+.source-note a {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.source-note span {
+  overflow-wrap: anywhere;
+}
+.note-detail .tags .tag,
+.tag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0;
+}
+.tag:hover { background: var(--surface); color: var(--accent); cursor: pointer; }
+.pagination {
+  align-items: center;
+  border-top: 1px dashed var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 12px;
+}
+.pagination button {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ink-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 8px;
+  text-transform: uppercase;
+}
+.pagination button.active {
+  background: var(--surface-2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.reminder-list {
+  display: grid;
+  gap: 8px;
+}
+.reminder-row {
+  align-items: stretch;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 8px;
+  background: var(--surface);
+}
+.reminder-row.due {
+  border-color: var(--accent);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.reminder-main {
+  color: var(--ink-2);
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+.reminder-main.as-text {
+  cursor: default;
+}
+.reminder-main span {
+  color: var(--muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.reminder-main b {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.reminder-main em {
+  color: var(--muted-2);
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.3;
+}
+.reminder-done,
+.reminder-delete {
+  align-self: center;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ink-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 6px 8px;
+  text-transform: uppercase;
+}
+.reminder-delete {
+  color: var(--rust);
+}
+.reminder-card {
+  border-top: 1px dashed var(--rule);
+  margin-top: 20px;
+  padding-top: 6px;
+}
+.reminder-form {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 190px minmax(0, 1fr) auto;
+  margin-bottom: 12px;
+}
+.reminder-form input {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  padding: 7px 9px;
+}
+.reminder-form button {
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: #faf3e2;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  padding: 7px 10px;
+  text-transform: uppercase;
+}
+.note-reminders .reminder-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.note-body p {
+  margin: 0 0 14px;
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.note-body h3 {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 22px 0 8px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.note-body blockquote {
+  margin: 18px 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  font-style: italic;
+  color: var(--ink-2);
+  font-size: 16px;
+  text-wrap: pretty;
+}
+
+/* drawer of source markdown */
+.source-toggle {
+  margin-top: 32px;
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+}
+.source-toggle .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 500;
+}
+.source-toggle .head:hover { color: var(--accent); }
+.source-toggle pre {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+

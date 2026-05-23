@@ -1,0 +1,106 @@
+/* Knowledge Loom — calm scholarly, warm paper */
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Light (warm paper) */
+  --paper: #f3ecda;
+  --paper-2: #efe5cd;
+  --surface: #fbf5e6;
+  --surface-2: #f7eed8;
+  --ink: #1a1509;
+  --ink-2: #2e2718;
+  --muted: #5a4d36;
+  --muted-2: #7a6b52;
+  --rule: #d4c4a3;
+  --rule-2: #b9a47b;
+  --accent: #8a2a1f;     /* oxblood */
+  --accent-2: #b8553e;   /* warmer */
+  --moss: #5d6b3a;
+  --indigo: #3d4a7a;
+  --ochre: #a37018;
+  --teal: #2f6566;
+  --rust: #9c4a25;
+  --highlight: #f6e0a0;  /* margin highlight */
+  --shadow: 0 1px 0 rgba(60, 42, 18, 0.04), 0 4px 14px -8px rgba(60, 42, 18, 0.16);
+}
+
+[data-theme="white"] {
+  --paper: #f8f8f4;
+  --paper-2: #eeeeea;
+  --surface: #ffffff;
+  --surface-2: #f3f3ef;
+  --ink: #171714;
+  --ink-2: #2d2e29;
+  --muted: #5c6258;
+  --muted-2: #74796f;
+  --rule: #d8dbd2;
+  --rule-2: #b9beb2;
+  --accent: #7b2b24;
+  --accent-2: #a74f42;
+  --moss: #52643c;
+  --indigo: #394f7d;
+  --ochre: #8b691c;
+  --teal: #2b6464;
+  --rust: #904328;
+  --highlight: #f1e39d;
+  --shadow: 0 1px 0 rgba(30, 35, 28, 0.04), 0 6px 18px -12px rgba(30, 35, 28, 0.22);
+}
+
+[data-theme="dark"] {
+  --paper: #181410;
+  --paper-2: #201a14;
+  --surface: #221c15;
+  --surface-2: #2a2319;
+  --ink: #f3e8d2;
+  --ink-2: #dccfb4;
+  --muted: #b0a07f;
+  --muted-2: #c8b894;
+  --rule: #3f3528;
+  --rule-2: #564834;
+  --accent: #d97559;
+  --accent-2: #e89070;
+  --moss: #a8b873;
+  --indigo: #8e9ed0;
+  --ochre: #d6a548;
+  --teal: #6fadae;
+  --rust: #d97e4e;
+  --highlight: #5c4520;
+  --shadow: 0 1px 0 rgba(0,0,0,0.2), 0 8px 22px -10px rgba(0,0,0,0.6);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Source Serif 4", "Iowan Old Style", "Georgia", serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "onum", "kern";
+  transition: background 240ms ease, color 240ms ease;
+}
+
+#root { min-height: 100vh; }
+
+.mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+
+/* Tighter base for small uppercase mono labels — boosted size + weight,
+   reduced tracking, slightly darker muted color comes from --muted above. */
+.serif { font-family: "Source Serif 4", Georgia, serif; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+/* ——— App shell ——— */
+/* scrollbar */
+/* Scrollbar nicety */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--rule-2); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
