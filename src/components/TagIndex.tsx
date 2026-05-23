@@ -44,6 +44,8 @@ export default function TagIndex({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
   const [catFilter, setCatFilter] = useState<string | null>(null);
+  const [showIn, setShowIn] = useState(false);
+  const [showRelated, setShowRelated] = useState(false);
 
   const taggedNotes = useMemo(
     () =>
@@ -142,13 +144,28 @@ export default function TagIndex({
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {coTags.length > 0 && <span className={styles.chip}>{coTags.length} related tags</span>}
+            {catCounts.length > 0 && (
+              <button
+                className={`${styles.chip} ${styles.chipAction}${showIn ? ` ${styles.chipOpen}` : ''}`}
+                onClick={() => setShowIn((v) => !v)}
+              >
+                {catCounts.length} {catCounts.length === 1 ? 'category' : 'categories'}
+              </button>
+            )}
+            {coTags.length > 0 && (
+              <button
+                className={`${styles.chip} ${styles.chipAction}${showRelated ? ` ${styles.chipOpen}` : ''}`}
+                onClick={() => setShowRelated((v) => !v)}
+              >
+                {coTags.length} related tags
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Category filter pills */}
-      {catCounts.length > 0 && (
+      {showIn && catCounts.length > 0 && (
         <div className={styles.strip}>
           <span className={styles.stripLabel}>In</span>
           <div className={styles.stripItems}>
@@ -176,7 +193,7 @@ export default function TagIndex({
       )}
 
       {/* Related tags */}
-      {coTags.length > 0 && (
+      {showRelated && coTags.length > 0 && (
         <div className={styles.strip}>
           <span className={styles.stripLabel}>Related</span>
           <div className={styles.stripItems}>
