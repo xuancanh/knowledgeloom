@@ -1,9 +1,17 @@
-import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 
+/**
+ * Imperative handle exposed by the LiveEditor component.
+ * - `getValue()` — joins all lines with newlines
+ * - `setValue(markdown)` — replaces the full content
+ * - `clear()` — resets to a single empty line
+ * - `focus()` — focuses the first line element
+ */
 export type LiveEditorHandle = {
   getValue: () => string;
   clear: () => void;
   focus: () => void;
+  setValue: (markdown: string) => void;
 };
 
 function markdownLineClass(line: string) {
@@ -29,8 +37,13 @@ const LiveEditor = forwardRef<LiveEditorHandle, {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-}>(function LiveEditor({ placeholder = 'Start writing…', disabled = false, className = '' }, ref) {
-  const [lines, setLines] = useState<string[]>(['']);
+  initialValue?: string;
+}>(function LiveEditor({ placeholder = 'Start writing…', disabled = false, className = '', initialValue }, ref) {
+  const [lines, setLines] = useState<string[]>(() => {
+    if (initialValue === undefined) return [''];
+    const split = initialValue.split('\n');
+    return split.length ? split : [''];
+  });
   const [caretRestore, setCaretRestore] = useState<{ line: number; offset: number } | null>(null);
   const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -38,6 +51,11 @@ const LiveEditor = forwardRef<LiveEditorHandle, {
     getValue: () => lines.join('\n'),
     clear: () => { setLines(['']); setCaretRestore(null); },
     focus: () => { lineRefs.current[0]?.focus(); },
+    setValue: (markdown: string) => {
+      const split = markdown.split('\n');
+      setLines(split.length ? split : ['']);
+      setCaretRestore(null);
+    },
   }));
 
   useLayoutEffect(() => {
@@ -56,6 +74,13 @@ const LiveEditor = forwardRef<LiveEditorHandle, {
     setCaretRestore(null);
   }, [lines, caretRestore]);
 
+  useEffect(() => {
+    if (initialValue === undefined) return;
+    const split = initialValue.split('\n');
+    setLines(split.length ? split : ['']);
+    setCaretRestore(null);
+  }, [initialValue]);
+
   function updateLines(next: string[], line: number, offset: number) {
     setLines(next);
     setCaretRestore({ line: Math.max(0, Math.min(next.length - 1, line)), offset });
@@ -63,7 +88,7 @@ const LiveEditor = forwardRef<LiveEditorHandle, {
 
   function updateLine(index: number, value: string) {
     const next = [...lines];
-    next[index] = value.replace(/​/g, '');
+    next[index] = value.replace(/\u200b/g, '');
     const el = lineRefs.current[index];
     const offset = el ? caretOffset(el) : next[index].length;
     updateLines(next, index, offset);
@@ -144,7 +169,7 @@ const LiveEditor = forwardRef<LiveEditorHandle, {
           onKeyDown={(e) => handleKey(e, index)}
           onPaste={(e) => handlePaste(e, index)}
         >
-          {line || '​'}
+          {line || '\u200b'}
         </div>
       ))}
     </div>

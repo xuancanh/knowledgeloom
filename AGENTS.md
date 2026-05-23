@@ -10,12 +10,35 @@ the module boundaries, and where different concerns live.
 
 ```
 smart-knowledge-app/
-├── src/                    # React frontend (Vite + TypeScript)
-│   ├── components/         # UI components (NoteList, TagIndex, CategoryIndex, …)
-│   ├── lib/                # Shared helpers (view.ts, api.ts)
-│   └── types.ts            # Shared frontend types
+├── src/                    # React frontend (Vite + TypeScript, ESM)
+│   ├── components/         # UI components grouped by feature
+│   │   ├── activity/       # ActivityPage + CSS module
+│   │   ├── capture/        # CaptureBox + CSS module
+│   │   ├── categories/     # CategoryIndex + CSS module
+│   │   ├── flashcards/     # FlashcardsPage, browse/study/done sub-components, constants
+│   │   ├── notes/          # NoteDetail, AiAssistPanel, ReminderSection, LinkEditor
+│   │   ├── routes/         # URL→component wrappers (NoteRoute, CategoryRoute, etc.)
+│   │   ├── settings/       # SettingsPage + CSS module
+│   │   ├── tags/           # TagIndex + CSS module
+│   │   ├── ContextPanel.tsx  Rail.tsx  Home.tsx      # Layout / shell
+│   │   ├── LiveEditor.tsx   NoteList.tsx              # Shared editor / list
+│   │   ├── MiniGraph.tsx    SearchOverlay.tsx         # Shared widgets
+│   │   └── RichEditor.tsx                             # Unused (Ti​pTap editor)
+│   ├── hooks/              # Shared custom hooks
+│   │   └── useKnowledge.ts # Central state, polling, mutations, derived data
+│   ├── lib/                # Pure utility functions (no React imports except view.tsx)
+│   │   ├── format.ts       # Date formatting
+│   │   ├── guidance.ts     # Writing guidance template CRUD (localStorage)
+│   │   ├── markdown.ts     # Legacy markdown→HTML converter
+│   │   └── view.tsx        # Category tree builder, markdown parser, search helpers
+│   ├── api.ts              # All fetch calls to /api/*
+│   ├── types.ts            # Shared frontend types
+│   ├── main.tsx            # Entry point (StrictMode + BrowserRouter)
+│   ├── App.tsx             # Root component: layout shell + route table (~145 lines)
+│   ├── index.css           # CSS import manifest (12 @import statements)
+│   └── styles/             # Global CSS files (base, layout, rail, flashcards, etc.)
 ├── server/
-│   ├── src/                # NestJS backend (TypeScript) — the active server
+│   ├── src/                # NestJS backend (TypeScript, CommonJS)
 │   │   ├── ai/             # Pluggable AI provider (Codex / OpenRouter)
 │   │   ├── codex/          # AI note creation + edit assistant
 │   │   ├── common/         # Guards, note-parser utility
@@ -38,6 +61,9 @@ smart-knowledge-app/
 │   ├── repositories/       # Drizzle repos (ESM, used by legacy only)
 │   ├── package.json        # {"type":"commonjs"} — overrides root for NestJS output
 │   └── tsconfig.json       # NestJS TypeScript config (CommonJS, emitDecoratorMetadata)
+├── tests/
+│   ├── backend-storage.test.mjs   # Legacy job/flashcard repository tests
+│   └── frontend-lib.test.mjs      # Pure function tests (format, view, guidance)
 ├── knowledge/              # Runtime data (NOT committed except schema)
 │   ├── notes/              # Markdown source of truth (category sub-folders)
 │   ├── categories/         # Generated category markdown files
@@ -166,6 +192,15 @@ npx tsc -p server/tsconfig.json --noEmit
 # Type-check frontend only
 npx tsc -b --noEmit
 
+# Lint all code
+npm run lint
+
+# Run backend tests
+npm test
+
+# Run frontend tests
+npm run test:frontend
+
 # Build everything (NestJS + Vite)
 npm run build
 
@@ -190,11 +225,94 @@ npm run server
 
 ---
 
-## Frontend conventions
+## Frontend architecture
 
-- `src/api.ts` — all fetch calls to `/api/*`; add new API calls here
-- `src/types.ts` — frontend types (subset of backend types)
-- `src/components/` — one file per page/feature component
-- `src/index.css` — all styles; no CSS modules or Tailwind
-- CSS naming: `ci-*` for CategoryIndex, `ti-*` for TagIndex, `ni-*` for NoteIndex
-- The rail (sidebar) uses `railOpen` state in `App.tsx`; mobile is a fixed overlay
+### State management
+
+All global state lives in the `useKnowledge` custom hook (`src/hooks/useKnowledge.ts`).
+`App.tsx` calls this hook and distributes values via props. There is no Context
+or Redux — the single hook + prop drilling pattern keeps data flow explicit.
+
+**What lives in `useKnowledge`:**
+- `state` (notes, categories, graph, flashcards) — polled every 2.5 s
+- `jobs`, `reminders` — polled with knowledge
+- `searchOpen`, `railOpen`, `theme`, `compactMode` — UI preferences
+- `toasts` — transient notification stack
+- `templates` — writing guidance templates (localStorage-backed)
+- All mutation handlers (`handleDelete`, `handleSaveNote`, `submitCapture`, etc.)
+- All navigation callbacks (`openNote`, `openCategory`, `openTag`, etc.)
+- All derived state (`categories` with UI props, `categoryTree`, `tagCounts`)
+
+### Component organization
+
+**Feature directories** contain a page component + its CSS Module (co-located):
+```
+components/activity/      ActivityPage.tsx + ActivityPage.module.css
+components/capture/       CaptureBox.tsx + CaptureBox.module.css
+components/categories/    CategoryIndex.tsx + CategoryIndex.module.css
+components/flashcards/    FlashcardsPage.tsx + browse/study/done + constants/types
+components/notes/         NoteDetail.tsx + AiAssistPanel/ReminderSection/LinkEditor
+components/settings/      SettingsPage.tsx + SettingsPage.module.css
+components/tags/          TagIndex.tsx + TagIndex.module.css
+```
+
+**Shared components** (no CSS module, used across features) stay flat:
+```
+LiveEditor.tsx    NoteList.tsx    MiniGraph.tsx  SearchOverlay.tsx
+Rail.tsx          Home.tsx        ContextPanel.tsx
+```
+
+**Route wrappers** (`components/routes/`) extract URL params and delegate
+to page components. They are the only components that use `useParams()`
+and `useSearchParams()`.
+
+### Component design rules
+- **Page components** receive all data via props; never call `fetch()`.
+  Exception: `SearchOverlay` calls `searchKnowledge()` directly.
+- **Sub-components** (AiAssistPanel, FlashcardBrowse, etc.) own their
+  local form/UI state and call callbacks for mutations.
+- **Custom hooks** are preferred over HOCs or render props. Hooks that
+  serve one component stay in that component's folder. Promote to
+  `src/hooks/` when needed by 2+ features.
+- **No nested render functions** — extract them to module-level components.
+- **CSS Modules** for feature components; global CSS in `src/styles/` for
+  shared styles (layout, rail, base variables, common widgets).
+
+### Data flow
+```
+useKnowledge hook (polling + state)
+  └→ App.tsx (route table + layout)
+       ├→ Route wrappers (URL → props)
+       │    └→ Page components (props → UI)
+       │         └→ Sub-components (local state + callbacks)
+       ├→ Rail (sidebar nav, category tree, tag list)
+       ├→ ContextPanel (right sidebar, connections graph)
+       └→ SearchOverlay (command palette, calls API directly)
+```
+
+### API layer (`src/api.ts`)
+- Every backend endpoint has a matching exported async function.
+- Functions return typed responses (no `any`).
+- Error handling: throw on non-2xx with status code in message.
+- `NoteUpdate` type is the canonical editor draft format.
+
+### Lib layer (`src/lib/`)
+- Pure utility functions (no React imports, except `view.tsx` which has
+  JSX for `highlightText`).
+- `view.tsx` — category tree builder, markdown parser, search helpers,
+  UI category augmentation.
+- `guidance.ts` — writing guidance template CRUD backed by localStorage.
+- `format.ts` — date formatting (formatJobDate, toLocalDateTimeInputValue).
+- `markdown.ts` — legacy HTML converter (unused in current UI flow).
+
+### Styling
+- **CSS Modules** (`*.module.css`): Co-located with feature components.
+  Imported as `import styles from './Foo.module.css'`. Classes referenced
+  via `styles.foo`.
+- **Global CSS** (`src/styles/*.css`): Layout shell, rail sidebar, search
+  overlay, flashcards, base variables, common widgets. Imported via
+  `@import` in `src/index.css`.
+- **CSS variables** in `base.css` define 3 complete theme palettes
+  (`light`, `white`, `dark`). Theme is toggled via `documentElement.dataset.theme`.
+- When adding a new feature component, prefer a co-located CSS Module.
+  Use global CSS only for styles shared by multiple feature components.

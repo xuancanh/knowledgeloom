@@ -1,21 +1,11 @@
 import { useState } from 'react';
-import type { LearnJob } from '../types';
-import { jobState } from '../lib/view';
+import type { LearnJob } from '../../types';
+import { jobState } from '../../lib/view';
+import { formatJobDate } from '../../lib/format';
 import styles from './ActivityPage.module.css';
 
+/** Filter tabs for the job activity page. */
 type Filter = 'all' | 'active' | 'done' | 'failed';
-
-function formatJobDate(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
-  const hhmm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  if (d >= todayStart) return `Today ${hhmm}`;
-  if (d >= yesterdayStart) return `Yesterday ${hhmm}`;
-  return `${d.toLocaleDateString('en', { month: 'short', day: 'numeric' })} ${hhmm}`;
-}
 
 export default function ActivityPage({
   jobs,

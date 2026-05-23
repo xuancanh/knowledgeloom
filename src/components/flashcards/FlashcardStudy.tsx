@@ -1,0 +1,230 @@
+import { useEffect, useRef, useCallback } from 'react';
+import type { Flashcard } from '../../types';
+import { KIND_COLOR, KIND_LABEL } from './constants';
+import type { Rating } from './types';
+
+/**
+ * Active study session with 3-D flip cards and rating.
+ *
+ * Keyboard controls: Space/Enter to flip, 1/2/3 to rate (Again/Hard/Good),
+ * ←/→ arrows or swipe to navigate, Esc to exit. Progress bar and live rating
+ * counters shown in the top bar. Ghost cards indicate remaining stack depth.
+ */
+export function FlashcardStudy({
+  cards,
+  index,
+  flipped,
+  slideDir,
+  ratings,
+  ratingCounts,
+  progress,
+  onFlip,
+  onRate,
+  onGoToCard,
+  onExit,
+  onOpenNote,
+}: {
+  cards: Flashcard[];
+  index: number;
+  flipped: boolean;
+  slideDir: 'left' | 'right' | null;
+  ratings: Record<string, Rating>;
+  ratingCounts: { again: number; hard: number; good: number };
+  progress: number;
+  onFlip: () => void;
+  onRate: (rating: Rating) => void;
+  onGoToCard: (index: number, dir: 'left' | 'right') => void;
+  onExit: () => void;
+  onOpenNote: (id: string) => void;
+}) {
+  const activeCard = cards[index] ?? null;
+  const touchStartX = useRef<number | null>(null);
+
+  const rateAndAdvance = useCallback(
+    (rating: Rating) => {
+      onRate(rating);
+    },
+    [onRate],
+  );
+
+  const goTo = useCallback(
+    (nextIndex: number, dir: 'left' | 'right') => {
+      onGoToCard(nextIndex, dir);
+    },
+    [onGoToCard],
+  );
+
+  useEffect(() => {
+    if (!activeCard) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if ((e.key === ' ' || e.key === 'Enter') && !flipped) {
+        e.preventDefault();
+        onFlip();
+        return;
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onExit();
+        return;
+      }
+      if (flipped) {
+        if (e.key === '1') { e.preventDefault(); rateAndAdvance('again'); return; }
+        if (e.key === '2') { e.preventDefault(); rateAndAdvance('hard'); return; }
+        if (e.key === '3') { e.preventDefault(); rateAndAdvance('good'); return; }
+      }
+      if (e.key === 'ArrowRight' && index < cards.length - 1) {
+        e.preventDefault();
+        goTo(index + 1, 'left');
+      }
+      if (e.key === 'ArrowLeft' && index > 0) {
+        e.preventDefault();
+        goTo(index - 1, 'right');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [flipped, index, cards.length, activeCard, onFlip, onExit, rateAndAdvance, goTo]);
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null || !activeCard) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 20) {
+      if (!flipped) onFlip();
+      return;
+    }
+    if (dx < -50 && index < cards.length - 1) goTo(index + 1, 'left');
+    else if (dx > 50 && index > 0) goTo(index - 1, 'right');
+  }
+
+  if (!activeCard) return null;
+
+  const kindColor = KIND_COLOR[activeCard.kind] || 'var(--accent)';
+  const existingRating = ratings[activeCard.id];
+
+  return (
+    <div className="fc-page fc-study">
+      <div className="fc-study-bar">
+        <button className="fc-back-btn" onClick={onExit}>← Collection</button>
+        <div className="fc-bar-center">
+          <div className="fc-bar-track">
+            <div className="fc-bar-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <span className="fc-bar-label">{index + 1} / {cards.length}</span>
+        </div>
+        <div className="fc-live-counts">
+          {ratingCounts.again > 0 && <span className="fc-lc again">{ratingCounts.again}</span>}
+          {ratingCounts.hard > 0 && <span className="fc-lc hard">{ratingCounts.hard}</span>}
+          {ratingCounts.good > 0 && <span className="fc-lc good">{ratingCounts.good}</span>}
+        </div>
+      </div>
+
+      <div className="fc-stage" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {index + 2 < cards.length && <div className="fc-ghost g2" aria-hidden />}
+        {index + 1 < cards.length && <div className="fc-ghost g1" aria-hidden />}
+
+        <div key={activeCard.id} className={`fc-scene${slideDir ? ` slide-${slideDir}` : ''}`}>
+          <div
+            className={`fc-card${flipped ? ' flipped' : ''}`}
+            onClick={() => { if (!flipped) onFlip(); }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!flipped) onFlip(); } }}
+            aria-label={flipped ? 'Card answer revealed' : 'Press Space to reveal answer'}
+          >
+            <div className="fc-face fc-front">
+              <div className="fc-kind-row" style={{ color: kindColor }}>
+                <span className="fc-dot" style={{ background: kindColor }} />
+                {KIND_LABEL[activeCard.kind] || activeCard.kind}
+              </div>
+              <div className="fc-front-body">
+                <h2 className="fc-prompt">{activeCard.prompt}</h2>
+              </div>
+              <div className="fc-front-foot">
+                <div className="fc-note-ref">
+                  {activeCard.noteTitle} · {activeCard.category}
+                </div>
+                <div className="fc-hint-pill">
+                  <kbd>Space</kbd> to reveal
+                </div>
+              </div>
+            </div>
+
+            <div className="fc-face fc-back" aria-hidden={!flipped}>
+              <div className="fc-kind-row" style={{ color: kindColor }}>
+                <span className="fc-dot" style={{ background: kindColor }} />
+                {KIND_LABEL[activeCard.kind] || activeCard.kind}
+              </div>
+              <div className="fc-back-body">
+                <h3 className="fc-back-q">{activeCard.prompt}</h3>
+                <div className="fc-sep" />
+                <p className="fc-lesson">{activeCard.lesson}</p>
+              </div>
+              <div className="fc-back-foot">
+                <button
+                  className="fc-note-link"
+                  onClick={(e) => { e.stopPropagation(); onOpenNote(activeCard.noteId); }}
+                >
+                  {activeCard.noteTitle} ↗
+                </button>
+                <span className="fc-note-cat">{activeCard.category}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="fc-actions">
+          {!flipped ? (
+            <div className="fc-reveal-area">
+              {existingRating && (
+                <div className={`fc-prev-badge ${existingRating}`}>
+                  Previously: {existingRating}
+                </div>
+              )}
+              <button className="fc-reveal-btn" onClick={onFlip}>
+                Reveal answer <kbd>Space</kbd>
+              </button>
+            </div>
+          ) : (
+            <div className="fc-rating-area" aria-live="polite">
+              <span className="fc-rate-prompt">How well did you recall it?</span>
+              <div className="fc-rate-row">
+                <button className="fc-rate again" onClick={() => rateAndAdvance('again')}>
+                  <span>Again</span>
+                  <kbd>1</kbd>
+                </button>
+                <button className="fc-rate hard" onClick={() => rateAndAdvance('hard')}>
+                  <span>Hard</span>
+                  <kbd>2</kbd>
+                </button>
+                <button className="fc-rate good" onClick={() => rateAndAdvance('good')}>
+                  <span>Good</span>
+                  <kbd>3</kbd>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="fc-nav-row">
+          <button className="fc-nav-btn" onClick={() => goTo(index - 1, 'right')} disabled={index === 0}>
+            ← Prev
+          </button>
+          <span className="fc-nav-hint">
+            <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>Esc</kbd> exit
+          </span>
+          <button className="fc-nav-btn" onClick={() => goTo(index + 1, 'left')} disabled={index === cards.length - 1}>
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

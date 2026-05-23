@@ -1,3 +1,12 @@
+/**
+ * Legacy markdown-to-HTML converter.
+ *
+ * Handles wiki-links ([[id]]), inline code, bold, italic, headings, lists,
+ * blockquotes, code blocks, and horizontal rules. Not used in the current UI
+ * flow (the reader uses `parseMarkdownBlocks` from view.tsx instead).
+ * Kept for reference and potential future use.
+ */
+
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 

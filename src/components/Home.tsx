@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CreateNoteRequest, KnowledgeNote, Reminder } from '../types';
 import { formatCreated, type UiCategory } from '../lib/view';
 import type { GuidanceTemplate } from '../lib/guidance';
-import CaptureBox from './CaptureBox';
+import CaptureBox from './capture/CaptureBox';
 import NoteList from './NoteList';
 
 /**

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { CreateNoteRequest } from '../types';
-import { templatesForMode, type GuidanceTemplate } from '../lib/guidance';
-import LiveEditor, { type LiveEditorHandle } from './LiveEditor';
+import type { CreateNoteRequest } from '../../types';
+import { templatesForMode, type GuidanceTemplate } from '../../lib/guidance';
+import LiveEditor, { type LiveEditorHandle } from '../LiveEditor';
 import styles from './CaptureBox.module.css';
 
+/** Note capture mode: research, link (URL→note), or write (direct input). */
 type CaptureMode = 'research' | 'link' | 'write';
 
 function splitList(value: string) {
@@ -104,60 +105,7 @@ export default function CaptureBox({
     ? 'Research with Codex'
     : aiPolish ? 'Polish with AI' : 'Save note';
 
-  // ── Guidance section ────────────────────────────────────────────────────────
-  const GuidanceSection = () => (
-    <div className={styles.guidance}>
-      <div className={styles.guidanceTop}>
-        <span className={styles.guidanceLabel}>Writing instructions</span>
-        <div className={styles.guidanceLine} />
-        <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-          Manage
-        </button>
-      </div>
-      {modeTemplates.length > 0 && (
-        <div className={styles.chips}>
-          {modeTemplates.map((tpl) => (
-            <button
-              key={tpl.id}
-              type="button"
-              className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
-              onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
-              disabled={readOnly}
-            >
-              {tpl.label}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className={styles.guidanceInputWrap}>
-        <span className={styles.guidanceInputIcon}>✎</span>
-        <input
-          className={styles.guidanceInput}
-          value={guidance}
-          onChange={(e) => setGuidance(e.target.value)}
-          onKeyDown={onKey}
-          placeholder={
-            mode === 'link'
-              ? 'Custom instructions — focus area, audience, format…'
-              : 'Custom instructions — depth, format, audience, code style…'
-          }
-          disabled={readOnly}
-        />
-      </div>
-    </div>
-  );
 
-  // ── More options toggle ─────────────────────────────────────────────────────
-  const MoreToggle = () => (
-    <button
-      type="button"
-      className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
-      onClick={() => setShowMore((v) => !v)}
-    >
-      <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-      {showMore ? 'Fewer options' : 'More options'}
-    </button>
-  );
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -201,8 +149,49 @@ export default function CaptureBox({
               autoFocus={!readOnly}
             />
           </div>
-          <GuidanceSection />
-          <MoreToggle />
+          <div className={styles.guidance}>
+            <div className={styles.guidanceTop}>
+              <span className={styles.guidanceLabel}>Writing instructions</span>
+              <div className={styles.guidanceLine} />
+              <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
+                Manage
+              </button>
+            </div>
+            {modeTemplates.length > 0 && (
+              <div className={styles.chips}>
+                {modeTemplates.map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                    onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
+                    disabled={readOnly}
+                  >
+                    {tpl.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className={styles.guidanceInputWrap}>
+              <span className={styles.guidanceInputIcon}>✎</span>
+              <input
+                className={styles.guidanceInput}
+                value={guidance}
+                onChange={(e) => setGuidance(e.target.value)}
+                onKeyDown={onKey}
+                placeholder="Custom instructions — depth, format, audience, code style…"
+                disabled={readOnly}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
+            onClick={() => setShowMore((v) => !v)}
+          >
+            <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
+            {showMore ? 'Fewer options' : 'More options'}
+          </button>
           {showMore && (
             <div className={styles.moreBody}>
               <label className={styles.fieldLabel}>What you already know</label>
@@ -253,8 +242,49 @@ export default function CaptureBox({
               disabled={readOnly}
             />
           </div>
-          <GuidanceSection />
-          <MoreToggle />
+          <div className={styles.guidance}>
+            <div className={styles.guidanceTop}>
+              <span className={styles.guidanceLabel}>Writing instructions</span>
+              <div className={styles.guidanceLine} />
+              <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
+                Manage
+              </button>
+            </div>
+            {modeTemplates.length > 0 && (
+              <div className={styles.chips}>
+                {modeTemplates.map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                    onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
+                    disabled={readOnly}
+                  >
+                    {tpl.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className={styles.guidanceInputWrap}>
+              <span className={styles.guidanceInputIcon}>✎</span>
+              <input
+                className={styles.guidanceInput}
+                value={guidance}
+                onChange={(e) => setGuidance(e.target.value)}
+                onKeyDown={onKey}
+                placeholder="Custom instructions — focus area, audience, format…"
+                disabled={readOnly}
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
+            onClick={() => setShowMore((v) => !v)}
+          >
+            <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
+            {showMore ? 'Fewer options' : 'More options'}
+          </button>
           {showMore && (
             <div className={styles.moreBody}>
               <label className={styles.fieldLabel}>What to focus on</label>
@@ -307,7 +337,14 @@ export default function CaptureBox({
               <em>Improve structure and clarity without adding new facts</em>
             </span>
           </label>
-          <MoreToggle />
+          <button
+            type="button"
+            className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
+            onClick={() => setShowMore((v) => !v)}
+          >
+            <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
+            {showMore ? 'Fewer options' : 'More options'}
+          </button>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.metaRow}>

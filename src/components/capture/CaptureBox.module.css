@@ -187,11 +187,11 @@
 }
 .guidanceLabel {
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted-2);
+  letter-spacing: 0.08em;
+  color: var(--muted);
   flex-shrink: 0;
 }
 /* Hairline after the label to fill the row */
@@ -202,9 +202,10 @@
 }
 .guidanceManage {
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.05em;
-  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
   transition: color 120ms;
   flex-shrink: 0;
 }

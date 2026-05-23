@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { categoryLabel, type CategoryTreeNode, type UiCategory } from '../lib/view';
 
+/** Maximum tags shown before the "+N more" overflow indicator. */
 const TAG_INITIAL_LIMIT = 18;
 
 function renderCategoryNode(
