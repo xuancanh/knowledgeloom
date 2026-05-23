@@ -471,6 +471,57 @@ main { background: var(--surface); }
   color: var(--muted-2);
 }
 
+/* ── Section controls: sort + view mode toggles ── */
+.rail-section-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 4px;
+  gap: 6px;
+}
+.rail-ctrl-pills {
+  display: flex;
+  gap: 2px;
+}
+.rail-ctrl-pill {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 2px 6px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  line-height: 1.4;
+  transition: color 120ms, background 120ms, border-color 120ms;
+}
+.rail-ctrl-pill:hover { color: var(--ink-2); border-color: var(--rule-2); }
+.rail-ctrl-pill.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+/* ── Tag cloud view ── */
+.rail-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  padding: 4px 10px 10px;
+}
+.rail-cloud-tag {
+  font-size: calc(10px + var(--tw, 0) * 7px);
+  color: var(--ink-2);
+  padding: 1px 0;
+  line-height: 1.3;
+  transition: color 120ms;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.rail-cloud-tag:hover { color: var(--accent); }
+.rail-cloud-tag.active { color: var(--accent); }
+.rail-cloud-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1;
+}
+
 /* ── Mobile close / toggle ── */
 .rail-close {
   display: none;

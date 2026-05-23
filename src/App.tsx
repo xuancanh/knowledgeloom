@@ -118,7 +118,11 @@ export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [railOpen, setRailOpen] = useState(false);
   const [catSearch, setCatSearch] = useState('');
+  const [catSort, setCatSort] = useState<'name' | 'count'>('name');
+  const [catView, setCatView] = useState<'tree' | 'flat'>('tree');
   const [tagSearch, setTagSearch] = useState('');
+  const [tagSort, setTagSort] = useState<'count' | 'name'>('count');
+  const [tagView, setTagView] = useState<'list' | 'cloud'>('list');
   const hasLoadedJobs = useRef(false);
 
   const pushToast = useCallback((kind: Toast['kind'], message: string) => {
@@ -181,6 +185,10 @@ export default function App() {
 
   const categories = useMemo(() => makeUiCategories(state.categories), [state.categories]);
   const categoryTree = useMemo(() => makeCategoryTree(categories), [categories]);
+  const sortedCategoryTree = useMemo(() => {
+    if (catSort === 'count') return [...categoryTree].sort((a, b) => b.count - a.count);
+    return categoryTree;
+  }, [categoryTree, catSort]);
   const categoryById = useMemo(() => {
     const map = new Map<string, CategoryTreeNode>();
     const visit = (node: CategoryTreeNode) => {
@@ -215,22 +223,28 @@ export default function App() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   }, [state.notes]);
 
-  // Filtered categories for search mode (flat list)
-  const filteredCategories = useMemo(() => {
+  // Flat sorted category list used when searching or catView === 'flat'
+  const flatCategories = useMemo(() => {
     const q = catSearch.trim().toLowerCase();
-    if (!q) return null;
-    return categories.filter((cat) => cat.id.toLowerCase().includes(q));
-  }, [categories, catSearch]);
+    const base = q ? categories.filter((cat) => cat.id.toLowerCase().includes(q)) : categories;
+    if (catSort === 'count') return [...base].sort((a, b) => b.count - a.count);
+    return [...base].sort((a, b) => a.id.localeCompare(b.id));
+  }, [categories, catSearch, catSort]);
 
-  // Filtered + optionally capped tag list
+  const showFlatCategories = !!(catSearch.trim()) || catView === 'flat';
+
+  // Sorted + filtered tag list
   const filteredTags = useMemo(() => {
     const q = tagSearch.trim().toLowerCase();
-    if (!q) return tagCounts;
-    return tagCounts.filter(([tag]) => tag.toLowerCase().includes(q));
-  }, [tagCounts, tagSearch]);
+    const base = q ? tagCounts.filter(([tag]) => tag.toLowerCase().includes(q)) : tagCounts;
+    if (tagSort === 'name') return [...base].sort((a, b) => a[0].localeCompare(b[0]));
+    return base;
+  }, [tagCounts, tagSearch, tagSort]);
 
-  const visibleTags = tagSearch ? filteredTags : filteredTags.slice(0, TAG_INITIAL_LIMIT);
-  const hiddenTagCount = tagSearch ? 0 : Math.max(0, tagCounts.length - TAG_INITIAL_LIMIT);
+  const showAllTags = tagView === 'cloud' || !!tagSearch.trim();
+  const visibleTags = showAllTags ? filteredTags : filteredTags.slice(0, TAG_INITIAL_LIMIT);
+  const hiddenTagCount = showAllTags ? 0 : Math.max(0, filteredTags.length - TAG_INITIAL_LIMIT);
+  const maxTagCount = filteredTags[0]?.[1] || 1;
 
   const inFlightCount = jobs.filter((job) => job.status === 'queued' || job.status === 'running').length;
   const showContextPanel = view.kind === 'note' && !!currentNote;
@@ -407,6 +421,16 @@ export default function App() {
             <span className="rail-section-label">Categories</span>
             <span className="rail-section-count">{categories.length}</span>
           </div>
+          <div className="rail-section-controls">
+            <div className="rail-ctrl-pills">
+              <button className={`rail-ctrl-pill${catSort === 'name' ? ' active' : ''}`} onClick={() => setCatSort('name')}>A–Z</button>
+              <button className={`rail-ctrl-pill${catSort === 'count' ? ' active' : ''}`} onClick={() => setCatSort('count')}>#</button>
+            </div>
+            <div className="rail-ctrl-pills">
+              <button className={`rail-ctrl-pill${catView === 'tree' ? ' active' : ''}`} onClick={() => setCatView('tree')}>Tree</button>
+              <button className={`rail-ctrl-pill${catView === 'flat' ? ' active' : ''}`} onClick={() => setCatView('flat')}>List</button>
+            </div>
+          </div>
           <div className="rail-filter-wrap">
             <span className="rail-filter-icon">⌕</span>
             <input
@@ -421,9 +445,9 @@ export default function App() {
             )}
           </div>
 
-          {filteredCategories ? (
-            filteredCategories.length > 0 ? (
-              filteredCategories.map((cat) => {
+          {showFlatCategories ? (
+            flatCategories.length > 0 ? (
+              flatCategories.map((cat) => {
                 const label = categoryLabel(cat.name);
                 const parentPath = cat.id.includes('/') ? cat.id.slice(0, cat.id.lastIndexOf('/')) : '';
                 return (
@@ -446,13 +470,23 @@ export default function App() {
               <div className="rail-empty">No categories match</div>
             )
           ) : (
-            categoryTree.map(renderCategoryNode)
+            sortedCategoryTree.map(renderCategoryNode)
           )}
 
           {/* ── Tags ── */}
           <div className="rail-section-head">
             <span className="rail-section-label">Tags</span>
             <span className="rail-section-count">{tagCounts.length}</span>
+          </div>
+          <div className="rail-section-controls">
+            <div className="rail-ctrl-pills">
+              <button className={`rail-ctrl-pill${tagSort === 'count' ? ' active' : ''}`} onClick={() => setTagSort('count')}>#</button>
+              <button className={`rail-ctrl-pill${tagSort === 'name' ? ' active' : ''}`} onClick={() => setTagSort('name')}>A–Z</button>
+            </div>
+            <div className="rail-ctrl-pills">
+              <button className={`rail-ctrl-pill${tagView === 'list' ? ' active' : ''}`} onClick={() => setTagView('list')}>List</button>
+              <button className={`rail-ctrl-pill${tagView === 'cloud' ? ' active' : ''}`} onClick={() => setTagView('cloud')}>Cloud</button>
+            </div>
           </div>
           <div className="rail-filter-wrap">
             <span className="rail-filter-icon">⌕</span>
@@ -470,6 +504,25 @@ export default function App() {
 
           {filteredTags.length === 0 && tagSearch ? (
             <div className="rail-empty">No tags match</div>
+          ) : tagView === 'cloud' ? (
+            <div className="rail-tag-cloud">
+              {visibleTags.map(([tag, count]) => {
+                const weight = count / maxTagCount;
+                const isActive = view.kind === 'tag' && view.tag === tag;
+                return (
+                  <button
+                    key={tag}
+                    className={`rail-cloud-tag${isActive ? ' active' : ''}`}
+                    style={{ '--tw': weight } as React.CSSProperties}
+                    onClick={() => { openTag(tag); closeRail(); }}
+                    title={`${tag} · ${count} notes`}
+                  >
+                    {tag}
+                    <span className="rail-cloud-count">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
           ) : (
             visibleTags.map(([tag, count]) => (
               <button
@@ -484,7 +537,7 @@ export default function App() {
             ))
           )}
           {hiddenTagCount > 0 && (
-            <div className="rail-more">+{hiddenTagCount} more — search to filter</div>
+            <div className="rail-more">+{hiddenTagCount} more — switch to Cloud or search to see all</div>
           )}
         </nav>
       </aside>
