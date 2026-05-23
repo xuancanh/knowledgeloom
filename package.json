@@ -5,23 +5,35 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "server": "node server/index.mjs",
-    "build": "tsc -b && vite build",
+    "server": "node server/dist/main.js",
+    "server:build": "tsc -p server/tsconfig.json",
+    "server:dev": "ts-node --project server/tsconfig.json server/src/main.ts",
+    "build": "npm run server:build && tsc -b && vite build",
     "lint": "eslint .",
     "test": "node --test tests/*.test.mjs",
     "smoke:meili": "node scripts/smoke-meili-sync.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nestjs/common": "^10.4.22",
+    "@nestjs/config": "^3.3.0",
+    "@nestjs/core": "^10.4.22",
+    "@nestjs/platform-express": "^10.4.22",
     "@vitejs/plugin-react": "^6.0.1",
+    "better-sqlite3": "^12.10.0",
+    "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
     "typescript": "~6.0.2",
     "vite": "^8.0.12"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -29,6 +41,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "ts-node": "^10.9.2",
     "typescript-eslint": "^8.59.2"
   }
 }
