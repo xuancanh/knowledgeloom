@@ -15,13 +15,13 @@ export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Get()
-  listJobs() {
-    return { jobs: [...this.jobsService.jobs.values()] };
+  async listJobs() {
+    return { jobs: await this.jobsService.listAll() };
   }
 
   @Get(':id')
-  getJob(@Param('id') id: string) {
-    const job = this.jobsService.jobs.get(id);
+  async getJob(@Param('id') id: string) {
+    const job = await this.jobsService.getJob(id);
     if (!job) throw new NotFoundException('job not found');
     return job;
   }

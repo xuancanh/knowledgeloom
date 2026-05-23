@@ -14,25 +14,25 @@ export class RemindersController {
   constructor(private readonly remindersService: RemindersService) {}
 
   @Get()
-  list(@Query('noteId') noteId?: string, @Query('status') status?: string) {
-    return { reminders: this.remindersService.list({ noteId, status }) };
+  async list(@Query('noteId') noteId?: string, @Query('status') status?: string) {
+    return { reminders: await this.remindersService.list({ noteId, status }) };
   }
 
   @Post()
   @UseGuards(WritableGuard)
-  create(@Body() body: any) {
-    return { reminder: this.remindersService.create(body || {}) };
+  async create(@Body() body: any) {
+    return { reminder: await this.remindersService.create(body || {}) };
   }
 
   @Patch(':id')
   @UseGuards(WritableGuard)
-  patch(@Param('id') id: string, @Body() body: any) {
-    return { reminder: this.remindersService.patch(id, body || {}) };
+  async patch(@Param('id') id: string, @Body() body: any) {
+    return { reminder: await this.remindersService.patch(id, body || {}) };
   }
 
   @Delete(':id')
   @UseGuards(WritableGuard)
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.remindersService.remove(id);
   }
 }

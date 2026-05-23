@@ -127,7 +127,7 @@ export class NotesService {
     if (!currentFile) throw new NotFoundException('note not found');
 
     await this.noteRepo.delete(currentFile);
-    this.remindersService.removeForNote(safeId);
+    await this.remindersService.removeForNote(safeId);
     await this.searchService.deleteDocument(safeId).catch((err: Error) => {
       console.warn(`Meilisearch delete skipped for ${safeId}: ${err.message}`);
     });
