@@ -86,6 +86,7 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
       summary: payload.summary || '',
       tags: Array.isArray(payload.tags) ? payload.tags : [],
       links: Array.isArray(payload.links) ? payload.links : [],
+      guidance: payload.guidance || '',
       attempts: 0,
       maxAttempts: this.maxAttempts,
       createdAt: now,

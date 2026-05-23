@@ -63,7 +63,7 @@ export class CodexService {
         ? this.buildPolishPrompt({ ...payload, topic }, existingNotes)
         : mode === 'link'
           ? this.buildLinkPrompt({ ...payload, topic }, existingNotes)
-          : this.buildResearchPrompt(topic, payload.context || '', existingNotes);
+          : this.buildResearchPrompt({ ...payload, topic }, existingNotes);
 
     const output = await this.ai.complete(prompt);
     const markdown = this.attachProvenance(output, {
@@ -117,12 +117,29 @@ export class CodexService {
   // Prompt builders
   // ---------------------------------------------------------------------------
 
-  private buildResearchPrompt(topic: string, context: string, existingNotes: KnowledgeNote[]): string {
+  private buildResearchPrompt(payload: any, existingNotes: KnowledgeNote[]): string {
+    const topic = String(payload.topic || '').trim();
+    const context = String(payload.context || '').trim();
+    const body = String(payload.body || '').trim();
+    const guidance = String(payload.guidance || '').trim();
+    const categoryHint = String(payload.category || '').trim();
+    const tagsHint = Array.isArray(payload.tags) && payload.tags.length
+      ? payload.tags.join(', ')
+      : '';
     const related = existingNotes.slice(-20).map((n) => `- ${n.id}: ${n.title} (${n.category}) - ${n.summary}`).join('\n');
+
+    const sections: string[] = [
+      `Topic: ${topic}`,
+      context ? `Learner context: ${context}` : '',
+      body ? `User's existing notes on this topic:\n${body}` : '',
+      guidance ? `Writing instructions: ${guidance}` : '',
+      categoryHint ? `Suggested category: ${categoryHint}` : '',
+      tagsHint ? `Suggested tags: ${tagsHint}` : '',
+    ].filter(Boolean);
+
     return `Research this newly learned topic and produce one markdown knowledge note.
 
-Topic: ${topic}
-Learner context: ${context || 'No extra context provided.'}
+${sections.join('\n\n')}
 
 Existing notes that can be linked by id:
 ${related || '- None yet'}
@@ -151,12 +168,28 @@ Explain when to use it and what tradeoffs matter.
   }
 
   private buildLinkPrompt(payload: any, existingNotes: KnowledgeNote[]): string {
+    const context = String(payload.context || '').trim();
+    const focus = String(payload.body || '').trim();
+    const guidance = String(payload.guidance || '').trim();
+    const categoryHint = String(payload.category || '').trim();
+    const tagsHint = Array.isArray(payload.tags) && payload.tags.length
+      ? payload.tags.join(', ')
+      : '';
     const related = existingNotes.slice(-20).map((n) => `- ${n.id}: ${n.title} (${n.category}) - ${n.summary}`).join('\n');
+
+    const sections: string[] = [
+      `URL: ${payload.url}`,
+      payload.topic ? `Title hint: ${payload.topic}` : '',
+      context ? `Learner context: ${context}` : '',
+      focus ? `What to focus on: ${focus}` : '',
+      guidance ? `Writing instructions: ${guidance}` : '',
+      categoryHint ? `Suggested category: ${categoryHint}` : '',
+      tagsHint ? `Suggested tags: ${tagsHint}` : '',
+    ].filter(Boolean);
+
     return `Retrieve this URL, read the main content, and produce one markdown knowledge note from it.
 
-URL: ${payload.url}
-Optional title hint: ${payload.topic || 'Use the source title.'}
-Learner context: ${payload.context || 'No extra context provided.'}
+${sections.join('\n\n')}
 
 Existing notes that can be linked by id:
 ${related || '- None yet'}
