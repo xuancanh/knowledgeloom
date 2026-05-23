@@ -10,3 +10,6 @@
  * easier to inspect in debug output.
  */
 export const DRIZZLE_DB = 'DRIZZLE_DB';
+export const JOBS_TABLE = 'JOBS_TABLE';
+export const REMINDERS_TABLE = 'REMINDERS_TABLE';
+export const FLASHCARD_CACHE_TABLE = 'FLASHCARD_CACHE_TABLE';

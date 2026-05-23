@@ -9,10 +9,12 @@
  */
 import { spawn } from 'node:child_process';
 
+const args = process.argv.slice(2);
+
 const children = [
   spawn(
     'npx',
-    ['ts-node', '--project', 'server/tsconfig.json', 'server/src/main.ts'],
+    ['ts-node', '--project', 'server/tsconfig.json', 'server/src/main.ts', ...args],
     { stdio: 'inherit' },
   ),
   spawn('npx', ['vite', '--host', '0.0.0.0'], { stdio: 'inherit' }),

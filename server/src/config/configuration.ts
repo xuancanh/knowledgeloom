@@ -14,6 +14,19 @@ function loadEnv(filePath: string) {
   }
 }
 
+function getArg(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag);
+  if (index !== -1 && index + 1 < process.argv.length) {
+    return process.argv[index + 1];
+  }
+  const prefix = `${flag}=`;
+  const arg = process.argv.find((a) => a.startsWith(prefix));
+  if (arg) {
+    return arg.slice(prefix.length);
+  }
+  return undefined;
+}
+
 export default () => {
   // __dirname = server/dist/config (compiled) or server/src/config (ts-node)
   // Both require 3 levels up to reach project root
@@ -26,10 +39,15 @@ export default () => {
   const knowledgeDir = join(rootDir, 'knowledge');
   const meiliIndex = process.env.MEILI_INDEX || 'knowledge_notes';
 
+  const databaseDialect = getArg('--db-dialect') || getArg('--database-dialect') || process.env.DATABASE_DIALECT || 'sqlite';
+  const databaseUrl = getArg('--db-url') || getArg('--database-url') || process.env.DATABASE_URL || '';
+
   return {
     port: Number(process.env.PORT || 8787),
     rootDir,
     knowledgeDir,
+    databaseDialect,
+    databaseUrl,
     notesDir: join(knowledgeDir, 'notes'),
     categoriesDir: join(knowledgeDir, 'categories'),
     indexPath: join(knowledgeDir, 'index.json'),
@@ -42,6 +60,8 @@ export default () => {
     codexJobMaxAttempts: Number(process.env.CODEX_JOB_MAX_ATTEMPTS || 3),
     codexJobRetryMs: Number(process.env.CODEX_JOB_RETRY_MS || 60000),
     aiFlashcardsDisabled: process.env.AI_FLASHCARDS_DISABLED === '1',
+    redisHost: process.env.REDIS_HOST || 'localhost',
+    redisPort: Number(process.env.REDIS_PORT || 6379),
     meiliHost: process.env.MEILI_HOST || 'http://localhost:7700',
     meiliMasterKey: process.env.MEILI_MASTER_KEY || '',
     meiliIndex,

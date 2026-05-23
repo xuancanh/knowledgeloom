@@ -9,5 +9,25 @@ services:
     volumes:
       - meili_data:/meili_data
 
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: postgres:alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: knowledgeloom
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
 volumes:
   meili_data:
+  redis_data:
+  postgres_data:
