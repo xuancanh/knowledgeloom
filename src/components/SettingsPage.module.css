@@ -1,0 +1,270 @@
+.page { }
+
+/* ── Head ── */
+.head {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+}
+.head h1 {
+  font-size: 32px;
+  line-height: 1.05;
+  margin: 0;
+}
+
+/* ── Section ── */
+.section {
+  margin-bottom: 40px;
+}
+.sectionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.sectionTitle {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.sectionDesc {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 56ch;
+}
+.addBtn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  transition: background 120ms;
+  flex-shrink: 0;
+}
+.addBtn:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* ── Filter tabs ── */
+.filterTabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.filterTab {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 9px;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.filterTab:hover { color: var(--ink-2); }
+.filterTab.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* ── Template list ── */
+.templateList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.empty {
+  color: var(--muted);
+  font-size: 14px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* ── Template row ── */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+}
+.rowBody {
+  flex: 1;
+  min-width: 0;
+}
+.rowHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.rowLabel {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.rowMode {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.rowMode.modeResearch { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, var(--rule)); }
+.rowMode.modeLink { color: var(--indigo); border-color: color-mix(in srgb, var(--indigo) 30%, var(--rule)); }
+.rowMode.modeBoth { color: var(--moss); border-color: color-mix(in srgb, var(--moss) 30%, var(--rule)); }
+.rowBuiltIn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: var(--muted-2);
+  letter-spacing: 0.06em;
+}
+.rowText {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rowActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.rowBtn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 4px 8px;
+  transition: color 120ms, border-color 120ms;
+}
+.rowBtn:hover { color: var(--ink-2); border-color: var(--rule-2); }
+.rowBtnDelete:hover { color: var(--rust); border-color: var(--rust); }
+
+/* ── Template editor ── */
+.editor {
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.editorRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.editorField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.editorLabel {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted-2);
+}
+.editorInput {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 14px;
+  padding: 7px 9px;
+  font-family: inherit;
+  width: 100%;
+}
+.editorInput:focus { border-color: var(--accent); outline: none; }
+.editorTextarea {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 7px 9px;
+  font-family: inherit;
+  width: 100%;
+  resize: vertical;
+  min-height: 68px;
+}
+.editorTextarea:focus { border-color: var(--accent); outline: none; }
+.editorModeGroup {
+  display: flex;
+  gap: 6px;
+}
+.editorModeBtn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 10px;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.editorModeBtn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.editorActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.editorSave {
+  background: var(--accent);
+  color: #faf3e2;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 6px 14px;
+}
+.editorSave:disabled { opacity: 0.4; cursor: not-allowed; }
+.editorCancel {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px 14px;
+}

@@ -51,6 +51,7 @@ export type CreateNoteRequest = {
   summary?: string;
   tags?: string[];
   links?: string[];
+  guidance?: string;
 };
 
 export type LearnJob = {

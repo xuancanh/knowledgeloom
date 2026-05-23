@@ -23,6 +23,7 @@ import Home from './components/Home';
 import NoteDetail from './components/NoteDetail';
 import Rail from './components/Rail';
 import SearchOverlay from './components/SearchOverlay';
+import SettingsPage from './components/SettingsPage';
 import TagIndex from './components/TagIndex';
 import {
   makeCategoryTree,
@@ -30,6 +31,7 @@ import {
   type CategoryTreeNode,
   type UiCategory,
 } from './lib/view';
+import { loadTemplates, type GuidanceTemplate } from './lib/guidance';
 import type { CreateNoteRequest, Flashcard, KnowledgeNote, KnowledgeState, LearnJob, Reminder } from './types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -229,6 +231,7 @@ export default function App() {
   const [readOnly, setReadOnly] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [railOpen, setRailOpen] = useState(false);
+  const [templates, setTemplates] = useState<GuidanceTemplate[]>(loadTemplates);
   const [catSearch, setCatSearch] = useState('');
   const [tagSearch, setTagSearch] = useState('');
   const hasLoadedJobs = useRef(false);
@@ -350,6 +353,8 @@ export default function App() {
   const openTag = useCallback((tag: string) => navigate(`/tags/${encodeURIComponent(tag)}`), [navigate]);
   const goHome = useCallback(() => navigate('/'), [navigate]);
   const openActivity = useCallback(() => navigate('/activity'), [navigate]);
+  const openSettings = useCallback(() => navigate('/settings'), [navigate]);
+
   const openFlashcards = useCallback(
     (scope: 'all' | 'category' | 'tag' = 'all', value?: string) => {
       if (scope === 'category' && value) navigate(`/flashcards?category=${encodeURIComponent(value)}`);
@@ -433,6 +438,7 @@ export default function App() {
         onSearch={() => setSearchOpen(true)}
         onActivity={openActivity}
         onFlashcards={openFlashcards}
+        onSettings={openSettings}
         openCategory={openCategory}
         openTag={openTag}
         closeRail={() => setRailOpen(false)}
@@ -478,6 +484,7 @@ export default function App() {
                 onCompleteReminder={handleCompleteReminder}
                 onSubmit={submitCapture}
                 readOnly={readOnly}
+                templates={templates}
               />
             } />
             <Route path="/activity" element={
@@ -531,6 +538,9 @@ export default function App() {
                 onOpenCategory={openCategory}
                 onOpenFlashcards={openFlashcards}
               />
+            } />
+            <Route path="/settings" element={
+              <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
             } />
           </Routes>
         </div>
