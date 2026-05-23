@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+knowledge/index.json
+knowledge/jobs.json
+knowledge/meili-sync*.json
+knowledge/notes/*.md
+knowledge/categories/*.md
+.DS_Store
