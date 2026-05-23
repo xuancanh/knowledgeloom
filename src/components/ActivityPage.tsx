@@ -1,11 +1,22 @@
+import { useState } from 'react';
 import type { LearnJob } from '../types';
-import { formatJobTime, jobState } from '../lib/view';
+import { jobState } from '../lib/view';
+import styles from './ActivityPage.module.css';
 
-/**
- * Dedicated Codex work queue page. The left rail links here with the active
- * count, while this page keeps full job history and retry context out of the
- * capture-focused home page.
- */
+type Filter = 'all' | 'active' | 'done' | 'failed';
+
+function formatJobDate(value?: string | null): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+  const hhmm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (d >= todayStart) return `Today ${hhmm}`;
+  if (d >= yesterdayStart) return `Yesterday ${hhmm}`;
+  return `${d.toLocaleDateString('en', { month: 'short', day: 'numeric' })} ${hhmm}`;
+}
+
 export default function ActivityPage({
   jobs,
   onOpenNote,
@@ -13,76 +24,103 @@ export default function ActivityPage({
   jobs: LearnJob[];
   onOpenNote: (id: string) => void;
 }) {
-  const inFlight = jobs.filter((job) => job.status === 'queued' || job.status === 'running');
-  const completed = jobs.filter((job) => job.status !== 'queued' && job.status !== 'running');
+  const [filter, setFilter] = useState<Filter>('all');
+
+  const sorted = [...jobs].sort((a, b) => {
+    const ta = a.createdAt ?? '';
+    const tb = b.createdAt ?? '';
+    return tb.localeCompare(ta);
+  });
+
+  const activeJobs  = sorted.filter((j) => j.status === 'queued' || j.status === 'running');
+  const doneJobs    = sorted.filter((j) => j.status === 'done');
+  const failedJobs  = sorted.filter((j) => j.status === 'error');
+
+  const visible = filter === 'active' ? activeJobs
+    : filter === 'done'   ? doneJobs
+    : filter === 'failed' ? failedJobs
+    : sorted;
+
+  const filters: { key: Filter; label: string }[] = [
+    { key: 'all',    label: `All · ${sorted.length}` },
+    { key: 'active', label: `Active · ${activeJobs.length}` },
+    { key: 'done',   label: `Done · ${doneJobs.length}` },
+    { key: 'failed', label: `Failed · ${failedJobs.length}` },
+  ];
 
   return (
-    <div className="activity-page">
+    <div className={styles.page}>
       <div className="crumbs"><span>Desk</span><span className="sep">/</span><span>Activity</span></div>
-      <div className="page-head">
-        <div>
+
+      <div className={styles.head}>
+        <div className={styles.headText}>
           <h1>Activity</h1>
-          <p>Queued and running Codex requests resume after server restart. Completed requests stay here as history.</p>
+          <p>Queued and running Codex requests resume after server restart. Completed jobs stay here as a permanent record.</p>
         </div>
-        <div className="activity-count">
-          <b>{inFlight.length}</b>
-          <span>in flight</span>
+        <div className={styles.headStats}>
+          <div className={`${styles.statBadge} ${styles.active}`}>
+            <b>{activeJobs.length}</b>
+            <span>active</span>
+          </div>
+          <div className={`${styles.statBadge} ${styles.done}`}>
+            <b>{doneJobs.length}</b>
+            <span>done</span>
+          </div>
+          {failedJobs.length > 0 && (
+            <div className={`${styles.statBadge} ${styles.failed}`}>
+              <b>{failedJobs.length}</b>
+              <span>failed</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <section>
-        <div className="section-label">
-          <h2>In flight</h2>
-          <span className="meta">{inFlight.length} active</span>
-        </div>
-        <JobList jobs={inFlight} onOpenNote={onOpenNote} empty="No queued or running Codex requests." />
-      </section>
+      <div className={styles.filters}>
+        {filters.map(({ key, label }) => (
+          <button
+            key={key}
+            className={`${styles.filterBtn}${filter === key ? ` ${styles.active}` : ''}`}
+            onClick={() => setFilter(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-      <section>
-        <div className="section-label">
-          <h2>History</h2>
-          <span className="meta">{completed.length} finished</span>
+      {visible.length === 0 ? (
+        <div className={styles.empty}>
+          {filter === 'all' ? 'No jobs yet.' : `No ${filter} jobs.`}
         </div>
-        <JobList jobs={completed} onOpenNote={onOpenNote} empty="No completed jobs yet." />
-      </section>
-    </div>
-  );
-}
-
-/**
- * Renders a compact, scannable job list. Saved jobs with a linked note are
- * clickable; queued/running/failed jobs stay as status records.
- */
-function JobList({
-  jobs,
-  onOpenNote,
-  empty,
-}: {
-  jobs: LearnJob[];
-  onOpenNote: (id: string) => void;
-  empty: string;
-}) {
-  if (!jobs.length) return <div className="empty">{empty}</div>;
-  return (
-    <div className="activity-job-list">
-      {jobs.map((job) => {
-        const state = jobState(job);
-        const canOpen = Boolean(job.note?.id);
-        return (
-          <article key={job.id} className={`job ${state}`}>
-            <div className="top">
-              <span className="state"><span className="pulse" />{state}</span>
-              <span>· {formatJobTime(job.startedAt || job.createdAt)}</span>
-              <span>· attempt {job.attempts || 0}/{job.maxAttempts || 0}</span>
-              <span className="job-id">· {job.id}</span>
-            </div>
-            <button className="title" disabled={!canOpen} onClick={() => job.note?.id && onOpenNote(job.note.id)}>
-              {job.topic}
-            </button>
-            {job.error && <p className="job-error">{job.error}</p>}
-          </article>
-        );
-      })}
+      ) : (
+        <div className={styles.list}>
+          {visible.map((job) => {
+            const state = jobState(job);
+            const canOpen = Boolean(job.note?.id);
+            const ts = job.finishedAt || job.startedAt || job.createdAt;
+            return (
+              <article key={job.id} className={`${styles.job} ${styles[state]}`}>
+                <div className={styles.jobMeta}>
+                  <span className={styles.jobState}>
+                    <span className={styles.pulse} />
+                    {state === 'researching' ? 'Running' : state.charAt(0).toUpperCase() + state.slice(1)}
+                  </span>
+                  <span className={styles.jobDot} />
+                  <span className={styles.jobTime}>{formatJobDate(ts)}</span>
+                  {job.category && <span className={styles.jobCat}>{job.category}</span>}
+                </div>
+                <button
+                  className={styles.jobTitle}
+                  disabled={!canOpen}
+                  onClick={() => job.note?.id && onOpenNote(job.note.id)}
+                >
+                  {job.topic}
+                </button>
+                {job.error && <p className={styles.jobError}>{job.error}</p>}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
