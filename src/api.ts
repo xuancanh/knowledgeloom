@@ -178,6 +178,17 @@ export async function updateNote(id: string, update: NoteUpdate): Promise<{ note
 }
 
 /**
+ * Uploads an image file and returns its served URL.
+ */
+export async function uploadImage(file: File): Promise<{ url: string; filename: string }> {
+  const form = new FormData();
+  form.append('file', file);
+  const response = await fetch('/api/images', { method: 'POST', body: form });
+  if (!response.ok) throw new Error(`Failed to upload image: ${response.status}`);
+  return response.json();
+}
+
+/**
  * Creates or enqueues a new knowledge note.
  *
  * The backend branches by `mode`: direct writes return a completed job plus a

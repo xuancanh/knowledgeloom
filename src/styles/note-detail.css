@@ -245,6 +245,147 @@
   text-wrap: pretty;
 }
 
+/* ════════════════════════════ Inline edit mode ════════════════════════ */
+
+.note-edit-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Title input — matches the h1 read style */
+.edit-title {
+  display: block;
+  width: 100%;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  outline: none;
+  padding: 0 0 4px;
+  margin: 0 0 8px;
+  resize: none;
+  transition: border-color 150ms;
+}
+.edit-title::placeholder { color: var(--muted-2); }
+.edit-title:focus { border-bottom-color: var(--rule-2); }
+
+/* Summary textarea — matches the .lede read style */
+.edit-summary {
+  display: block;
+  width: 100%;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 17px;
+  color: var(--ink-2);
+  font-style: italic;
+  border: none;
+  border-left: 2px solid var(--accent);
+  outline: none;
+  background: transparent;
+  padding: 2px 0 2px 14px;
+  margin: 0 0 22px;
+  resize: none;
+  line-height: 1.5;
+  field-sizing: content;
+  transition: border-left-color 150ms;
+}
+.edit-summary::placeholder { color: var(--muted-2); }
+.edit-summary:focus { border-left-color: var(--accent-2, var(--accent)); }
+
+/* Body editor — remove card box, let it blend with the page */
+.edit-body {
+  margin: 0 0 20px;
+}
+.edit-body .note-editor {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.edit-body .ne-toolbar {
+  background: transparent;
+  border-bottom-color: var(--rule);
+  padding-left: 0;
+}
+.edit-body .ne-content {
+  padding-left: 0;
+  padding-right: 0;
+  max-height: 58vh;
+  overflow-y: auto;
+}
+
+/* Meta section at the bottom */
+.edit-footer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--rule);
+  margin-bottom: 20px;
+}
+
+/* Action bar */
+.edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+.edit-actions-gap { flex: 1; }
+
+.edit-actions button {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  background: transparent;
+  transition: color 120ms, border-color 120ms, background 120ms;
+  cursor: pointer;
+}
+.edit-actions button:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--rule-2);
+}
+.edit-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.edit-actions .ai-tab-btn { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, var(--rule)); }
+.edit-actions .ai-tab-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+.edit-actions .ai-tab-btn.active { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+
+.edit-actions .save-note {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #faf3e2;
+}
+.edit-actions .save-note:hover:not(:disabled) {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #faf3e2;
+}
+
+.edit-success {
+  font-size: 13px;
+  color: var(--accent);
+  padding: 8px 0;
+  font-family: "JetBrains Mono", monospace;
+}
+.edit-error {
+  font-size: 13px;
+  color: var(--rust);
+  padding: 8px 0;
+  font-family: "JetBrains Mono", monospace;
+}
+
 /* drawer of source markdown */
 .source-toggle {
   margin-top: 32px;

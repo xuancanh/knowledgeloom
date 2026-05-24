@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════════
+   NoteEditor — WYSIWYG Tiptap editor
+   ═══════════════════════════════════════════════════════════════ */
+
+.note-editor {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow: hidden;
+  position: relative;
+}
+
+.ne-uploading {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--accent);
+  animation: ne-pulse 1s ease-in-out infinite;
+}
+@keyframes ne-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── Toolbar ── */
+.ne-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.ne-btn {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 100ms, color 100ms;
+  min-width: 28px;
+  text-align: center;
+}
+.ne-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
+.ne-btn--active { background: var(--accent); color: #faf3e2 !important; }
+.ne-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ne-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--rule);
+  margin: 0 3px;
+}
+
+/* ── Bubble menu (appears on selection) ── */
+.ne-bubble {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.22);
+}
+.ne-bubble .ne-btn {
+  font-size: 12px;
+  padding: 3px 7px;
+}
+
+/* ── Editor content area ── */
+.ne-content {
+  padding: 16px 18px;
+  min-height: 240px;
+  cursor: text;
+}
+
+.ne-content .tiptap {
+  outline: none;
+  min-height: 200px;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+/* Placeholder */
+.ne-content .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-2);
+  pointer-events: none;
+  float: left;
+  height: 0;
+  font-style: italic;
+}
+
+/* Typography */
+.ne-content .tiptap h1 { font-size: 1.6em; font-weight: 600; margin: 20px 0 8px; letter-spacing: -0.01em; }
+.ne-content .tiptap h2 { font-size: 1.25em; font-weight: 600; margin: 18px 0 7px; }
+.ne-content .tiptap h3 { font-size: 1.05em; font-weight: 600; margin: 16px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-family: "JetBrains Mono", monospace; }
+.ne-content .tiptap p { margin: 0 0 10px; }
+.ne-content .tiptap ul, .ne-content .tiptap ol { padding-left: 22px; margin: 0 0 10px; }
+.ne-content .tiptap li { margin-bottom: 3px; }
+.ne-content .tiptap blockquote {
+  margin: 14px 0;
+  padding: 8px 14px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-style: italic;
+  border-radius: 0 4px 4px 0;
+}
+.ne-content .tiptap code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875em;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.ne-content .tiptap .ne-code-block,
+.ne-content .tiptap pre {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+.ne-content .tiptap pre code {
+  background: none;
+  padding: 0;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.ne-content .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 18px 0;
+}
+.ne-content .tiptap a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Images */
+.ne-content .tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 10px 0;
+  display: block;
+  box-shadow: 0 2px 12px -4px rgba(0,0,0,0.15);
+}
+.ne-content .tiptap img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Tables */
+.ne-content .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 14px 0;
+  font-size: 14.5px;
+  overflow-x: auto;
+  display: block;
+}
+.ne-content .tiptap th,
+.ne-content .tiptap td {
+  border: 1px solid var(--rule);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+  min-width: 80px;
+}
+.ne-content .tiptap th {
+  background: var(--surface);
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.ne-content .tiptap .selectedCell {
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+}
+.ne-content .tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0; bottom: 0;
+  width: 4px;
+  background: var(--accent);
+  opacity: 0;
+  cursor: col-resize;
+  transition: opacity 140ms;
+}
+.ne-content .tiptap:hover .column-resize-handle { opacity: 0.4; }
+.ne-content .tiptap .column-resize-handle:hover { opacity: 1; }
+.ne-content .tiptap .tableWrapper { overflow-x: auto; }
+
+/* ═══════════════════════════════════════════════════════════════
+   NoteViewer — read-only view with MermaidJS support
+   ═══════════════════════════════════════════════════════════════ */
+
+.note-viewer { }
+
+.ne-view-content .tiptap {
+  outline: none;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+/* Inherit note-body typography from note-detail.css */
+.ne-view-content .tiptap h1 { font-size: 1.5em; font-weight: 600; margin: 22px 0 8px; letter-spacing: -0.01em; }
+.ne-view-content .tiptap h2 { font-size: 1.2em; font-weight: 600; margin: 20px 0 8px; }
+.ne-view-content .tiptap h3 {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 22px 0 8px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.ne-view-content .tiptap p { margin: 0 0 14px; text-wrap: pretty; }
+.ne-view-content .tiptap ul, .ne-view-content .tiptap ol { padding-left: 22px; margin: 0 0 14px; }
+.ne-view-content .tiptap li { margin-bottom: 4px; }
+.ne-view-content .tiptap blockquote {
+  margin: 18px 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  font-style: italic;
+  color: var(--ink-2);
+  font-size: 16px;
+  text-wrap: pretty;
+}
+.ne-view-content .tiptap code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.875em;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.ne-view-content .tiptap pre {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 14px 0;
+}
+.ne-view-content .tiptap pre code {
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.ne-view-content .tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 12px 0;
+  display: block;
+  box-shadow: 0 2px 14px -5px rgba(0,0,0,0.18);
+}
+.ne-view-content .tiptap a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.ne-view-content .tiptap hr { border: none; border-top: 1px solid var(--rule); margin: 20px 0; }
+
+/* Table styles (same as editor) */
+.ne-view-content .tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 14px 0;
+  font-size: 14.5px;
+  display: block;
+  overflow-x: auto;
+}
+.ne-view-content .tiptap th,
+.ne-view-content .tiptap td {
+  border: 1px solid var(--rule);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+  min-width: 80px;
+}
+.ne-view-content .tiptap th {
+  background: var(--surface);
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+/* ── MermaidJS diagram output ── */
+.ne-mermaid {
+  margin: 16px 0;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow-x: auto;
+  text-align: center;
+}
+.ne-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+.ne-mermaid-error {
+  border-left: 3px solid var(--rust);
+  opacity: 0.7;
+}

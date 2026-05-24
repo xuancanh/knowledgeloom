@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import type { NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
   categoryId,
   formatCreated,
-  parseMarkdownBlocks,
   stripFrontmatter,
   type UiCategory,
 } from '../../lib/view';
-import LiveEditor, { type LiveEditorHandle } from '../LiveEditor';
+import NoteEditor, { type NoteEditorHandle } from './NoteEditor';
+import NoteViewer from './NoteViewer';
+import MetaFields from './MetaFields';
 import { AiAssistPanel } from './AiAssistPanel';
 import { ReminderSection } from './ReminderSection';
 import { LinkEditor } from './LinkEditor';
@@ -48,7 +49,7 @@ export default function NoteDetail({
   reminders: Reminder[];
   readOnly: boolean;
 }) {
-  const editorRef = useRef<LiveEditorHandle>(null);
+  const editorRef = useRef<NoteEditorHandle>(null);
 
   const [showSource, setShowSource] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -72,7 +73,7 @@ export default function NoteDetail({
   const [title, setTitle] = useState(note.title);
   const [category, setCategory] = useState(note.category);
   const [summary, setSummary] = useState(note.summary);
-  const [tagsText, setTagsText] = useState(note.tags.join(', '));
+  const [tags, setTags] = useState<string[]>(note.tags);
   const [links, setLinks] = useState<string[]>(note.links);
   const [saveError, setSaveError] = useState('');
   const [editTab, setEditTab] = useState<'manual' | 'ai'>('manual');
@@ -82,7 +83,6 @@ export default function NoteDetail({
   const cat = categories.find((item) => item.id === catId) || categories[0];
   const outgoing = note.links.map((id) => notes.find((item) => item.id === id)).filter(Boolean);
   const backlinks = notes.filter((item) => item.links.includes(note.id));
-  const blocks = useMemo(() => parseMarkdownBlocks(markdown), [markdown]);
 
   useEffect(() => {
     const styleId = 'kl-reading-style';
@@ -142,7 +142,7 @@ export default function NoteDetail({
     setTitle(note.title);
     setCategory(note.category);
     setSummary(note.summary);
-    setTagsText(note.tags.join(', '));
+    setTags(note.tags);
     setLinks(note.links);
     setSaveError('');
     setAiSuccess('');
@@ -159,7 +159,7 @@ export default function NoteDetail({
       title,
       category,
       summary,
-      tags: tagsText.split(',').map((tag) => tag.trim()).filter(Boolean),
+      tags,
       links,
       body: editorRef.current?.getValue() ?? '',
     };
@@ -182,7 +182,7 @@ export default function NoteDetail({
     setTitle(update.title);
     setCategory(update.category);
     setSummary(update.summary);
-    setTagsText(update.tags.join(', '));
+    setTags(update.tags);
     setLinks(update.links);
     editorRef.current?.setValue(update.body);
     setAiSuccess('AI draft applied. Review the changes, then save the note.');
@@ -228,67 +228,49 @@ export default function NoteDetail({
       </div>
 
       {editing ? (
-        <div className="edit-card">
-          <div className="edit-tabs" role="tablist" aria-label="Edit mode">
-            <button
-              className={editTab === 'manual' ? 'active' : ''}
-              onClick={() => setEditTab('manual')}
-              role="tab"
-              aria-selected={editTab === 'manual'}
-            >
-              Normal edit
-            </button>
-            <button
-              className={editTab === 'ai' ? 'active' : ''}
-              onClick={() => setEditTab('ai')}
-              role="tab"
-              aria-selected={editTab === 'ai'}
-            >
-              AI prompt
-            </button>
-          </div>
-
+        <div className="note-edit-view">
           {editTab === 'manual' ? (
-            <div className="manual-edit" role="tabpanel">
-              <label>
-                <span>Title</span>
-                <input value={title} onChange={(event) => setTitle(event.target.value)} />
-              </label>
-              <label>
-                <span>Summary</span>
-                <textarea value={summary} onChange={(event) => setSummary(event.target.value)} rows={3} />
-              </label>
-              <div className="edit-grid">
-                <label>
-                  <span>Category</span>
-                  <input value={category} onChange={(event) => setCategory(event.target.value)} list="category-options" placeholder="Folder/Subfolder" />
-                  <datalist id="category-options">
-                    {categories.map((item) => <option key={item.id} value={item.name} />)}
-                  </datalist>
-                </label>
-                <label>
-                  <span>Tags</span>
-                  <input value={tagsText} onChange={(event) => setTagsText(event.target.value)} placeholder="tag-one, tag-two" />
-                </label>
-              </div>
-              <div className="markdown-editor">
-                <div className="edit-label">Markdown body</div>
-                <LiveEditor
+            <>
+              <input
+                className="edit-title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Note title"
+                disabled={readOnly}
+              />
+              <textarea
+                className="edit-summary"
+                value={summary}
+                onChange={(event) => setSummary(event.target.value)}
+                rows={2}
+                placeholder="One-line summary…"
+                disabled={readOnly}
+              />
+              <div className="edit-body">
+                <NoteEditor
                   ref={editorRef}
                   initialValue={stripFrontmatter(markdown)}
-                  placeholder="Type markdown directly. Headings, quotes, lists, and code markers are styled as you write."
+                  placeholder="Start writing… Drag or paste images to upload. Use the toolbar for formatting."
                   disabled={readOnly}
                 />
-                <div className="fine">Type markdown directly. Headings, quotes, lists, and code markers are styled as you write.</div>
               </div>
-
-              <LinkEditor
-                notes={notes}
-                noteId={note.id}
-                links={links}
-                onToggleLink={toggleLink}
-              />
-            </div>
+              <div className="edit-footer-meta">
+                <LinkEditor
+                  notes={notes}
+                  noteId={note.id}
+                  links={links}
+                  onToggleLink={toggleLink}
+                />
+                <MetaFields
+                  category={category}
+                  onCategoryChange={setCategory}
+                  tags={tags}
+                  onTagsChange={setTags}
+                  categories={categories}
+                  disabled={readOnly}
+                />
+              </div>
+            </>
           ) : (
             <AiAssistPanel
               title={title}
@@ -301,18 +283,22 @@ export default function NoteDetail({
           {aiSuccess && <div className="edit-success">{aiSuccess}</div>}
           {saveError && <div className="edit-error">{saveError}</div>}
           <div className="edit-actions">
+            <button
+              className={`ai-tab-btn${editTab === 'ai' ? ' active' : ''}`}
+              onClick={() => setEditTab(editTab === 'ai' ? 'manual' : 'ai')}
+              disabled={saving}
+            >
+              {editTab === 'ai' ? '← Back to edit' : '✦ AI assist'}
+            </button>
+            <span className="edit-actions-gap" />
             <button onClick={() => setEditing(false)} disabled={saving}>Cancel</button>
-            <button className="save-note" onClick={saveEdit} disabled={saving || !title.trim()}>{saving ? 'Saving...' : 'Save note'}</button>
+            <button className="save-note" onClick={saveEdit} disabled={saving || !title.trim()}>{saving ? 'Saving…' : 'Save note'}</button>
           </div>
         </div>
       ) : (
         <>
           <div className="note-body">
-            {blocks.map((block, index) => {
-              if (block.type === 'h') return <h3 key={index}>{block.text}</h3>;
-              if (block.type === 'q') return <blockquote key={index}>{block.text}</blockquote>;
-              return <p key={index}>{block.text}</p>;
-            })}
+            <NoteViewer markdown={stripFrontmatter(markdown)} />
           </div>
 
           <div className="source-toggle">
