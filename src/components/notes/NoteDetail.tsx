@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
@@ -53,6 +53,18 @@ export default function NoteDetail({
   const [showSource, setShowSource] = useState(false);
   const [editing, setEditing] = useState(false);
   const [reading, setReading] = useState(false);
+  const [readTheme, setReadTheme] = useState<'light' | 'dark' | 'sepia'>(() => {
+    const v = localStorage.getItem('kl:read-theme');
+    return v === 'dark' || v === 'sepia' ? v : 'light';
+  });
+  const [readFontSize, setReadFontSize] = useState<'s' | 'm' | 'l'>(() => {
+    const v = localStorage.getItem('kl:read-size');
+    return v === 's' || v === 'l' ? v : 'm';
+  });
+  const [readFontType, setReadFontType] = useState<'serif' | 'sans'>(() => {
+    return localStorage.getItem('kl:read-font') === 'sans' ? 'sans' : 'serif';
+  });
+  const [progress, setProgress] = useState(0);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [category, setCategory] = useState(note.category);
@@ -71,8 +83,31 @@ export default function NoteDetail({
 
   useEffect(() => {
     document.body.classList.toggle('reading', reading);
-    return () => document.body.classList.remove('reading');
+    document.body.dataset.readTheme = reading ? readTheme : '';
+    document.body.dataset.readSize = reading ? readFontSize : '';
+    document.body.dataset.readFont = reading ? readFontType : '';
+    return () => {
+      document.body.classList.remove('reading');
+      document.body.dataset.readTheme = '';
+      document.body.dataset.readSize = '';
+      document.body.dataset.readFont = '';
+    };
+  }, [reading, readTheme, readFontSize, readFontType]);
+
+  useEffect(() => {
+    if (!reading) return;
+    const onScroll = () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(h > 0 ? Math.round((window.scrollY / h) * 100) : 100);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, [reading]);
+
+  const setReadThemeAndSave = useCallback((t: typeof readTheme) => { setReadTheme(t); localStorage.setItem('kl:read-theme', t); }, []);
+  const setReadFontSizeAndSave = useCallback((s: typeof readFontSize) => { setReadFontSize(s); localStorage.setItem('kl:read-size', s); }, []);
+  const setReadFontTypeAndSave = useCallback((t: typeof readFontType) => { setReadFontType(t); localStorage.setItem('kl:read-font', t); }, []);
 
   /*
    * Opening the editor copies the latest note props and markdown body into
@@ -272,6 +307,29 @@ export default function NoteDetail({
             onCompleteReminder={onCompleteReminder}
             onDeleteReminder={onDeleteReminder}
           />
+        </>
+      )}
+
+      {reading && (
+        <>
+          <div className="read-toolbar">
+            <span className="read-toolbar-group">
+              <button onClick={() => setReadFontSizeAndSave('s')} className={readFontSize === 's' ? 'active' : ''}>A</button>
+              <button onClick={() => setReadFontSizeAndSave('m')} className={readFontSize === 'm' ? 'active' : ''} style={{ fontSize: '1.15em' }}>A</button>
+              <button onClick={() => setReadFontSizeAndSave('l')} className={readFontSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
+            </span>
+            <span className="read-toolbar-group">
+              <button onClick={() => setReadFontTypeAndSave('serif')} className={readFontType === 'serif' ? 'active' : ''}>Serif</button>
+              <button onClick={() => setReadFontTypeAndSave('sans')} className={readFontType === 'sans' ? 'active' : ''}>Sans</button>
+            </span>
+            <span className="read-toolbar-group">
+              <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Light</button>
+              <button onClick={() => setReadThemeAndSave('sepia')} className={readTheme === 'sepia' ? 'active' : ''}>Sepia</button>
+              <button onClick={() => setReadThemeAndSave('dark')} className={readTheme === 'dark' ? 'active' : ''}>Dark</button>
+            </span>
+            <button className="read-toolbar-exit" onClick={() => setReading(false)}>✕ Exit</button>
+          </div>
+          <div className="read-progress" style={{ width: `${progress}%` }} />
         </>
       )}
     </div>

@@ -518,3 +518,115 @@ body.reading .note-detail .h-meta .read-inline {
   background: color-mix(in srgb, var(--accent) 6%, var(--surface));
 }
 
+/* ════════════════════ Reading theme overrides ════════════════════ */
+[data-read-theme="sepia"] body.reading,
+body.reading [data-read-theme="sepia"] { /* handled on body */ }
+body.reading { transition: background 300ms ease, color 300ms ease; }
+
+[data-read-theme="dark"] body.reading {
+  background: #1a1a2e !important;
+  color: #d0d0d0 !important;
+}
+[data-read-theme="dark"] body.reading main {
+  background: transparent;
+  color: #d0d0d0;
+}
+[data-read-theme="dark"] body.reading .note-detail h1,
+[data-read-theme="dark"] body.reading .note-detail h3 { color: #e8e8e8; }
+
+[data-read-theme="sepia"] body.reading {
+  background: #f4ecd8 !important;
+  color: #5b4636 !important;
+}
+[data-read-theme="sepia"] body.reading main {
+  background: transparent;
+  color: #5b4636;
+}
+[data-read-theme="sepia"] body.reading .note-detail h1,
+[data-read-theme="sepia"] body.reading .note-detail h3 { color: #3a2a1a; }
+
+[data-read-theme="light"] body.reading {
+  background: #fff;
+  color: #1a1a1a;
+}
+
+/* ── Reading font sizes ── */
+[data-read-size="s"] body.reading .note-detail .note-body { font-size: 0.95rem; line-height: 1.7; }
+[data-read-size="s"] body.reading .note-detail h1 { font-size: 1.8rem; }
+[data-read-size="l"] body.reading .note-detail .note-body { font-size: 1.35rem; line-height: 1.9; }
+[data-read-size="l"] body.reading .note-detail h1 { font-size: 2.6rem; }
+
+/* ── Reading font type ── */
+[data-read-font="sans"] body.reading .note-detail .note-body,
+[data-read-font="sans"] body.reading .note-detail .lede,
+[data-read-font="sans"] body.reading .note-detail h1,
+[data-read-font="sans"] body.reading .note-detail h3 {
+  font-family: Arial, Roboto, Helvetica, sans-serif;
+}
+
+/* ── Reading toolbar ── */
+.read-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+  box-shadow: 0 -4px 16px -8px rgba(0,0,0,0.15);
+  flex-wrap: wrap;
+}
+.read-toolbar-group {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 2px;
+  background: var(--paper);
+}
+.read-toolbar-group button {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+  padding: 5px 9px;
+  border-radius: 3px;
+  transition: background 120ms, color 120ms;
+}
+.read-toolbar-group button:hover { color: var(--ink); background: var(--surface-2); }
+.read-toolbar-group button.active {
+  background: var(--accent);
+  color: #faf3e2;
+}
+.read-toolbar-exit {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border: 1px dashed var(--rule);
+  border-radius: 5px;
+  transition: color 140ms, border-color 140ms;
+}
+.read-toolbar-exit:hover { color: var(--rust); border-color: var(--rust); }
+
+/* ── Progress bar ── */
+.read-progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  z-index: 51;
+  transition: width 120ms ease;
+  border-radius: 0 2px 0 0;
+}
+
