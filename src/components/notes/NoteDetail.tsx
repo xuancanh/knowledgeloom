@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
@@ -52,6 +52,7 @@ export default function NoteDetail({
 
   const [showSource, setShowSource] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [reading, setReading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [category, setCategory] = useState(note.category);
@@ -67,6 +68,11 @@ export default function NoteDetail({
   const outgoing = note.links.map((id) => notes.find((item) => item.id === id)).filter(Boolean);
   const backlinks = notes.filter((item) => item.links.includes(note.id));
   const blocks = useMemo(() => parseMarkdownBlocks(markdown), [markdown]);
+
+  useEffect(() => {
+    document.body.classList.toggle('reading', reading);
+    return () => document.body.classList.remove('reading');
+  }, [reading]);
 
   /*
    * Opening the editor copies the latest note props and markdown body into
@@ -135,6 +141,7 @@ export default function NoteDetail({
         <div className="h-meta">
           <span>{formatCreated(note.createdAt)}</span>
           <span>· {outgoing.length}↗ {backlinks.length}↘</span>
+          <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? '✕ Exit reading' : '◉ Read'}</button>
           <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? 'Cancel' : 'Edit'}</button>
           <button className="delete-inline" onClick={onDelete} disabled={readOnly}>Delete</button>
         </div>
