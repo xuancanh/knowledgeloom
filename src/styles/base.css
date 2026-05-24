@@ -32,18 +32,18 @@
   --surface-2: #f3f3ef;
   --ink: #171714;
   --ink-2: #2d2e29;
-  --muted: #4e524a;
-  --muted-2: #63685e;
+  --muted: #5c6258;
+  --muted-2: #74796f;
   --rule: #d8dbd2;
   --rule-2: #b9beb2;
-  --accent: #c23b2e;
-  --accent-2: #d45b4e;
+  --accent: #7b2b24;
+  --accent-2: #a74f42;
   --moss: #52643c;
   --indigo: #394f7d;
   --ochre: #8b691c;
   --teal: #2b6464;
   --rust: #904328;
-  --highlight: #e8e8e4;
+  --highlight: #f1e39d;
   --shadow: 0 1px 0 rgba(30, 35, 28, 0.04), 0 6px 18px -12px rgba(30, 35, 28, 0.22);
 }
 
