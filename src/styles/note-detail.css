@@ -519,48 +519,46 @@ body.reading .note-detail .h-meta .read-inline {
 }
 
 /* ════════════════════ Reading theme overrides ════════════════════ */
-[data-read-theme="sepia"] body.reading,
-body.reading [data-read-theme="sepia"] { /* handled on body */ }
 body.reading { transition: background 300ms ease, color 300ms ease; }
 
-[data-read-theme="dark"] body.reading {
+body.reading[data-read-theme="dark"] {
   background: #1a1a2e !important;
   color: #d0d0d0 !important;
 }
-[data-read-theme="dark"] body.reading main {
+body.reading[data-read-theme="dark"] main {
   background: transparent;
   color: #d0d0d0;
 }
-[data-read-theme="dark"] body.reading .note-detail h1,
-[data-read-theme="dark"] body.reading .note-detail h3 { color: #e8e8e8; }
+body.reading[data-read-theme="dark"] .note-detail h1,
+body.reading[data-read-theme="dark"] .note-detail h3 { color: #e8e8e8; }
 
-[data-read-theme="sepia"] body.reading {
+body.reading[data-read-theme="sepia"] {
   background: #f4ecd8 !important;
   color: #5b4636 !important;
 }
-[data-read-theme="sepia"] body.reading main {
+body.reading[data-read-theme="sepia"] main {
   background: transparent;
   color: #5b4636;
 }
-[data-read-theme="sepia"] body.reading .note-detail h1,
-[data-read-theme="sepia"] body.reading .note-detail h3 { color: #3a2a1a; }
+body.reading[data-read-theme="sepia"] .note-detail h1,
+body.reading[data-read-theme="sepia"] .note-detail h3 { color: #3a2a1a; }
 
-[data-read-theme="light"] body.reading {
+body.reading[data-read-theme="light"] {
   background: #fff;
   color: #1a1a1a;
 }
 
 /* ── Reading font sizes ── */
-[data-read-size="s"] body.reading .note-detail .note-body { font-size: 0.95rem; line-height: 1.7; }
-[data-read-size="s"] body.reading .note-detail h1 { font-size: 1.8rem; }
-[data-read-size="l"] body.reading .note-detail .note-body { font-size: 1.35rem; line-height: 1.9; }
-[data-read-size="l"] body.reading .note-detail h1 { font-size: 2.6rem; }
+body.reading[data-read-size="s"] .note-detail .note-body { font-size: 0.95rem; line-height: 1.7; }
+body.reading[data-read-size="s"] .note-detail h1 { font-size: 1.8rem; }
+body.reading[data-read-size="l"] .note-detail .note-body { font-size: 1.35rem; line-height: 1.9; }
+body.reading[data-read-size="l"] .note-detail h1 { font-size: 2.6rem; }
 
 /* ── Reading font type ── */
-[data-read-font="sans"] body.reading .note-detail .note-body,
-[data-read-font="sans"] body.reading .note-detail .lede,
-[data-read-font="sans"] body.reading .note-detail h1,
-[data-read-font="sans"] body.reading .note-detail h3 {
+body.reading[data-read-font="sans"] .note-detail .note-body,
+body.reading[data-read-font="sans"] .note-detail .lede,
+body.reading[data-read-font="sans"] .note-detail h1,
+body.reading[data-read-font="sans"] .note-detail h3 {
   font-family: Arial, Roboto, Helvetica, sans-serif;
 }
 
