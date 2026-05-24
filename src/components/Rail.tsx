@@ -5,27 +5,51 @@ import { categoryLabel, type CategoryTreeNode, type UiCategory } from '../lib/vi
 const CAT_INITIAL_LIMIT = 5;
 const TAG_INITIAL_LIMIT = 5;
 
-function renderCategoryNode(
-  node: CategoryTreeNode,
-  activeCategoryId: string | null,
-  openCategory: (id: string) => void,
-  closeRail: () => void,
-): React.ReactNode {
+function CategoryNode({
+  node,
+  activeCategoryId,
+  openCategory,
+  closeRail,
+}: {
+  node: CategoryTreeNode;
+  activeCategoryId: string | null;
+  openCategory: (id: string) => void;
+  closeRail: () => void;
+}) {
+  const hasKids = node.children.length > 0;
+  const [expanded, setExpanded] = useState(node.depth === 0);
+
   return (
     <div key={node.id} className="category-tree-node">
-      <button
-        className={`nav-item category-nav depth-${Math.min(node.depth, 4)}${activeCategoryId === node.id ? ' active' : ''}`}
-        onClick={() => { openCategory(node.id); closeRail(); }}
-        title={node.id}
-      >
-        <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>{node.children.length ? '▸' : '·'}</span>
-        <span className={`dot ${node.color}`} />
-        <span style={{ flex: 1, textAlign: 'left' }}>{node.label}</span>
-        <span className="count">{node.count}</span>
-      </button>
-      {!!node.children.length && (
+      <div className={`cat-row depth-${Math.min(node.depth, 4)}${activeCategoryId === node.id ? ' active' : ''}`}>
+        {hasKids ? (
+          <button className="cat-toggle" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
+            <span className={`cat-arrow ${expanded ? 'expanded' : ''}`}>▸</span>
+          </button>
+        ) : (
+          <span className="cat-spacer" />
+        )}
+        <button
+          className="nav-item category-nav"
+          onClick={() => { openCategory(node.id); closeRail(); }}
+          title={node.id}
+        >
+          <span className={`dot ${node.color}`} />
+          <span className="cat-label">{node.label}</span>
+          <span className="count">{node.count}</span>
+        </button>
+      </div>
+      {hasKids && expanded && (
         <div className="category-tree-children">
-          {node.children.map((child) => renderCategoryNode(child, activeCategoryId, openCategory, closeRail))}
+          {node.children.map((child) => (
+            <CategoryNode
+              key={child.id}
+              node={child}
+              activeCategoryId={activeCategoryId}
+              openCategory={openCategory}
+              closeRail={closeRail}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -193,7 +217,7 @@ export default function Rail({
           )
         ) : (
           <>
-            {visibleCategoryTree.map((node) => renderCategoryNode(node, activeCategoryId, openCategory, closeRail))}
+            {visibleCategoryTree.map((node) => (<CategoryNode key={node.id} node={node} activeCategoryId={activeCategoryId} openCategory={openCategory} closeRail={closeRail} />))}
             {hiddenCatCount > 0 && !catExpanded && (
               <button className="nav-item rail-expand" onClick={() => setCatExpanded(true)}>
                 +{hiddenCatCount} more

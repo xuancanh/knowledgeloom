@@ -36,14 +36,14 @@
   --muted-2: #63685e;
   --rule: #d8dbd2;
   --rule-2: #b9beb2;
-  --accent: #7b2b24;
-  --accent-2: #a74f42;
+  --accent: #c23b2e;
+  --accent-2: #d45b4e;
   --moss: #52643c;
   --indigo: #394f7d;
   --ochre: #8b691c;
   --teal: #2b6464;
   --rust: #904328;
-  --highlight: #f1e39d;
+  --highlight: #e8e8e4;
   --shadow: 0 1px 0 rgba(30, 35, 28, 0.04), 0 6px 18px -12px rgba(30, 35, 28, 0.22);
 }
 

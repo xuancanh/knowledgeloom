@@ -253,14 +253,50 @@
   margin: 1px 0;
 }
 .category-tree-children {
-  margin-left: 10px;
-  border-left: 1px dashed var(--rule);
+  margin-left: 12px;
+  border-left: 1.5px solid var(--rule);
   padding-left: 4px;
 }
-.category-nav.depth-1 { padding-left: 14px; }
-.category-nav.depth-2 { padding-left: 20px; }
-.category-nav.depth-3 { padding-left: 26px; }
-.category-nav.depth-4 { padding-left: 32px; }
+
+/* ── Category row with toggle + nav ── */
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.cat-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: background 100ms;
+}
+.cat-toggle:hover { background: var(--surface-2); }
+.cat-arrow {
+  font-size: 9px;
+  color: var(--muted);
+  transition: transform 160ms;
+  line-height: 1;
+}
+.cat-arrow.expanded { transform: rotate(90deg); }
+.cat-spacer {
+  width: 18px;
+  flex-shrink: 0;
+}
+.cat-label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.category-nav {
+  padding-left: 4px !important;
+  flex: 1;
+}
 .nav-item .count {
   margin-left: auto;
   font-family: "JetBrains Mono", monospace;
