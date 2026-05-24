@@ -466,7 +466,23 @@ body.reading main {
   background: transparent;
 }
 
-/* ── Reading toolbar ── */
+body.reading .note-detail .crumbs,
+body.reading .note-detail .tags,
+body.reading .note-detail .source-toggle,
+body.reading .note-detail .reminder-section { display: none; }
+
+body.reading .note-detail .h-meta span,
+body.reading .note-detail .h-meta .edit-inline,
+body.reading .note-detail .h-meta .delete-inline { display: none; }
+
+body.reading .note-detail .h-meta .read-inline {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 50;
+}
+
+/* ── Read button in header ── */
 .read-toolbar {
   position: fixed;
   bottom: 0;
