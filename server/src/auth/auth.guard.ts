@@ -34,21 +34,28 @@ export class SupabaseAuthGuard implements CanActivate {
   private readonly logger = new Logger(SupabaseAuthGuard.name);
   private readonly jwtSecret: string;
 
+  private readonly localMode: boolean;
+
   constructor(private readonly config: ConfigService) {
     this.jwtSecret = config.get<string>('supabaseJwtSecret') ?? '';
-    if (!this.jwtSecret) {
+    this.localMode = !this.jwtSecret;
+    if (this.localMode) {
       this.logger.warn(
-        'SUPABASE_JWT_SECRET is not set — all authenticated requests will be rejected.',
+        'SUPABASE_JWT_SECRET is not set — running in local mode, all requests use userId="local".',
       );
     }
   }
 
   canActivate(ctx: ExecutionContext): boolean {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
+
+    if (this.localMode) {
+      request.userId = 'local';
+      return true;
+    }
+
     const token = this.extractToken(request);
     if (!token) throw new UnauthorizedException('Missing authorization token');
-
-    if (!this.jwtSecret) throw new UnauthorizedException('Auth not configured');
 
     let payload: jwt.JwtPayload;
     try {

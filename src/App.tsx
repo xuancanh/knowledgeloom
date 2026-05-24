@@ -20,11 +20,11 @@ import { LandingPage } from './components/landing/LandingPage';
 import { LoginPage } from './components/auth/LoginPage';
 
 export default function App() {
-  const { session, loading: authLoading } = useAuth();
+  const { authenticated, loading: authLoading } = useAuth();
 
   if (authLoading) return null;
 
-  if (!session) {
+  if (!authenticated) {
     return (
       <Routes>
         <Route path="/login" element={<LoginPage />} />
