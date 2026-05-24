@@ -330,6 +330,20 @@
 .moreToggle:hover { color: var(--muted); }
 .moreOpen { color: var(--muted); }
 .moreArrow { font-size: 8px; }
+.guidancePreview {
+  font-family: "Source Serif 4", serif;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 4px;
+  max-width: 250px;
+}
 .moreBody {
   margin-top: 8px;
   padding: 10px 12px;

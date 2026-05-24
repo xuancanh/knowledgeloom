@@ -12,6 +12,10 @@ function splitList(value: string) {
   return [...new Set(value.split(',').map((s) => s.trim()).filter(Boolean))];
 }
 
+function truncate(text: string, max: number) {
+  return text.length > max ? text.slice(0, max).trimEnd() + '…' : text;
+}
+
 export default function CaptureBox({
   onSubmit,
   readOnly,
@@ -156,6 +160,9 @@ export default function CaptureBox({
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
+            {!showMore && guidance && (
+              <span className={styles.guidancePreview}>{truncate(guidance, 50)}</span>
+            )}
           </button>
           {showMore && (
             <div className={styles.moreBody}>
@@ -249,6 +256,9 @@ export default function CaptureBox({
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
+            {!showMore && guidance && (
+              <span className={styles.guidancePreview}>{truncate(guidance, 50)}</span>
+            )}
           </button>
           {showMore && (
             <div className={styles.moreBody}>
