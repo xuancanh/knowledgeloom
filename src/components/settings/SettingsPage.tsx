@@ -9,17 +9,30 @@ import {
 } from '../../lib/guidance';
 import styles from './SettingsPage.module.css';
 
-/** Maps template modes to display labels for the settings UI. */
 const MODE_LABELS: Record<GuidanceMode, string> = {
   research: 'Research',
   link: 'From Link',
   both: 'Both',
 };
 
+const TEMPLATE_COLORS: { name: string; label: string; cssVar: string }[] = [
+  { name: '', label: 'Default', cssVar: 'var(--accent)' },
+  { name: 'moss', label: 'Green', cssVar: 'var(--moss)' },
+  { name: 'indigo', label: 'Blue', cssVar: 'var(--indigo)' },
+  { name: 'teal', label: 'Teal', cssVar: 'var(--teal)' },
+  { name: 'ochre', label: 'Amber', cssVar: 'var(--ochre)' },
+  { name: 'rust', label: 'Red', cssVar: 'var(--rust)' },
+];
+
 function modeCls(mode: GuidanceMode) {
   if (mode === 'research') return styles.modeResearch;
   if (mode === 'link') return styles.modeLink;
   return styles.modeBoth;
+}
+
+function colorVar(color?: string) {
+  if (!color) return 'var(--accent)';
+  return `var(--${color})`;
 }
 
 // ── Template row ──────────────────────────────────────────────────────────────
@@ -37,6 +50,7 @@ function TemplateRow({
     <div className={styles.row}>
       <div className={styles.rowBody}>
         <div className={styles.rowHeader}>
+          <span className={styles.rowColorDot} style={{ background: colorVar(template.color) }} />
           <span className={styles.rowLabel}>{template.label}</span>
           <span className={`${styles.rowMode} ${modeCls(template.mode)}`}>{MODE_LABELS[template.mode]}</span>
           {template.builtIn && <span className={styles.rowBuiltIn}>built-in</span>}
@@ -59,8 +73,8 @@ function TemplateEditor({
   onSave,
   onCancel,
 }: {
-  value: { label: string; text: string; mode: GuidanceMode };
-  onChange: (patch: Partial<{ label: string; text: string; mode: GuidanceMode }>) => void;
+  value: { label: string; text: string; mode: GuidanceMode; color?: string };
+  onChange: (patch: Partial<{ label: string; text: string; mode: GuidanceMode; color: string }>) => void;
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -104,6 +118,22 @@ function TemplateEditor({
           rows={3}
         />
       </div>
+      <div className={styles.editorField}>
+        <label className={styles.editorLabel}>Color</label>
+        <div className={styles.colorSwatches}>
+          {TEMPLATE_COLORS.map(({ name, label, cssVar }) => (
+            <button
+              key={name}
+              type="button"
+              className={`${styles.colorSwatch}${(value.color ?? '') === name ? ` ${styles.colorSwatchActive}` : ''}`}
+              style={{ '--swatch-color': cssVar } as React.CSSProperties}
+              title={label}
+              onClick={() => onChange({ color: name })}
+              aria-label={label}
+            />
+          ))}
+        </div>
+      </div>
       <div className={styles.editorActions}>
         <button className={styles.editorCancel} onClick={onCancel}>Cancel</button>
         <button className={styles.editorSave} onClick={onSave} disabled={!valid}>Save template</button>
@@ -125,8 +155,8 @@ export default function SettingsPage({
 }) {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<{ label: string; text: string; mode: GuidanceMode } | null>(null);
-  const [newDraft, setNewDraft] = useState<{ label: string; text: string; mode: GuidanceMode } | null>(null);
+  const [editDraft, setEditDraft] = useState<{ label: string; text: string; mode: GuidanceMode; color?: string } | null>(null);
+  const [newDraft, setNewDraft] = useState<{ label: string; text: string; mode: GuidanceMode; color?: string } | null>(null);
 
   function commit(updated: GuidanceTemplate[]) {
     saveTemplates(updated);
@@ -135,7 +165,7 @@ export default function SettingsPage({
 
   function startEdit(tpl: GuidanceTemplate) {
     setEditingId(tpl.id);
-    setEditDraft({ label: tpl.label, text: tpl.text, mode: tpl.mode });
+    setEditDraft({ label: tpl.label, text: tpl.text, mode: tpl.mode, color: tpl.color ?? '' });
     setNewDraft(null);
   }
 
@@ -152,7 +182,7 @@ export default function SettingsPage({
   }
 
   function startNew() {
-    setNewDraft({ label: '', text: '', mode: 'research' });
+    setNewDraft({ label: '', text: '', mode: 'research', color: '' });
     setEditingId(null);
     setEditDraft(null);
   }
