@@ -457,7 +457,7 @@ body.reading .rail-backdrop { display: none !important; }
 body.reading .app {
   display: block;
   min-height: 100vh;
-  background: var(--surface);
+  background: transparent;
 }
 
 body.reading main {
@@ -466,16 +466,18 @@ body.reading main {
   background: transparent;
 }
 body.reading[data-read-width="narrow"] main { max-width: 560px; }
-body.reading[data-read-width="medium"] main { max-width: 720px; }
-body.reading[data-read-width="wide"] main { max-width: 900px; }
+body.reading[data-read-width="medium"] main { max-width: 800px; }
+body.reading[data-read-width="wide"] main { max-width: 1080px; }
 
 /* ── Reading theme overrides ── */
-body.reading[data-read-theme="dark"] {
+body.reading[data-read-theme="dark"],
+body.reading[data-read-theme="dark"] body,
+body.reading[data-read-theme="dark"] html {
   background: #1a1a2e !important;
   color: #d0d0d0 !important;
 }
-body.reading[data-read-theme="dark"] .app { background: #1a1a2e !important; }
 body.reading[data-read-theme="dark"] main,
+body.reading[data-read-theme="dark"] .app,
 body.reading[data-read-theme="dark"] .note-detail,
 body.reading[data-read-theme="dark"] .note-detail .note-body,
 body.reading[data-read-theme="dark"] .note-detail .note-body p,
@@ -492,8 +494,8 @@ body.reading[data-read-theme="sepia"] {
   background: #f4ecd8 !important;
   color: #5b4636 !important;
 }
-body.reading[data-read-theme="sepia"] .app { background: #f4ecd8 !important; }
 body.reading[data-read-theme="sepia"] main,
+body.reading[data-read-theme="sepia"] .app,
 body.reading[data-read-theme="sepia"] .note-detail,
 body.reading[data-read-theme="sepia"] .note-detail .note-body,
 body.reading[data-read-theme="sepia"] .note-detail .note-body p,
