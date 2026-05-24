@@ -33,6 +33,60 @@ export const sqliteFlashcardCache = sqliteTable('flashcard_cache', {
   generatedAt: sqliteText('generatedAt').notNull(),
 });
 
+/** Per-card spaced repetition review data (SM-2 algorithm). */
+export const sqliteFlashcardReviews = sqliteTable('flashcard_reviews', {
+  cardId: sqliteText('cardId').primaryKey(),
+  noteId: sqliteText('noteId').notNull(),
+  isUserCard: sqliteInteger('isUserCard').notNull().default(0),
+  easeFactor: sqliteText('easeFactor').notNull().default('2.5'),
+  interval: sqliteInteger('interval').notNull().default(0),
+  repetitions: sqliteInteger('repetitions').notNull().default(0),
+  nextReviewAt: sqliteText('nextReviewAt'),
+  lastReviewAt: sqliteText('lastReviewAt'),
+  lastRating: sqliteText('lastRating'),
+});
+export const sqliteFlashcardReviewsPg = pgTable('flashcard_reviews', {
+  cardId: pgText('cardId').primaryKey(),
+  noteId: pgText('noteId').notNull(),
+  isUserCard: pgInteger('isUserCard').notNull().default(0),
+  easeFactor: pgText('easeFactor').notNull().default('2.5'),
+  interval: pgInteger('interval').notNull().default(0),
+  repetitions: pgInteger('repetitions').notNull().default(0),
+  nextReviewAt: pgText('nextReviewAt'),
+  lastReviewAt: pgText('lastReviewAt'),
+  lastRating: pgText('lastRating'),
+});
+
+/** User-created flashcards linked to notes. */
+export const sqliteUserFlashcards = sqliteTable('user_flashcards', {
+  id: sqliteText('id').primaryKey(),
+  noteId: sqliteText('noteId').notNull(),
+  prompt: sqliteText('prompt').notNull(),
+  lesson: sqliteText('lesson').notNull(),
+  kind: sqliteText('kind').notNull().default('concept'),
+  createdAt: sqliteText('createdAt').notNull(),
+  updatedAt: sqliteText('updatedAt').notNull(),
+});
+export const pgUserFlashcards = pgTable('user_flashcards', {
+  id: pgText('id').primaryKey(),
+  noteId: pgText('noteId').notNull(),
+  prompt: pgText('prompt').notNull(),
+  lesson: pgText('lesson').notNull(),
+  kind: pgText('kind').notNull().default('concept'),
+  createdAt: pgText('createdAt').notNull(),
+  updatedAt: pgText('updatedAt').notNull(),
+});
+
+/** Hidden/dismissed flashcards (either AI-generated or user-created). */
+export const sqliteHiddenFlashcards = sqliteTable('hidden_flashcards', {
+  cardId: sqliteText('cardId').primaryKey(),
+  createdAt: sqliteText('createdAt').notNull(),
+});
+export const pgHiddenFlashcards = pgTable('hidden_flashcards', {
+  cardId: pgText('cardId').primaryKey(),
+  createdAt: pgText('createdAt').notNull(),
+});
+
 // --- PostgreSQL Tables ---
 export const pgJobs = pgTable('jobs', {
   id: pgText('id').primaryKey(),

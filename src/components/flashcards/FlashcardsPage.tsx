@@ -6,13 +6,20 @@ import { FlashcardStudy } from './FlashcardStudy';
 import { FlashcardDone } from './FlashcardDone';
 import type { Rating } from './types';
 
-/**
- * Flashcards page coordinator — manages study session state.
- *
- * Three render branches (browse / study / done) are delegated to
- * sub-components: FlashcardBrowse, FlashcardStudy, FlashcardDone.
- * State: study session index, ratings, flip state, slide animation.
- */
+function isCardDue(card: Flashcard): boolean {
+  if (!card.reviewData?.nextReviewAt) return true;
+  return new Date(card.reviewData.nextReviewAt) <= new Date();
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function FlashcardsPage({
   flashcards,
   notes,
@@ -20,8 +27,11 @@ export default function FlashcardsPage({
   tagCounts,
   scope,
   value,
+  cardIdFromUrl,
   onScopeChange,
   onOpenNote,
+  onAddFlashcard,
+  onDeleteFlashcard,
 }: {
   flashcards: Flashcard[];
   notes: KnowledgeNote[];
@@ -29,8 +39,11 @@ export default function FlashcardsPage({
   tagCounts: Array<[string, number]>;
   scope: 'all' | 'category' | 'tag';
   value: string;
+  cardIdFromUrl?: string;
   onScopeChange: (scope: 'all' | 'category' | 'tag', value?: string) => void;
   onOpenNote: (id: string) => void;
+  onAddFlashcard?: (noteId: string) => void;
+  onDeleteFlashcard?: (cardId: string) => void;
 }) {
   const [studying, setStudying] = useState(false);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
@@ -38,21 +51,65 @@ export default function FlashcardsPage({
   const [flipped, setFlipped] = useState(false);
   const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null);
   const [sessionDone, setSessionDone] = useState(false);
+  const [smartMode, setSmartMode] = useState(false);
+  const [randomize, setRandomize] = useState(false);
+  const [cardLimit, setCardLimit] = useState(0);
+  const [kindFilter, setKindFilter] = useState<string | null>(null);
+  const [ratingFilter, setRatingFilter] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sessionCards, setSessionCards] = useState<Flashcard[]>([]);
   const slideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const scopedCards = useMemo(() => {
-    if (scope === 'category' && value) return flashcards.filter((c) => c.category === value);
-    if (scope === 'tag' && value) return flashcards.filter((c) => c.tags.includes(value));
-    return flashcards;
-  }, [flashcards, scope, value]);
+  const setUrlCardId = useCallback((id: string | null) => {
+    const base = '/flashcards';
+    const params: string[] = [];
+    if (scope === 'category' && value) params.push(`category=${encodeURIComponent(value)}`);
+    else if (scope === 'tag' && value) params.push(`tag=${encodeURIComponent(value)}`);
+    const path = id ? `${base}/${encodeURIComponent(id)}` : base;
+    window.history.replaceState(null, '', params.length ? `${path}?${params.join('&')}` : path);
+  }, [scope, value]);
 
-  const safeIndex = Math.min(studyIndex, Math.max(0, scopedCards.length - 1));
+  const autoStartCardId = useRef(cardIdFromUrl);
+
+  const scopedCards = useMemo(() => {
+    let filtered = flashcards;
+    if (scope === 'category' && value) filtered = filtered.filter((c) => c.category === value);
+    if (scope === 'tag' && value) filtered = filtered.filter((c) => c.tags.includes(value));
+    if (selectedCategories.length > 0) filtered = filtered.filter((c) => selectedCategories.includes(c.category));
+    if (selectedTags.length > 0) filtered = filtered.filter((c) => c.tags.some((t) => selectedTags.includes(t)));
+    if (ratingFilter) filtered = filtered.filter((c) => c.reviewData?.lastRating === ratingFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter((c) => c.prompt.toLowerCase().includes(q) || c.lesson.toLowerCase().includes(q));
+    }
+    return filtered;
+  }, [flashcards, scope, value, selectedCategories, selectedTags, ratingFilter, searchQuery]);
+
+  const dueCount = useMemo(() => scopedCards.filter(isCardDue).length, [scopedCards]);
+
+  useEffect(() => {
+    if (!cardIdFromUrl || studying || scopedCards.length === 0) return;
+    const idx = scopedCards.findIndex((c) => c.id === cardIdFromUrl);
+    if (idx >= 0) { autoStartCardId.current = undefined; startStudy(idx, undefined, true); }
+  }, [cardIdFromUrl, scopedCards, studying]);
+
+  const studyCards = sessionCards.length > 0 ? sessionCards : (() => {
+    let cards = scopedCards;
+    if (smartMode) cards = cards.filter(isCardDue);
+    if (randomize) cards = shuffleArray(cards);
+    return cards;
+  })();
+
+  const safeIndex = Math.min(studyIndex, Math.max(0, studyCards.length - 1));
 
   const reviewed = useMemo(
-    () => scopedCards.filter((c) => ratings[c.id]).length,
-    [scopedCards, ratings],
+    () => (sessionCards.length > 0 ? sessionCards : scopedCards).filter((c) => ratings[c.id]).length,
+    [sessionCards, scopedCards, ratings],
   );
-  const progress = scopedCards.length ? Math.round((reviewed / scopedCards.length) * 100) : 0;
+  const displayedCards = sessionCards.length > 0 ? sessionCards.length : scopedCards.length;
+  const progress = displayedCards ? Math.round((reviewed / displayedCards) * 100) : 0;
 
   const ratingCounts = useMemo(() => {
     const c = { again: 0, hard: 0, good: 0 };
@@ -68,14 +125,21 @@ export default function FlashcardsPage({
         : 'All cards';
 
   useEffect(() => {
-    // Reset study state when scope or filter value changes (reacts to URL navigation)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStudying(false);
     setStudyIndex(0);
     setFlipped(false);
     setSlideDir(null);
     setSessionDone(false);
     setRatings({});
+    setSmartMode(false);
+    setRandomize(false);
+    setCardLimit(0);
+    setKindFilter(null);
+    setRatingFilter(null);
+    setSearchQuery('');
+    setSelectedCategories([]);
+    setSelectedTags([]);
+    setSessionCards([]);
   }, [scope, value]);
 
   const clearTimer = useCallback(() => {
@@ -89,14 +153,16 @@ export default function FlashcardsPage({
       setStudyIndex(index);
       setFlipped(false);
       setSlideDir(null);
+      const card = studyCards[index];
+      if (card) setUrlCardId(card.id);
     }, 250);
-  }, [clearTimer]);
+  }, [clearTimer, studyCards, setUrlCardId]);
 
   const rateAndAdvance = useCallback(
     (rating: Rating) => {
       const curIndex = safeIndex;
-      const total = scopedCards.length;
-      const activeCard = scopedCards[curIndex];
+      const total = studyCards.length;
+      const activeCard = studyCards[curIndex];
       if (!activeCard) return;
       clearTimer();
       setRatings((prev) => ({ ...prev, [activeCard.id]: rating }));
@@ -107,43 +173,66 @@ export default function FlashcardsPage({
           setSlideDir(null);
         }, 280);
       } else {
+        const nextCard = studyCards[curIndex + 1];
         setSlideDir('left');
         slideTimer.current = setTimeout(() => {
           setStudyIndex(curIndex + 1);
           setFlipped(false);
           setSlideDir(null);
+          if (nextCard) setUrlCardId(nextCard.id);
         }, 250);
       }
     },
-    [safeIndex, scopedCards, clearTimer],
+    [safeIndex, studyCards, clearTimer, setUrlCardId],
   );
 
-  function startStudy(fromIndex = 0) {
+  function startStudy(fromIndex = 0, opts?: { dueOnly?: boolean; shouldShuffle?: boolean; limit?: number }, fromUrl = false) {
+    const dueOnly = opts?.dueOnly ?? smartMode;
+    const shouldShuffle = opts?.shouldShuffle ?? randomize;
+    const limit = opts?.limit ?? cardLimit;
+    if (opts) { setSmartMode(dueOnly); setRandomize(shouldShuffle); setCardLimit(limit); }
+    let cards = scopedCards;
+    if (kindFilter) cards = cards.filter((c) => c.kind === kindFilter);
+    if (dueOnly) cards = cards.filter(isCardDue);
+    if (shouldShuffle) cards = shuffleArray(cards);
+    if (limit > 0) cards = cards.slice(0, limit);
+    setSessionCards(cards);
     setStudyIndex(fromIndex);
     setFlipped(false);
     setSlideDir(null);
     setSessionDone(false);
     setStudying(true);
+    if (!fromUrl) { const card = cards[fromIndex]; setUrlCardId(card?.id ?? null); }
   }
 
   function exitStudy() {
     setStudying(false);
     setFlipped(false);
     setSlideDir(null);
+    setSessionCards([]);
+    setUrlCardId(null);
   }
 
   function restartSession() {
+    let cards = scopedCards;
+    if (kindFilter) cards = cards.filter((c) => c.kind === kindFilter);
+    if (smartMode) cards = cards.filter(isCardDue);
+    if (randomize) cards = shuffleArray(cards);
+    if (cardLimit > 0) cards = cards.slice(0, cardLimit);
+    setSessionCards(cards);
     setRatings({});
     setStudyIndex(0);
     setFlipped(false);
     setSlideDir(null);
     setSessionDone(false);
+    const firstCard = cards[0];
+    if (firstCard) setUrlCardId(firstCard.id);
   }
 
   if (studying && sessionDone) {
     return (
       <FlashcardDone
-        filteredLength={scopedCards.length}
+        filteredLength={studyCards.length}
         scopeLabel={scopeLabel}
         ratingCounts={ratingCounts}
         onRestart={restartSession}
@@ -155,7 +244,7 @@ export default function FlashcardsPage({
   if (studying) {
     return (
       <FlashcardStudy
-        cards={scopedCards}
+        cards={studyCards}
         index={safeIndex}
         flipped={flipped}
         slideDir={slideDir}
@@ -166,6 +255,7 @@ export default function FlashcardsPage({
         onRate={rateAndAdvance}
         onGoToCard={goToCard}
         onExit={exitStudy}
+        onFinishEarly={() => setSessionDone(true)}
         onOpenNote={onOpenNote}
       />
     );
@@ -174,14 +264,29 @@ export default function FlashcardsPage({
   return (
     <FlashcardBrowse
       flashcards={flashcards}
+      scopedCards={scopedCards}
       notes={notes}
       categories={categories}
       tagCounts={tagCounts}
       scope={scope}
       value={value}
       ratings={ratings}
+      kindFilter={kindFilter}
+      ratingFilter={ratingFilter}
+      searchQuery={searchQuery}
+      selectedCategories={selectedCategories}
+      selectedTags={selectedTags}
+      dueCount={dueCount}
       onScopeChange={onScopeChange}
-      onStartStudy={startStudy}
+      onStartStudy={(index) => startStudy(index)}
+      onStartSession={(opts) => startStudy(0, opts)}
+      onKindFilterChange={setKindFilter}
+      onRatingFilterChange={setRatingFilter}
+      onSearchChange={setSearchQuery}
+      onSelectedCategoriesChange={setSelectedCategories}
+      onSelectedTagsChange={setSelectedTags}
+      onAddFlashcard={onAddFlashcard}
+      onDeleteFlashcard={onDeleteFlashcard}
     />
   );
 }

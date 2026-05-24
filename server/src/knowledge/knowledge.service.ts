@@ -72,8 +72,23 @@ export class KnowledgeService {
       targets: note.links.filter((t) => noteIds.has(t)),
     }));
 
-    const flashcards = await this.flashcardsService.sync(noteSources);
-    const state: KnowledgeState = { notes, categories, graph, flashcards, updatedAt: new Date().toISOString() };
+    const { allCards: flashcards, reviews } = await this.flashcardsService.loadEnrichedData(noteSources);
+    const enrichedFlashcards = flashcards.map((card) => {
+      const review = reviews.get(card.id);
+      if (!review) return card;
+      return {
+        ...card,
+        reviewData: {
+          easeFactor: review.easeFactor,
+          interval: review.interval,
+          repetitions: review.repetitions,
+          nextReviewAt: review.nextReviewAt,
+          lastReviewAt: review.lastReviewAt,
+          lastRating: review.lastRating,
+        },
+      };
+    });
+    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, updatedAt: new Date().toISOString() };
 
     if (!this.readOnly) {
       await this.noteRepo.writeIndexJson(state);

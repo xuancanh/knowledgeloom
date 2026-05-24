@@ -1,15 +1,21 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { Flashcard } from '../../types';
-import { KIND_COLOR, KIND_LABEL } from './constants';
+import { KIND_COLOR, KIND_LABEL, RATING_LABEL } from './constants';
 import type { Rating } from './types';
+import { reviewFlashcard } from '../../api';
 
-/**
- * Active study session with 3-D flip cards and rating.
- *
- * Keyboard controls: Space/Enter to flip, 1/2/3 to rate (Again/Hard/Good),
- * ←/→ arrows or swipe to navigate, Esc to exit. Progress bar and live rating
- * counters shown in the top bar. Ghost cards indicate remaining stack depth.
- */
+function formatNextReview(nextReviewAt: string | null): string {
+  if (!nextReviewAt) return '';
+  const due = new Date(nextReviewAt);
+  const now = new Date();
+  const diffMs = due.getTime() - now.getTime();
+  const diffHours = Math.round(diffMs / 3600000);
+  const diffDays = Math.round(diffMs / 86400000);
+  if (diffHours <= 0) return 'Due now';
+  if (diffHours < 24) return `Next: ${diffHours}h`;
+  return `Next: ${diffDays}d`;
+}
+
 export function FlashcardStudy({
   cards,
   index,
@@ -22,6 +28,7 @@ export function FlashcardStudy({
   onRate,
   onGoToCard,
   onExit,
+  onFinishEarly,
   onOpenNote,
 }: {
   cards: Flashcard[];
@@ -35,6 +42,7 @@ export function FlashcardStudy({
   onRate: (rating: Rating) => void;
   onGoToCard: (index: number, dir: 'left' | 'right') => void;
   onExit: () => void;
+  onFinishEarly?: () => void;
   onOpenNote: (id: string) => void;
 }) {
   const activeCard = cards[index] ?? null;
@@ -42,9 +50,17 @@ export function FlashcardStudy({
 
   const rateAndAdvance = useCallback(
     (rating: Rating) => {
+      // Submit review to backend for spaced repetition
+      if (activeCard) {
+        reviewFlashcard(activeCard.id, {
+          rating,
+          noteId: activeCard.noteId,
+          isUserCard: activeCard.isUserCreated,
+        }).catch((e) => console.error('Review submission failed', e));
+      }
       onRate(rating);
     },
-    [onRate],
+    [onRate, activeCard],
   );
 
   const goTo = useCallback(
@@ -108,6 +124,7 @@ export function FlashcardStudy({
 
   const kindColor = KIND_COLOR[activeCard.kind] || 'var(--accent)';
   const existingRating = ratings[activeCard.id];
+  const nextReviewLabel = formatNextReview(activeCard.reviewData?.nextReviewAt ?? null);
 
   return (
     <div className="fc-page fc-study">
@@ -137,12 +154,14 @@ export function FlashcardStudy({
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!flipped) onFlip(); } }}
-            aria-label={flipped ? 'Card answer revealed' : 'Press Space to reveal answer'}
+            aria-label={flipped ? 'Card answer revealed' : 'Press Space to reveal card'}
           >
             <div className="fc-face fc-front">
               <div className="fc-kind-row" style={{ color: kindColor }}>
                 <span className="fc-dot" style={{ background: kindColor }} />
                 {KIND_LABEL[activeCard.kind] || activeCard.kind}
+                {activeCard.isUserCreated && <span className="fc-user-badge" title="User-created">✎</span>}
+                {nextReviewLabel && <span className={`fc-next-review ${activeCard.reviewData?.nextReviewAt && new Date(activeCard.reviewData.nextReviewAt) <= new Date() ? 'overdue' : ''}`}>{nextReviewLabel}</span>}
               </div>
               <div className="fc-front-body">
                 <h2 className="fc-prompt">{activeCard.prompt}</h2>
@@ -185,11 +204,20 @@ export function FlashcardStudy({
             <div className="fc-reveal-area">
               {existingRating && (
                 <div className={`fc-prev-badge ${existingRating}`}>
-                  Previously: {existingRating}
+                  Previously: {RATING_LABEL[existingRating] || existingRating}
+                </div>
+              )}
+              {activeCard.reviewData && (
+                <div className="fc-sr-info">
+                  <span>EF {activeCard.reviewData.easeFactor}</span>
+                  <span>·</span>
+                  <span>Interval {activeCard.reviewData.interval}d</span>
+                  <span>·</span>
+                  <span>Reps {activeCard.reviewData.repetitions}</span>
                 </div>
               )}
               <button className="fc-reveal-btn" onClick={onFlip}>
-                Reveal answer <kbd>Space</kbd>
+                Reveal card <kbd>Space</kbd>
               </button>
             </div>
           ) : (
@@ -197,15 +225,15 @@ export function FlashcardStudy({
               <span className="fc-rate-prompt">How well did you recall it?</span>
               <div className="fc-rate-row">
                 <button className="fc-rate again" onClick={() => rateAndAdvance('again')}>
-                  <span>Again</span>
+                  <span>{RATING_LABEL['again']}</span>
                   <kbd>1</kbd>
                 </button>
                 <button className="fc-rate hard" onClick={() => rateAndAdvance('hard')}>
-                  <span>Hard</span>
+                  <span>{RATING_LABEL['hard']}</span>
                   <kbd>2</kbd>
                 </button>
                 <button className="fc-rate good" onClick={() => rateAndAdvance('good')}>
-                  <span>Good</span>
+                  <span>{RATING_LABEL['good']}</span>
                   <kbd>3</kbd>
                 </button>
               </div>
@@ -219,6 +247,13 @@ export function FlashcardStudy({
           </button>
           <span className="fc-nav-hint">
             <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>Esc</kbd> exit
+          </span>
+          <span className="fc-nav-end">
+            {onFinishEarly && (
+              <button className="fc-nav-finish" onClick={onFinishEarly}>
+                Finish early
+              </button>
+            )}
           </span>
           <button className="fc-nav-btn" onClick={() => goTo(index + 1, 'left')} disabled={index === cards.length - 1}>
             Next →

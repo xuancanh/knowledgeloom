@@ -50,6 +50,15 @@ export interface Flashcard {
   prompt: string;
   lesson: string;
   kind: 'concept' | 'question' | 'lesson' | 'tradeoff' | 'pattern';
+  isUserCreated?: boolean;
+  reviewData?: {
+    easeFactor: string;
+    interval: number;
+    repetitions: number;
+    nextReviewAt: string | null;
+    lastReviewAt: string | null;
+    lastRating: string | null;
+  };
 }
 
 export interface KnowledgeState {
