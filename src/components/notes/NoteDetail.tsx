@@ -61,6 +61,10 @@ export default function NoteDetail({
     const v = localStorage.getItem('kl:read-width');
     return v === 'narrow' || v === 'wide' ? v : 'medium';
   });
+  const [readSize, setReadSize] = useState<'s' | 'm' | 'l'>(() => {
+    const v = localStorage.getItem('kl:read-size');
+    return v === 's' || v === 'l' ? v : 'm';
+  });
   const [progress, setProgress] = useState(0);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
@@ -82,12 +86,14 @@ export default function NoteDetail({
     document.body.classList.toggle('reading', reading);
     document.body.dataset.readTheme = reading ? readTheme : '';
     document.body.dataset.readWidth = reading ? readWidth : '';
+    document.body.dataset.readSize = reading ? readSize : '';
     return () => {
       document.body.classList.remove('reading');
       document.body.dataset.readTheme = '';
       document.body.dataset.readWidth = '';
+      document.body.dataset.readSize = '';
     };
-  }, [reading, readTheme, readWidth]);
+  }, [reading, readTheme, readWidth, readSize]);
 
   useEffect(() => {
     if (!reading) return;
@@ -102,6 +108,7 @@ export default function NoteDetail({
 
   const setReadThemeAndSave = useCallback((t: typeof readTheme) => { setReadTheme(t); localStorage.setItem('kl:read-theme', t); }, []);
   const setReadWidthState = useCallback((w: typeof readWidth) => { setReadWidth(w); localStorage.setItem('kl:read-width', w); }, []);
+  const setReadSizeState = useCallback((s: typeof readSize) => { setReadSize(s); localStorage.setItem('kl:read-size', s); }, []);
 
   /*
    * Opening the editor copies the latest note props and markdown body into
@@ -307,6 +314,11 @@ export default function NoteDetail({
       {reading && (
         <>
           <div className="read-toolbar">
+            <span className="read-toolbar-group">
+              <button onClick={() => setReadSizeState('s')} className={readSize === 's' ? 'active' : ''}>A</button>
+              <button onClick={() => setReadSizeState('m')} className={readSize === 'm' ? 'active' : ''} style={{ fontSize: '1.15em' }}>A</button>
+              <button onClick={() => setReadSizeState('l')} className={readSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
+            </span>
             <span className="read-toolbar-group">
               <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>Narrow</button>
               <button onClick={() => setReadWidthState('medium')} className={readWidth === 'medium' ? 'active' : ''}>Medium</button>
