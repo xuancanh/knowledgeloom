@@ -520,6 +520,52 @@ body.reading[data-read-theme="dark"] {
   background: #1a1a2e !important;
   color: #d0d0d0 !important;
 }
+body.reading[data-read-theme="dark"] main,
+body.reading[data-read-theme="dark"] .note-detail,
+body.reading[data-read-theme="dark"] .note-detail .note-body,
+body.reading[data-read-theme="dark"] .note-detail .note-body p,
+body.reading[data-read-theme="dark"] .note-detail .note-body blockquote,
+body.reading[data-read-theme="dark"] .note-detail .note-body h3,
+body.reading[data-read-theme="dark"] .note-detail .lede {
+  background: transparent;
+  color: #d0d0d0 !important;
+}
+body.reading[data-read-theme="dark"] .note-detail h1 { color: #e8e8e8 !important; }
+body.reading[data-read-theme="dark"] .note-detail h3 { color: #a0a0a0 !important; }
+
+body.reading[data-read-theme="sepia"] {
+  background: #f4ecd8 !important;
+  color: #5b4636 !important;
+}
+body.reading[data-read-theme="sepia"] main,
+body.reading[data-read-theme="sepia"] .note-detail,
+body.reading[data-read-theme="sepia"] .note-detail .note-body,
+body.reading[data-read-theme="sepia"] .note-detail .note-body p,
+body.reading[data-read-theme="sepia"] .note-detail .note-body blockquote,
+body.reading[data-read-theme="sepia"] .note-detail .note-body h3,
+body.reading[data-read-theme="sepia"] .note-detail .lede {
+  background: transparent;
+  color: #5b4636 !important;
+}
+body.reading[data-read-theme="sepia"] .note-detail h1 { color: #3a2a1a !important; }
+body.reading[data-read-theme="sepia"] .note-detail h3 { color: #7a5a3a !important; }
+
+body.reading[data-read-theme="light"] {
+  background: #fff !important;
+  color: #1a1a1a !important;
+}
+body.reading[data-read-theme="light"] main,
+body.reading[data-read-theme="light"] .note-detail,
+body.reading[data-read-theme="light"] .note-detail .note-body,
+body.reading[data-read-theme="light"] .note-detail .note-body p,
+body.reading[data-read-theme="light"] .note-detail .note-body blockquote,
+body.reading[data-read-theme="light"] .note-detail .note-body h3,
+body.reading[data-read-theme="light"] .note-detail .lede {
+  background: transparent;
+  color: #1a1a1a !important;
+}
+body.reading[data-read-theme="light"] .note-detail h1 { color: #111 !important; }
+body.reading[data-read-theme="light"] .note-detail h3 { color: #555 !important; }
 body.reading[data-read-theme="dark"] main {
   background: transparent;
   color: #d0d0d0;
