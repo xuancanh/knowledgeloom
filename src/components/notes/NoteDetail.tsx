@@ -104,10 +104,10 @@ export default function NoteDetail({
     style.id = styleId;
     style.textContent = `
       main{max-width:${w}px!important;background:transparent!important}
-      .note-detail .note-body{font-size:${fs}rem!important;line-height:1.8!important}
-      .note-detail .note-body p,.note-detail .note-body h3,
-      .note-detail .note-body blockquote{font-size:1em!important}
-      .note-detail h1{font-size:${readSize==='s'?1.8:readSize==='l'?2.6:2.2}rem!important}
+      body.reading .note-detail .ne-view-content .tiptap{font-size:${fs}rem!important;line-height:1.8!important}
+      body.reading .note-detail .ne-view-content .tiptap h3{font-size:0.72em!important}
+      body.reading .note-detail .ne-view-content .tiptap blockquote{font-size:0.97em!important}
+      body.reading .note-detail h1{font-size:${readSize==='s'?1.8:readSize==='l'?2.6:2.2}rem!important}
     `;
     document.head.appendChild(style);
     return () => {
