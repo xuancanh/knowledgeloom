@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import { useKnowledge, themeLabels } from './hooks/useKnowledge';
+import { useKnowledge, themeLabels, fontStyleLabels } from './hooks/useKnowledge';
 import ActivityPage from './components/activity/ActivityPage';
 import Home from './components/Home';
 import Rail from './components/Rail';
@@ -23,7 +23,7 @@ import ContextPanel from './components/ContextPanel';
  */
 export default function App() {
   const {
-    state, jobs, reminders, searchOpen, setSearchOpen, theme, setTheme,
+    state, jobs, reminders, searchOpen, setSearchOpen, theme, setTheme, fontStyle, setFontStyle,
     compactMode, setCompactMode, readOnly, toasts, railOpen, setRailOpen,
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
@@ -75,6 +75,10 @@ export default function App() {
             <button onClick={() => setTheme((v) => themeLabels[v].next)} title={themeLabels[theme].label}>
               <span className="glyph">{themeLabels[theme].icon}</span>
               <span className="util-label">{themeLabels[theme].label}</span>
+            </button>
+            <button onClick={() => setFontStyle((v) => fontStyleLabels[v].next)} title={fontStyleLabels[fontStyle].label}>
+              <span className="glyph">{fontStyleLabels[fontStyle].icon}</span>
+              <span className="util-label">{fontStyleLabels[fontStyle].label}</span>
             </button>
             <button onClick={() => setCompactMode((v) => !v)} title={compactMode ? 'Comfort' : 'Compact'}>
               <span className="glyph">{compactMode ? '□' : '▤'}</span>

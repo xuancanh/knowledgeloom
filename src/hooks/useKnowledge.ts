@@ -23,15 +23,25 @@ import { loadTemplates, type GuidanceTemplate } from '../lib/guidance';
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder } from '../types';
 
 type Theme = 'light' | 'white' | 'dark';
+type FontStyle = 'serif' | 'sans';
 type Toast = { id: string; kind: 'info' | 'success' | 'error'; message: string };
 
 const emptyState: KnowledgeState = { notes: [], categories: [], graph: [], flashcards: [] };
-const preferenceKeys = { theme: 'knowledge-loom:theme', compactMode: 'knowledge-loom:compact-mode' };
+const preferenceKeys = {
+  theme: 'knowledge-loom:theme',
+  compactMode: 'knowledge-loom:compact-mode',
+  fontStyle: 'knowledge-loom:font-style',
+};
 
 export const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
   light: { icon: '◐', next: 'white', label: 'White' },
   white: { icon: '☾', next: 'dark', label: 'Dark' },
   dark: { icon: '☀', next: 'light', label: 'Light' },
+};
+
+export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle; label: string }> = {
+  serif: { icon: '𝐀', next: 'sans', label: 'Sans' },
+  sans: { icon: 'A', next: 'serif', label: 'Serif' },
 };
 
 function loadTheme(): Theme {
@@ -61,6 +71,10 @@ export function useKnowledge() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>(loadTheme);
+  const [fontStyle, setFontStyle] = useState<FontStyle>(() => {
+    const v = window.localStorage.getItem(preferenceKeys.fontStyle);
+    return v === 'sans' ? 'sans' : 'serif';
+  });
   const [compactMode, setCompactMode] = useState(
     () => window.localStorage.getItem(preferenceKeys.compactMode) === 'true',
   );
@@ -109,6 +123,11 @@ export function useKnowledge() {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem(preferenceKeys.theme, theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.dataset.font = fontStyle;
+    window.localStorage.setItem(preferenceKeys.fontStyle, fontStyle);
+  }, [fontStyle]);
 
   useEffect(() => {
     window.localStorage.setItem(preferenceKeys.compactMode, String(compactMode));
@@ -248,6 +267,8 @@ export function useKnowledge() {
     setSearchOpen,
     theme,
     setTheme,
+    fontStyle,
+    setFontStyle,
     compactMode,
     setCompactMode,
     readOnly,
