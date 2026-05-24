@@ -70,15 +70,6 @@
 }
 
 
-/* ——— Floating capture variant ——— */
-.floating-capture {
-  position: fixed;
-  right: 360px;
-  bottom: 28px;
-  width: 460px;
-  z-index: 50;
-  box-shadow: 0 20px 40px -16px rgba(0,0,0,0.3), 0 6px 16px -6px rgba(0,0,0,0.2);
-}
 
 /* Empty state in main column */
 .empty {
@@ -176,67 +167,7 @@
   display: block;
   margin-bottom: 14px;
 }
-.edit-card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 18px 20px;
-  box-shadow: var(--shadow);
-}
-.manual-edit { min-width: 0; }
-.edit-tabs {
-  border-bottom: 1px dashed var(--rule);
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-}
-.edit-tabs button {
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  color: var(--ink-2);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  padding: 7px 10px;
-  text-transform: uppercase;
-}
-.edit-tabs button.active {
-  background: var(--surface-2);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.edit-card label { display: block; margin-bottom: 14px; }
-.edit-card label > span { display: block; font-family: "JetBrains Mono", monospace; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-.edit-card input,
-.edit-card textarea {
-  width: 100%;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--paper);
-  color: var(--ink);
-  padding: 8px 10px;
-  font-family: "Source Serif 4", serif;
-  font-size: 15px;
-  outline: none;
-}
-.edit-card input:focus,
-.edit-card textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-.edit-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.body-editor {
-  font-family: "JetBrains Mono", monospace !important;
-  font-size: 12.5px !important;
-  line-height: 1.55;
-}
-.markdown-editor { margin-bottom: 14px; }
+
 .edit-label {
   display: block;
   font-family: "JetBrains Mono", monospace;
@@ -246,72 +177,6 @@
   color: var(--muted);
   font-weight: 600;
   margin-bottom: 6px;
-}
-.live-md-editor {
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  color: var(--ink);
-  font-family: "Source Serif 4", serif;
-  max-height: 520px;
-  min-height: 330px;
-  overflow: auto;
-  padding: 10px 12px;
-  position: relative;
-}
-.live-md-editor:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-.md-line {
-  border-radius: 3px;
-  min-height: 1.5em;
-  outline: none;
-  padding: 2px 3px;
-  white-space: pre-wrap;
-}
-.md-line:focus {
-  background: color-mix(in srgb, var(--highlight) 24%, transparent);
-}
-.md-h1 {
-  color: var(--ink);
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.2;
-  margin: 8px 0 4px;
-}
-.md-h2 {
-  color: var(--ink);
-  font-size: 21px;
-  font-weight: 600;
-  line-height: 1.25;
-  margin: 7px 0 3px;
-}
-.md-h3 {
-  color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin: 7px 0 3px;
-  text-transform: uppercase;
-}
-.md-quote {
-  background: var(--surface);
-  border-left: 2px solid var(--accent);
-  color: var(--ink-2);
-  font-style: italic;
-  margin: 6px 0;
-  padding-left: 10px;
-}
-.md-list {
-  color: var(--ink-2);
-  padding-left: 16px;
-}
-.md-code {
-  color: var(--teal);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
 }
 .ai-edit-panel {
   border: 1px dashed var(--rule);
