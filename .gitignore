@@ -1,9 +1,20 @@
 node_modules
 dist
 .env
+.DS_Store
+
+# Runtime knowledge data — managed by the app, not source-controlled
+knowledge/app.sqlite
+knowledge/app.sqlite-shm
+knowledge/app.sqlite-wal
 knowledge/index.json
 knowledge/jobs.json
+knowledge/flashcards.json
 knowledge/meili-sync*.json
-knowledge/notes/*.md
-knowledge/categories/*.md
-.DS_Store
+knowledge/notes/*
+knowledge/categories/*
+knowledge/users/
+
+# Keep placeholder files
+!knowledge/notes/.gitkeep
+!knowledge/categories/.gitkeep
