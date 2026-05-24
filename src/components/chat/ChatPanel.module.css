@@ -1,0 +1,323 @@
+/* ── Floating trigger ── */
+.chatBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 850;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 0 11px;
+  height: 36px;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--ink-2);
+  border: 1px solid var(--rule-2);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 140ms, color 140ms, background 140ms, box-shadow 140ms;
+  white-space: nowrap;
+}
+.chatBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.14);
+}
+.chatBtn.open {
+  display: none;
+}
+.chatBtnDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* ── Backdrop ── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 799;
+}
+
+/* ── Sliding panel ── */
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 92vw;
+  z-index: 800;
+  background: var(--surface);
+  border-left: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: none;
+}
+.panel.visible {
+  transform: translateX(0);
+  box-shadow: -6px 0 32px rgba(0,0,0,0.12);
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px 11px;
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+.headerLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+}
+.headerDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.headerTitle {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  margin: 0;
+}
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: color 120ms, background 120ms;
+}
+.iconBtn:hover {
+  color: var(--ink-2);
+  background: color-mix(in srgb, var(--rule) 50%, transparent);
+}
+
+/* ── Scope bar ── */
+.scopeBar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px 8px;
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+  background: var(--surface-2);
+}
+.scopeKey {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.scopeChips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.chip {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 120ms, border-color 120ms, background 120ms;
+}
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip.chipActive {
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Messages ── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.emptyState {
+  margin: auto;
+  text-align: center;
+  padding: 20px 16px;
+}
+.emptyIcon {
+  font-size: 28px;
+  opacity: 0.3;
+  margin-bottom: 10px;
+}
+.emptyTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin: 0 0 6px;
+}
+.emptyHint {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Message rows */
+.msgRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.msgRole {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+.msgRow.roleUser .msgRole {
+  color: var(--accent);
+}
+
+.msgBubble {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msgRow.roleUser .msgBubble {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--rule));
+  border-radius: 2px 8px 8px 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.msgRow.roleAssistant .msgBubble {
+  padding: 2px 0;
+}
+
+/* Streaming cursor */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  background: var(--accent);
+  border-radius: 1px;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: blink 900ms step-end infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ── Input bar ── */
+.inputBar {
+  border-top: 1px solid var(--rule);
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
+  background: var(--surface-2);
+}
+.textarea {
+  flex: 1;
+  min-height: 38px;
+  max-height: 130px;
+  resize: none;
+  overflow-y: auto;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-family: inherit;
+  line-height: 1.55;
+  padding: 8px 11px;
+  transition: border-color 140ms;
+}
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.textarea::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+.sendBtn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--paper);
+  border: none;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 120ms, background 120ms;
+}
+.sendBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.sendBtn:not(:disabled):hover {
+  opacity: 0.88;
+}
+.sendBtn.stopBtn {
+  background: var(--rust);
+}

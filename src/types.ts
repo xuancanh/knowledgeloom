@@ -96,3 +96,16 @@ export type Reminder = {
   createdAt: string;
   completedAt: string | null;
 };
+
+export type RagScope =
+  | { type: 'all' }
+  | { type: 'note'; id: string }
+  | { type: 'category'; path: string }
+  | { type: 'tag'; tag: string };
+
+export type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  streaming?: boolean;
+};
