@@ -133,11 +133,8 @@ export default function NoteDetail({
 
       <div className="head">
         <div className="h-meta">
-          <span className="cat-pill" onClick={() => onOpenCategory(catId)}>
-            <span className={`dot ${cat?.color || 'oxblood'}`} />{cat?.name || note.category}
-          </span>
-          <span>· {formatCreated(note.createdAt)}</span>
-          <span>· {note.tags.length} tags · {outgoing.length}↗ {backlinks.length}↘</span>
+          <span>{formatCreated(note.createdAt)}</span>
+          <span>· {outgoing.length}↗ {backlinks.length}↘</span>
           <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? 'Cancel' : 'Edit'}</button>
           <button className="delete-inline" onClick={onDelete} disabled={readOnly}>Delete</button>
         </div>
@@ -147,6 +144,7 @@ export default function NoteDetail({
             <h1>{note.title}</h1>
             <p className="lede">{note.summary || 'No summary yet.'}</p>
             <div className="tags">
+              <span className="tags-label">{note.tags.length} tag{note.tags.length !== 1 ? 's' : ''}</span>
               {note.tags.map((tag) => <button key={tag} className="tag" onClick={() => onOpenTag(tag)}>#{tag}</button>)}
             </div>
             {(note.sourceUrl || note.originalRequest) && (
