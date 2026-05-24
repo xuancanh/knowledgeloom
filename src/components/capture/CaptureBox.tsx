@@ -45,6 +45,10 @@ export default function CaptureBox({
     ? templatesForMode(templates, mode === 'link' ? 'link' : 'research')
     : [];
 
+  const guidanceLabel = guidance
+    ? modeTemplates.find((t) => t.text === guidance)?.label ?? truncate(guidance, 50)
+    : '';
+
   const primaryRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -165,7 +169,7 @@ export default function CaptureBox({
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
             {!showMore && guidance && (
-              <span className={styles.guidancePreview}>{truncate(guidance, 50)}</span>
+              <span className={styles.guidancePreview}>{guidanceLabel}</span>
             )}
           </button>
           {showMore && (
@@ -253,7 +257,7 @@ export default function CaptureBox({
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
             {!showMore && guidance && (
-              <span className={styles.guidancePreview}>{truncate(guidance, 50)}</span>
+              <span className={styles.guidancePreview}>{guidanceLabel}</span>
             )}
           </button>
           {showMore && (
