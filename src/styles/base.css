@@ -92,19 +92,19 @@
 }
 
 [data-theme="simplistic"] {
-  /* surfaces: nearly white — borders do the visual separation work */
+  /* white surfaces — borders are the only visual separator */
   --paper: #ffffff;
-  --paper-2: #fafafa;
-  --surface: #f6f6f6;
-  --surface-2: #eeeeee;
-  /* text: strong hierarchy, muted stays readable */
+  --paper-2: #f8f8f8;
+  --surface: #ffffff;
+  --surface-2: #f2f2f2;
+  /* text hierarchy: strong contrast at every level */
   --ink: #0c0c0c;
   --ink-2: #2a2a2a;
-  --muted: #525252;
-  --muted-2: #808080;
-  /* borders: clearly visible against the white surfaces */
-  --rule: #d8d8d8;
-  --rule-2: #b8b8b8;
+  --muted: #555555;
+  --muted-2: #888888;
+  /* borders: darker so they read clearly on white */
+  --rule: #d0d0d0;
+  --rule-2: #aaaaaa;
   --accent: #0c0c0c;
   --accent-2: #2a2a2a;
   --moss: #2a7a4a;
