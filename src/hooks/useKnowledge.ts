@@ -22,7 +22,7 @@ import {
 import { loadTemplates, type GuidanceTemplate } from '../lib/guidance';
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder } from '../types';
 
-type Theme = 'light' | 'white' | 'dark' | 'midnight';
+type Theme = 'light' | 'white' | 'dark' | 'midnight' | 'simplistic';
 type FontStyle = 'serif' | 'sans';
 type Toast = { id: string; kind: 'info' | 'success' | 'error'; message: string };
 
@@ -35,10 +35,13 @@ const preferenceKeys = {
 
 export const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
   light: { icon: '☀', next: 'white', label: 'Warm' },
-  white: { icon: '◐', next: 'dark', label: 'White' },
+  white: { icon: '◐', next: 'simplistic', label: 'White' },
+  simplistic: { icon: '◻', next: 'dark', label: 'Minimal' },
   dark: { icon: '☾', next: 'midnight', label: 'Dark' },
   midnight: { icon: '◑', next: 'light', label: 'Night' },
 };
+
+export type { Theme };
 
 export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle; label: string }> = {
   serif: { icon: '𝐀', next: 'sans', label: 'Serif' },
@@ -47,7 +50,7 @@ export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle;
 
 function loadTheme(): Theme {
   const v = window.localStorage.getItem(preferenceKeys.theme);
-  return v === 'light' || v === 'white' || v === 'dark' || v === 'midnight' ? v : 'light';
+  return v === 'light' || v === 'white' || v === 'dark' || v === 'midnight' || v === 'simplistic' ? v : 'light';
 }
 
 /**

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { useKnowledge, themeLabels, fontStyleLabels } from './hooks/useKnowledge';
+import { useKnowledge, themeLabels, fontStyleLabels, type Theme } from './hooks/useKnowledge';
 import ActivityPage from './components/activity/ActivityPage';
 import Home from './components/Home';
 import Rail from './components/Rail';
@@ -22,6 +23,8 @@ import ContextPanel from './components/ContextPanel';
  * SearchOverlay (command palette), and toast notification stack.
  */
 export default function App() {
+  const [themeDropOpen, setThemeDropOpen] = useState(false);
+
   const {
     state, jobs, reminders, searchOpen, setSearchOpen, theme, setTheme, fontStyle, setFontStyle,
     compactMode, setCompactMode, readOnly, toasts, railOpen, setRailOpen,
@@ -72,10 +75,28 @@ export default function App() {
             <kbd>⌘K</kbd>
           </button>
           <div className="util-actions">
-            <button onClick={() => setTheme((v) => themeLabels[v].next)} title={themeLabels[theme].label}>
-              <span className="glyph">{themeLabels[theme].icon}</span>
-              <span className="util-label">{themeLabels[theme].label}</span>
-            </button>
+            <div className="theme-drop-wrap">
+              {themeDropOpen && <div className="theme-drop-backdrop" onClick={() => setThemeDropOpen(false)} />}
+              <button className={themeDropOpen ? 'theme-drop-trigger open' : 'theme-drop-trigger'} onClick={() => setThemeDropOpen((v) => !v)}>
+                <span className="glyph">{themeLabels[theme].icon}</span>
+                <span className="util-label">{themeLabels[theme].label}</span>
+                <span className="util-arrow">▾</span>
+              </button>
+              {themeDropOpen && (
+                <div className="theme-drop">
+                  {(Object.entries(themeLabels) as [Theme, typeof themeLabels[Theme]][]).map(([key, val]) => (
+                    <button
+                      key={key}
+                      className={theme === key ? 'active' : ''}
+                      onClick={() => { setTheme(key); setThemeDropOpen(false); }}
+                    >
+                      <span>{val.icon}</span>
+                      {val.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button onClick={() => setFontStyle((v) => fontStyleLabels[v].next)} title={fontStyleLabels[fontStyle].label}>
               <span className="glyph">{fontStyleLabels[fontStyle].icon}</span>
               <span className="util-label">{fontStyleLabels[fontStyle].label}</span>
