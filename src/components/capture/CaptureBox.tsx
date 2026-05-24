@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { CreateNoteRequest } from '../../types';
 import { templatesForMode, type GuidanceTemplate } from '../../lib/guidance';
 import { NEW_NOTE_DRAFT_KEY } from '../routes/NewNoteRoute';
+import { assistDraft } from '../../api';
 import NoteEditor, { type NoteEditorHandle } from '../notes/NoteEditor';
 import MetaFields from '../notes/MetaFields';
 import styles from './CaptureBox.module.css';
@@ -41,7 +42,10 @@ export default function CaptureBox({
   const [ctx, setCtx] = useState('');
   const [summary, setSummary] = useState('');
   const [links, setLinks] = useState('');
-  const [aiPolish, setAiPolish] = useState(false);
+  const [aiAssistOpen, setAiAssistOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiRunning, setAiRunning] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   const modeTemplates = mode !== 'write'
     ? templatesForMode(templates, mode === 'link' ? 'link' : 'research')
@@ -78,9 +82,37 @@ export default function CaptureBox({
 
   function reset() {
     setTitle(''); setUrl(''); setGuidance(''); setCategory(''); setTags([]);
-    setSeed(''); setCtx(''); setSummary(''); setLinks(''); setAiPolish(false);
+    setSeed(''); setCtx(''); setSummary(''); setLinks('');
+    setAiAssistOpen(false); setAiPrompt(''); setAiError('');
     setShowMore(false);
     editorRef.current?.clear();
+  }
+
+  async function runAiAssist() {
+    const p = aiPrompt.trim();
+    if (!p) return;
+    setAiRunning(true);
+    setAiError('');
+    try {
+      const { update } = await assistDraft({
+        title,
+        body: editorRef.current?.getValue() ?? '',
+        category,
+        summary,
+        tags,
+      }, p);
+      setTitle(update.title);
+      setCategory(update.category);
+      setSummary(update.summary);
+      setTags(update.tags);
+      editorRef.current?.setValue(update.body);
+      setAiAssistOpen(false);
+      setAiPrompt('');
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'AI Assist failed');
+    } finally {
+      setAiRunning(false);
+    }
   }
 
   function openFullEditor() {
@@ -106,7 +138,7 @@ export default function CaptureBox({
     if (mode === 'write' && !t) return;
 
     onSubmit({
-      mode: mode === 'link' ? 'link' : mode === 'research' ? 'research' : aiPolish ? 'polish' : 'write',
+      mode: mode === 'link' ? 'link' : mode === 'research' ? 'research' : 'write',
       title: t || u,
       url: u,
       body,
@@ -130,7 +162,7 @@ export default function CaptureBox({
     ? 'Generate from link'
     : mode === 'research'
     ? 'Research with Codex'
-    : aiPolish ? 'Polish with AI' : 'Save note';
+    : 'Save note';
 
 
 
@@ -144,29 +176,18 @@ export default function CaptureBox({
           <span className={styles.promptStar}>✦</span>
           {readOnly ? 'Read-only archive' : 'What did you learn?'}
         </span>
-        <div className={styles.headerRight}>
-          <button
-            type="button"
-            className={styles.fullEditorBtn}
-            onClick={openFullEditor}
-            disabled={readOnly}
-            title="Open full editor"
-          >
-            ⊕ Full editor
-          </button>
-          <div className={styles.modeSwitcher}>
-            {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                className={`${styles.modeBtn} ${styles[`modeBtn-${m}`]}${mode === m ? ` ${styles.modeBtnActive}` : ''}`}
-                onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
-                disabled={readOnly}
-              >
-                {m === 'research' ? '⌕ Research' : m === 'link' ? '↗ Link' : '✎ Write'}
-              </button>
-            ))}
-          </div>
+        <div className={styles.modeSwitcher}>
+          {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              className={`${styles.modeBtn} ${styles[`modeBtn-${m}`]}${mode === m ? ` ${styles.modeBtnActive}` : ''}`}
+              onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
+              disabled={readOnly}
+            >
+              {m === 'research' ? '⌕ Research' : m === 'link' ? '↗ Link' : '✎ Write'}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -387,13 +408,24 @@ export default function CaptureBox({
             disabled={readOnly}
             compact
           />
-          <label className={styles.polishToggle}>
-            <input type="checkbox" checked={aiPolish} onChange={(e) => setAiPolish(e.target.checked)} disabled={readOnly} />
-            <span className={styles.polishLabel}>
-              Polish with AI
-              <em>Improve structure and clarity without adding new facts</em>
-            </span>
-          </label>
+          <div className={styles.writeActions}>
+            <button
+              type="button"
+              className={styles.aiAssistBtn}
+              onClick={() => { setAiAssistOpen(true); setAiError(''); }}
+              disabled={readOnly}
+            >
+              ✦ AI Assist
+            </button>
+            <button
+              type="button"
+              className={styles.fullEditorBtn}
+              onClick={openFullEditor}
+              disabled={readOnly}
+            >
+              ⊕ Full editor
+            </button>
+          </div>
           <button
             type="button"
             className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
@@ -408,7 +440,7 @@ export default function CaptureBox({
                 <input className={styles.metaInput} value={summary} onChange={(e) => setSummary(e.target.value)} onKeyDown={onKey} placeholder="One-line summary" disabled={readOnly} />
                 <input className={styles.metaInput} value={links} onChange={(e) => setLinks(e.target.value)} onKeyDown={onKey} placeholder="Linked note ids, comma-separated" disabled={readOnly} />
               </div>
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={aiPolish ? 'Polish instructions — tone, audience, sections to keep…' : 'Context — notes for future reference…'} disabled={readOnly} />
+              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder="Context — notes for future reference…" disabled={readOnly} />
             </div>
           )}
         </div>
@@ -425,6 +457,35 @@ export default function CaptureBox({
           {submitLabel} →
         </button>
       </div>
+
+      {/* AI Assist popup */}
+      {aiAssistOpen && (
+        <div className={styles.aiAssistOverlay} onClick={(e) => { if (e.target === e.currentTarget) setAiAssistOpen(false); }}>
+          <div className={styles.aiAssistModal}>
+            <div className={styles.aiAssistHead}>
+              <span className={styles.aiAssistTitle}>✦ AI Assist</span>
+              <button className={styles.aiAssistClose} onClick={() => setAiAssistOpen(false)}>✕</button>
+            </div>
+            <p className={styles.aiAssistDesc}>Describe what you want to change about this note — tone, structure, expansion, simplification, or anything else.</p>
+            <textarea
+              className={styles.aiAssistInput}
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="e.g. Make it more concise, add a section on trade-offs, rewrite in bullet points…"
+              rows={4}
+              autoFocus
+              onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runAiAssist(); } }}
+            />
+            {aiError && <p className={styles.aiAssistError}>{aiError}</p>}
+            <div className={styles.aiAssistActions}>
+              <button className={styles.aiAssistCancel} onClick={() => setAiAssistOpen(false)} disabled={aiRunning}>Cancel</button>
+              <button className={styles.aiAssistApply} onClick={runAiAssist} disabled={aiRunning || !aiPrompt.trim()}>
+                {aiRunning ? 'Working…' : 'Apply →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

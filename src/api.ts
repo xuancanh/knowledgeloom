@@ -140,6 +140,28 @@ export type NoteUpdate = {
 };
 
 /**
+ * Sends an unsaved new-note draft plus a user instruction to Codex.
+ * Used by the capture box AI Assist feature before a note has been created.
+ */
+export async function assistDraft(
+  draft: { title: string; body: string; category?: string; summary?: string; tags?: string[] },
+  prompt: string,
+): Promise<{ update: NoteUpdate; codexStatus: string }> {
+  const response = await fetch('/api/notes/assist-draft', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ prompt, draft }),
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    let detail = text;
+    try { detail = JSON.parse(text).error || text; } catch { /* keep raw text */ }
+    throw new Error(`AI Assist failed: ${response.status}${detail ? ` - ${detail}` : ''}`);
+  }
+  return response.json();
+}
+
+/**
  * Sends the current unsaved editor draft plus a user instruction to Codex.
  * The response is an edit proposal only; callers should apply it to local form
  * state and let the user save through `updateNote` after review.

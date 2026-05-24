@@ -2,14 +2,15 @@
  * NotesController — individual note read/write operations.
  *
  * Routes:
- *   GET    /api/notes/:id        — raw markdown for the editor
- *   PUT    /api/notes/:id        — full note update (editor save)
- *   PATCH  /api/notes/:id        — partial note update (same handler as PUT)
- *   DELETE /api/notes/:id        — delete note and rebuild indexes
- *   POST   /api/notes/:id/assist — AI edit proposal (does not write to disk)
+ *   GET    /api/notes/:id          — raw markdown for the editor
+ *   PUT    /api/notes/:id          — full note update (editor save)
+ *   PATCH  /api/notes/:id          — partial note update (same handler as PUT)
+ *   DELETE /api/notes/:id          — delete note and rebuild indexes
+ *   POST   /api/notes/assist-draft — AI edit proposal for an unsaved draft
+ *   POST   /api/notes/:id/assist   — AI edit proposal (does not write to disk)
  *
- * Write routes are guarded by WritableGuard. The assist route also requires
- * writable mode since it invokes CodexService (which spawns a Codex process).
+ * Write routes are guarded by WritableGuard. The assist routes also require
+ * writable mode since they invoke CodexService.
  */
 import { Controller, Get, Put, Patch, Delete, Post, Param, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { NotesService } from './notes.service';
@@ -40,6 +41,14 @@ export class NotesController {
   @UseGuards(WritableGuard)
   delete(@Param('id') id: string) {
     return this.notesService.delete(id);
+  }
+
+  @Post('assist-draft')
+  @UseGuards(WritableGuard)
+  async assistDraft(@Body() body: any) {
+    const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
+    if (!prompt) throw new BadRequestException('prompt is required');
+    return this.notesService.assistDraft(body?.draft || {}, prompt);
   }
 
   @Post(':id/assist')

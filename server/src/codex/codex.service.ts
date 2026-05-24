@@ -80,6 +80,22 @@ export class CodexService {
   }
 
   /**
+   * Generates an edit proposal for an in-progress draft that hasn't been saved yet.
+   * Used by the capture box "AI Assist" feature on new notes.
+   */
+  async assistDraft(draft: any, instruction: string): Promise<any> {
+    const existingNotes = await this.noteRepo.readAll();
+    const prompt = this.buildDraftAssistPrompt({ draft, instruction, existingNotes });
+    const output = await this.ai.complete(prompt);
+    const update = this.parseEditAssistJson(output);
+    const existingIds = new Set(existingNotes.map((n) => n.id));
+    return {
+      update: { ...update, links: update.links.filter((l: string) => existingIds.has(l)) },
+      codexStatus: 'completed',
+    };
+  }
+
+  /**
    * Generates an edit proposal for an existing note without writing to disk.
    * The controller returns the proposal to the client so the user can review
    * before saving through PUT /api/notes/:id.
@@ -218,6 +234,40 @@ Existing notes:
 ${related || '- None yet'}
 
 Return only markdown with the same frontmatter schema.
+`;
+  }
+
+  private buildDraftAssistPrompt({ draft, instruction, existingNotes }: any): string {
+    const related = existingNotes
+      .slice(-40)
+      .map((n: KnowledgeNote) => `- ${n.id}: ${n.title} (${n.category}) - ${n.summary}`)
+      .join('\n');
+    return `Revise this new note draft according to the user's instruction.
+
+Rules:
+- Return only valid JSON. No markdown fence and no commentary.
+- Preserve the user's intent. Do not invent new facts.
+- The body must be markdown without YAML frontmatter.
+- Links must be existing note ids only.
+
+User instruction:
+${instruction}
+
+Existing note ids that may be linked if relevant:
+${related || '- None'}
+
+Draft:
+${JSON.stringify(draft, null, 2)}
+
+Return this exact JSON shape:
+{
+  "title": "string",
+  "category": "string",
+  "summary": "string",
+  "tags": ["string"],
+  "links": ["existing-note-id"],
+  "body": "markdown body without frontmatter"
+}
 `;
   }
 

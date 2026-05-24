@@ -36,13 +36,6 @@
 }
 .promptStar { color: var(--accent); }
 
-/* ── Header right (full editor btn + mode switcher) ── */
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
 .fullEditorBtn {
   font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
@@ -56,7 +49,7 @@
   transition: color 120ms, border-color 120ms;
   white-space: nowrap;
 }
-.fullEditorBtn:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+.fullEditorBtn:hover { color: var(--ink-2); border-color: var(--rule-2); }
 .fullEditorBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── Mode switcher ── */
@@ -326,27 +319,29 @@
 .metaInput:focus { outline: none; border-color: var(--rule-2); }
 .metaInput::placeholder { color: var(--muted); font-style: italic; opacity: 0.7; }
 
-/* ── AI polish toggle ── */
-.polishToggle {
+/* ── Write-mode action row (AI Assist + Full editor) ── */
+.writeActions {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 10px;
-  cursor: pointer;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  margin-bottom: 2px;
 }
-.polishToggle input { accent-color: var(--moss); margin-top: 2px; flex-shrink: 0; }
-.polishLabel {
-  font-size: 13px;
-  color: var(--ink-2);
-  line-height: 1.35;
+.aiAssistBtn {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--rule));
+  border-radius: 4px;
+  padding: 4px 10px;
+  transition: background 120ms, border-color 120ms;
+  white-space: nowrap;
 }
-.polishLabel em {
-  display: block;
-  font-size: 11.5px;
-  color: var(--muted);
-  font-style: normal;
-  margin-top: 1px;
-}
+.aiAssistBtn:hover { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border-color: var(--accent); }
+.aiAssistBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── More options ── */
 .moreToggle {
@@ -499,6 +494,109 @@
   min-height: 160px;
   background: var(--surface);
 }
+
+/* ── AI Assist modal ── */
+.aiAssistOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.aiAssistModal {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--shadow), 0 20px 60px -12px rgba(0,0,0,0.3);
+  padding: 20px 22px 18px;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.aiAssistHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.aiAssistTitle {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.aiAssistClose {
+  font-size: 13px;
+  color: var(--muted);
+  transition: color 120ms;
+}
+.aiAssistClose:hover { color: var(--ink-2); }
+.aiAssistDesc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.aiAssistInput {
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 9px 11px;
+  resize: vertical;
+  min-height: 88px;
+  transition: border-color 150ms;
+}
+.aiAssistInput:focus { outline: none; border-color: var(--accent); }
+.aiAssistInput::placeholder { color: var(--muted); font-style: italic; }
+.aiAssistError {
+  font-size: 12.5px;
+  color: var(--rust);
+  margin: 0;
+}
+.aiAssistActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.aiAssistCancel {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px 14px;
+  transition: color 120ms, border-color 120ms;
+}
+.aiAssistCancel:hover { color: var(--ink-2); border-color: var(--rule-2); }
+.aiAssistApply {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: #faf3e2;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 6px 16px;
+  transition: opacity 120ms;
+}
+.aiAssistApply:hover { opacity: 0.88; }
+.aiAssistApply:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ── Dense mode ── */
 :global(.app.dense) .capture {
