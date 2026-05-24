@@ -38,21 +38,24 @@ import { NotesModule } from './notes/notes.module';
 import { RemindersModule } from './reminders/reminders.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LearnModule } from './learn/learn.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
     // Global providers — no need to import these in feature modules.
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     DatabaseModule,
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get<string>('redisHost'),
-          port: config.get<number>('redisPort'),
-        },
+    ...(process.env.SKIP_JOBS === '1' ? [] : [
+      BullModule.forRootAsync({
+        inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          connection: {
+            host: config.get<string>('redisHost'),
+            port: config.get<number>('redisPort'),
+          },
+        }),
       }),
-    }),
+    ]),
 
     // Feature modules — each owns its own controllers/services/repos.
     StatusModule,
@@ -61,6 +64,7 @@ import { LearnModule } from './learn/learn.module';
     RemindersModule,
     JobsModule,
     LearnModule,
+    ImagesModule,
   ],
 })
 export class AppModule {}
