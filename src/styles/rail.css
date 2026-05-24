@@ -250,12 +250,25 @@
   animation: countPulse 1.15s ease-in-out infinite;
 }
 .category-tree-node {
-  margin: 1px 0;
+  margin: 0;
 }
 .category-tree-children {
-  margin-left: 12px;
+  margin-left: 14px;
   border-left: 1.5px solid var(--rule);
-  padding-left: 4px;
+  padding: 0;
+}
+.category-tree-children .cat-row {
+  position: relative;
+  padding-left: 10px;
+}
+.category-tree-children .cat-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 1.5px;
+  background: var(--rule);
 }
 
 /* ── Category row with toggle + nav ── */
