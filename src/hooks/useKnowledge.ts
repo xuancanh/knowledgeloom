@@ -145,8 +145,9 @@ export function useKnowledge() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (document.activeElement as HTMLElement | null)?.tagName;
-      const inField = tag === 'TEXTAREA' || tag === 'INPUT';
+      const active = document.activeElement as HTMLElement | null;
+      const tag = active?.tagName;
+      const inField = tag === 'TEXTAREA' || tag === 'INPUT' || active?.isContentEditable === true;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setSearchOpen((v) => !v);
