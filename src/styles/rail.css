@@ -259,14 +259,14 @@
 }
 .category-tree-children .cat-row {
   position: relative;
-  padding-left: 10px;
+  padding-left: 12px;
 }
 .category-tree-children .cat-row::before {
   content: '';
   position: absolute;
-  left: 0;
+  left: -12px;
   top: 50%;
-  width: 8px;
+  width: 10px;
   height: 1.5px;
   background: var(--rule);
 }
