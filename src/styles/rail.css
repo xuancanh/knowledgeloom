@@ -307,7 +307,7 @@
   white-space: nowrap;
 }
 .category-nav {
-  padding-left: 4px !important;
+  padding-left: 4px;
   flex: 1;
 }
 .nav-item .count {
