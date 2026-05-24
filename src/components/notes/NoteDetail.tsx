@@ -353,7 +353,7 @@ export default function NoteDetail({
                   <button onClick={() => setReadWidthState('wide')} className={readWidth === 'wide' ? 'active' : ''}>Wide</button>
                 </span>
                 <span className="read-toolbar-group">
-                  <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Light</button>
+                  <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Warm</button>
                   <button onClick={() => setReadThemeAndSave('white')} className={readTheme === 'white' ? 'active' : ''}>White</button>
                   <button onClick={() => setReadThemeAndSave('dark')} className={readTheme === 'dark' ? 'active' : ''}>Dark</button>
                   <button onClick={() => setReadThemeAndSave('midnight')} className={readTheme === 'midnight' ? 'active' : ''}>Night</button>
