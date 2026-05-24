@@ -15,12 +15,20 @@
 export interface AiProvider {
   /**
    * Sends a text prompt and returns the model's response.
-   *
-   * @param prompt  The full prompt string to send.
-   * @param opts    Optional hints to the provider (output format, etc.).
-   * @returns       The raw text response (may contain JSON, markdown, etc.).
    */
   complete(prompt: string, opts?: AiCompletionOptions): Promise<string>;
+
+  /**
+   * Sends a text prompt and yields response tokens incrementally.
+   * Falls back to yielding the full response in one chunk if streaming
+   * is not supported by the underlying provider.
+   */
+  completeStream(messages: AiMessage[], opts?: AiCompletionOptions): AsyncGenerator<string>;
+}
+
+export interface AiMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
 }
 
 export interface AiCompletionOptions {

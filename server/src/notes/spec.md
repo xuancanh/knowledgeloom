@@ -99,6 +99,19 @@ Rewrites one note from editor data.
 
 Proxy to `CodexService.assistEdit()`. Returns a proposal; does not write to disk.
 
+### `assistDraft(draft, instruction): Promise<any>`
+
+AI assistance for unsaved capture drafts. Called from `CaptureBox` before a note exists.
+
+1. Delegates to `CodexService.assistDraft(draft, instruction)`.
+2. `CodexService.buildDraftAssistPrompt()` builds a prompt that treats the draft
+   body as-is (no "current saved note" comparison).
+3. Returns a `NoteUpdate` proposal. The frontend applies it to the capture form;
+   the user saves through the normal `POST /api/learn` route.
+
+This path is intentionally separate from `assistEdit()` to keep unsaved-draft
+assistance distinct from saved-note editing.
+
 ---
 
 ## NotesController
@@ -108,10 +121,15 @@ GET    /api/notes/:id           → { markdown }
 PUT    /api/notes/:id           → { note, state, markdown }    @UseGuards(WritableGuard)
 PATCH  /api/notes/:id           → same as PUT                  @UseGuards(WritableGuard)
 DELETE /api/notes/:id           → { deleted, state }           @UseGuards(WritableGuard)
+POST   /api/notes/assist-draft  → { update, codexStatus }      @UseGuards(WritableGuard)
 POST   /api/notes/:id/assist    → { update, codexStatus }      @UseGuards(WritableGuard)
 ```
 
 `PUT` and `PATCH` share the same service method (`notesService.update`).
+
+The `assist-draft` route must be declared **before** `POST /api/notes/:id/assist`
+in the controller file to prevent Express from treating `"assist-draft"` as a
+note ID parameter.
 
 The `assist` route validates that `body.prompt` is a non-empty string before
 delegating; the service handles all other validation.
@@ -123,4 +141,5 @@ delegating; the service handles all other validation.
 `NotesFileModule` imports `StorageModule`.
 
 `NotesModule` imports `NotesFileModule`, `KnowledgeModule`, `RemindersModule`,
-`SearchModule`, and `CodexModule`.
+`SearchModule`, and `CodexModule`. `CodexModule` is required for both
+`assistEdit()` and `assistDraft()`.

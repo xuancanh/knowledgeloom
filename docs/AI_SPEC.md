@@ -7,7 +7,7 @@ This document is the contract for AI-assisted behavior in Knowledge Loom. Update
 - Markdown notes are canonical content.
 - SQLite stores durable operational state for queued AI work and cached generated study material.
 - Meilisearch is a searchable projection, not a source of truth.
-- Codex may write notes only through queued creation flows. Inline edit assistance returns a proposal that the user reviews before saving.
+- Codex may write notes only through queued creation flows. Inline edit assistance and draft capture assistance return proposals that the user reviews before saving.
 - AI output must be constrained to explicit JSON or markdown schemas so service code can validate it.
 
 ## Creation Modes
@@ -78,6 +78,40 @@ The user supplies the current unsaved editor draft and an instruction. Codex ret
 ```
 
 The frontend applies this proposal to the edit form. The backend must not save the proposal until the user calls the normal note update route.
+
+## Draft Capture Assist
+
+Endpoint: `POST /api/notes/assist-draft`
+
+Same response shape as the inline edit assist (`{ update: NoteUpdate, codexStatus: string }`), but operates on unsaved drafts — no note ID is required. The frontend calls this from `CaptureBox` before the note has been created. The prompt is built by `CodexService.buildDraftAssistPrompt()` and does not include a "current saved note" comparison. The user reviews the proposed changes in the capture form and saves normally.
+
+## RAG Streaming
+
+Endpoint: `POST /api/rag/stream`  
+Request: `{ question: string, scope: RagScope, history: ChatMessage[] }`  
+Response: `text/plain` chunked stream of AI tokens (HTTP streaming, NOT WebSocket)
+
+Pipeline:
+
+1. Retrieve notes by scope: `note` → full markdown body of one note; `category`/`tag` → filter all notes and keyword-rank; `all` → semantic search via `SearchService` with keyword fallback.
+2. Assemble context block: up to 12 notes, 16 000 chars total, truncated with `[…truncated]`.
+3. Build messages array: system prompt containing the context block, conversation history, then the user question.
+4. Stream tokens via `AiProvider.completeStream(messages)` → `AsyncGenerator<string>`.
+5. Write each token to the HTTP response via `res.write(token)`.
+
+The AI provider interface requires both `complete()` and `completeStream()`:
+
+```typescript
+interface AiProvider {
+  complete(prompt: string, opts?: AiCompletionOptions): Promise<string>;
+  completeStream(messages: AiMessage[], opts?: AiCompletionOptions): AsyncGenerator<string>;
+}
+interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string; }
+```
+
+`CodexAiProvider.completeStream()` is a fallback implementation: it calls `complete()` and yields the full response as one chunk (the Codex CLI does not support streaming). `OpenRouterAiProvider.completeStream()` uses the OpenAI SSE streaming protocol (`stream: true`), parses `data: {...}` lines, and extracts `choices[0].delta.content` from each event.
+
+`complete()` is used by note creation (polish/research/link modes) and flashcard generation. `completeStream()` is used exclusively by the RAG pipeline.
 
 ## Flashcard Generation
 

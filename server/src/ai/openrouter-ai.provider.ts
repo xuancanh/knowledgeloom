@@ -20,7 +20,7 @@
  */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { AiProvider, AiCompletionOptions } from './ai-provider.interface';
+import type { AiProvider, AiCompletionOptions, AiMessage } from './ai-provider.interface';
 
 @Injectable()
 export class OpenRouterAiProvider implements AiProvider {
@@ -70,5 +70,55 @@ export class OpenRouterAiProvider implements AiProvider {
     const content: string = data.choices?.[0]?.message?.content;
     if (!content) throw new Error('AI API returned an empty response');
     return content.trim();
+  }
+
+  async *completeStream(messages: AiMessage[], opts?: AiCompletionOptions): AsyncGenerator<string> {
+    const apiMessages: any[] = [];
+    if (this.systemPrompt) apiMessages.push({ role: 'system', content: this.systemPrompt });
+    apiMessages.push(...messages);
+
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+        'HTTP-Referer': 'https://github.com/knowledge-loom',
+        'X-Title': 'Knowledge Loom',
+      },
+      body: JSON.stringify({
+        model: this.model,
+        messages: apiMessages,
+        stream: true,
+        ...(opts?.outputFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`AI API ${response.status}: ${text}`);
+    }
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const payload = trimmed.slice(5).trim();
+        if (payload === '[DONE]') return;
+        try {
+          const parsed = JSON.parse(payload);
+          const token: string = parsed.choices?.[0]?.delta?.content ?? '';
+          if (token) yield token;
+        } catch { /* skip malformed lines */ }
+      }
+    }
   }
 }

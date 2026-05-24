@@ -17,8 +17,11 @@ concrete implementation is selected at startup via the `AI_PROVIDER` env var.
 ## Interface
 
 ```typescript
+interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string; }
+
 interface AiProvider {
   complete(prompt: string, opts?: AiCompletionOptions): Promise<string>;
+  completeStream(messages: AiMessage[], opts?: AiCompletionOptions): AsyncGenerator<string>;
 }
 
 interface AiCompletionOptions {
@@ -26,9 +29,11 @@ interface AiCompletionOptions {
 }
 ```
 
-`complete()` is the only method. It returns raw text (may contain markdown,
-JSON, or plain prose depending on the prompt). Callers are responsible for
-parsing the output.
+`complete()` returns raw text (may contain markdown, JSON, or plain prose
+depending on the prompt). Callers are responsible for parsing the output.
+
+`completeStream()` takes a structured message array and yields AI tokens
+incrementally as an `AsyncGenerator<string>`.
 
 ---
 
@@ -41,6 +46,9 @@ Delegates to `CodexRunnerService.run(prompt, ext)`.
 - `outputFormat: 'json'` → writes a `.json` temp file; otherwise `.md`.
 - `CodexRunnerService` spawns `codex exec` as a child process, reads the output
   file, and cleans up. See `codex/spec.md` for details.
+- `completeStream()` is a fallback — calls `this.complete()` with the messages
+  stringified and yields the full result as one chunk. Codex CLI does not
+  support true streaming.
 
 ### OpenRouterAiProvider (`AI_PROVIDER=openrouter`)
 
@@ -50,6 +58,11 @@ Compatible providers:
 - **OpenRouter** (`https://openrouter.ai/api/v1`) — multi-model gateway
 - **DeepSeek** (`https://api.deepseek.com/v1`) — cost-efficient reasoning
 - **Ollama** (`http://localhost:11434/v1`) — fully local, no API key
+
+`completeStream()` sends `stream: true` in the request body, reads the response
+body as a `ReadableStream`, decodes with `TextDecoder`, parses SSE lines
+(`data: {...}`), and extracts `choices[0].delta.content`. Returns on the
+`data: [DONE]` sentinel.
 
 Configuration:
 | Env var | Default | Description |
@@ -87,6 +100,7 @@ dependency with `FlashcardsModule`.
 
 ## Adding a new AI provider
 
-1. Create `your-provider.ts` implementing `AiProvider`.
+1. Create `your-provider.ts` implementing `AiProvider`. New providers must
+   implement both `complete()` and `completeStream()`.
 2. Add a branch to the factory in `ai.module.ts`.
 3. Document the new `AI_PROVIDER` value and its env vars in `AGENTS.md`.
