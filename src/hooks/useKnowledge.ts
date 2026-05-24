@@ -187,6 +187,9 @@ export function useKnowledge() {
     [navigate],
   );
 
+  const openAllCategories = useCallback(() => navigate('/categories'), [navigate]);
+  const openAllTags = useCallback(() => navigate('/tags'), [navigate]);
+
   async function handleDelete(note: KnowledgeNote) {
     if (!window.confirm(`Delete "${note.title}"? This removes the markdown source file.`)) return;
     const result = await deleteNote(note.id);
@@ -271,6 +274,8 @@ export function useKnowledge() {
     openActivity,
     openSettings,
     openFlashcards,
+    openAllCategories,
+    openAllTags,
     handleDelete,
     handleSaveNote,
     handleAssistNote,
