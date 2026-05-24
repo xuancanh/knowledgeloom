@@ -1,6 +1,6 @@
 /* Knowledge Loom — calm scholarly, warm paper */
 
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
 
 :root {
   /* Light (warm paper) */
@@ -82,6 +82,27 @@ html, body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "ss01", "onum", "kern";
   transition: background 240ms ease, color 240ms ease;
+}
+
+[data-font="sans"] body,
+[data-font="sans"] {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: normal;
+  font-size: 14.5px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+[data-font="sans"] .mono,
+[data-font="sans"] [class*="Mono"] {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+[data-font="sans"] h1,
+[data-font="sans"] h2,
+[data-font="sans"] h3 {
+  letter-spacing: -0.02em;
+}
+[data-font="sans"] .serif {
+  font-family: "Source Serif 4", Georgia, serif;
 }
 
 #root { min-height: 100vh; }
