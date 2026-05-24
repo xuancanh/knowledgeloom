@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { CreateNoteRequest } from '../../types';
 import { templatesForMode, type GuidanceTemplate } from '../../lib/guidance';
+import { NEW_NOTE_DRAFT_KEY } from '../routes/NewNoteRoute';
 import NoteEditor, { type NoteEditorHandle } from '../notes/NoteEditor';
 import MetaFields from '../notes/MetaFields';
 import styles from './CaptureBox.module.css';
@@ -82,6 +83,19 @@ export default function CaptureBox({
     editorRef.current?.clear();
   }
 
+  function openFullEditor() {
+    if (mode === 'write') {
+      sessionStorage.setItem(NEW_NOTE_DRAFT_KEY, JSON.stringify({
+        title,
+        body: editorRef.current?.getValue() ?? '',
+        category,
+        tags,
+        summary,
+      }));
+    }
+    navigate('/new');
+  }
+
   function submit() {
     const t = title.trim();
     const u = url.trim();
@@ -130,18 +144,29 @@ export default function CaptureBox({
           <span className={styles.promptStar}>✦</span>
           {readOnly ? 'Read-only archive' : 'What did you learn?'}
         </span>
-        <div className={styles.modeSwitcher}>
-          {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              className={`${styles.modeBtn} ${styles[`modeBtn-${m}`]}${mode === m ? ` ${styles.modeBtnActive}` : ''}`}
-              onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
-              disabled={readOnly}
-            >
-              {m === 'research' ? '⌕ Research' : m === 'link' ? '↗ Link' : '✎ Write'}
-            </button>
-          ))}
+        <div className={styles.headerRight}>
+          <button
+            type="button"
+            className={styles.fullEditorBtn}
+            onClick={openFullEditor}
+            disabled={readOnly}
+            title="Open full editor"
+          >
+            ⊕ Full editor
+          </button>
+          <div className={styles.modeSwitcher}>
+            {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                className={`${styles.modeBtn} ${styles[`modeBtn-${m}`]}${mode === m ? ` ${styles.modeBtnActive}` : ''}`}
+                onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
+                disabled={readOnly}
+              >
+                {m === 'research' ? '⌕ Research' : m === 'link' ? '↗ Link' : '✎ Write'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
