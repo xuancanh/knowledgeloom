@@ -31,7 +31,7 @@ export default function CaptureBox({
   const [mode, setMode] = useState<CaptureMode>('research');
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
-  const [guidance, setGuidance] = useState('');
+  const [guidance, setGuidance] = useState(() => localStorage.getItem('kl:cap-research') || '');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
   const [showMore, setShowMore] = useState(false);
@@ -58,6 +58,10 @@ export default function CaptureBox({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [mode]);
+
+  useEffect(() => {
+    if (mode !== 'write') localStorage.setItem(`kl:cap-${mode}`, guidance);
+  }, [guidance, mode]);
 
   function onKey(e: React.KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -127,7 +131,7 @@ export default function CaptureBox({
               key={m}
               type="button"
               className={`${styles.modeBtn} ${styles[`modeBtn-${m}`]}${mode === m ? ` ${styles.modeBtnActive}` : ''}`}
-              onClick={() => { setMode(m); setGuidance(''); setShowMore(false); }}
+              onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
               disabled={readOnly}
             >
               {m === 'research' ? '⌕ Research' : m === 'link' ? '↗ Link' : '✎ Write'}
@@ -227,27 +231,19 @@ export default function CaptureBox({
           <div className={styles.primaryZone}>
             <div className={styles.urlRow}>
               <span className={styles.urlGlyph}>↗</span>
-              <input
-                ref={primaryRef}
-                className={styles.urlInput}
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={onKey}
-                placeholder="https://example.com/article"
-                disabled={readOnly}
-                autoComplete="off"
-                spellCheck={false}
-                type="url"
-              />
-            </div>
             <input
-              className={styles.titleHint}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              ref={primaryRef}
+              className={styles.urlInput}
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
               onKeyDown={onKey}
-              placeholder="Optional title hint"
+              placeholder="https://example.com/article"
               disabled={readOnly}
+              autoComplete="off"
+              spellCheck={false}
+              type="url"
             />
+          </div>
           </div>
           <button
             type="button"
