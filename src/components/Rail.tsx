@@ -17,7 +17,9 @@ function CategoryNode({
   closeRail: () => void;
 }) {
   const hasKids = node.children.length > 0;
-  const [expanded, setExpanded] = useState(node.depth === 0);
+  const isActive = activeCategoryId === node.id;
+  const isAncestor = activeCategoryId !== null && activeCategoryId.startsWith(node.id + '/');
+  const [expanded, setExpanded] = useState(() => node.depth === 0 || isActive || isAncestor);
 
   return (
     <div key={node.id} className="category-tree-node">
@@ -30,7 +32,7 @@ function CategoryNode({
           <span className="cat-spacer" />
         )}
         <button
-          className="nav-item category-nav"
+          className={`nav-item category-nav${isActive ? ' active' : ''}`}
           onClick={() => { openCategory(node.id); closeRail(); }}
           title={node.id}
         >
