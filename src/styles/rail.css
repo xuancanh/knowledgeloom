@@ -253,20 +253,20 @@
   margin: 0;
 }
 .category-tree-children {
-  margin-left: 14px;
+  margin-left: 6px;
   border-left: 1.5px solid var(--rule);
   padding: 0;
 }
 .category-tree-children .cat-row {
   position: relative;
-  padding-left: 12px;
+  padding-left: 6px;
 }
 .category-tree-children .cat-row::before {
   content: '';
   position: absolute;
-  left: -12px;
+  left: -6px;
   top: 50%;
-  width: 12px;
+  width: 6px;
   height: 1.5px;
   background: var(--rule);
 }
