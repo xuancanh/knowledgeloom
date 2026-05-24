@@ -1,5 +1,5 @@
-import { sqliteTable, text as sqliteText, integer as sqliteInteger } from 'drizzle-orm/sqlite-core';
-import { pgTable, text as pgText, integer as pgInteger } from 'drizzle-orm/pg-core';
+import { sqliteTable, text as sqliteText, integer as sqliteInteger, primaryKey as sqlitePrimaryKey } from 'drizzle-orm/sqlite-core';
+import { pgTable, text as pgText, integer as pgInteger, primaryKey as pgPrimaryKey } from 'drizzle-orm/pg-core';
 
 // --- SQLite Tables ---
 export const sqliteJobs = sqliteTable('jobs', {
@@ -29,13 +29,14 @@ export const sqliteReminders = sqliteTable('reminders', {
 });
 
 export const sqliteFlashcardCache = sqliteTable('flashcard_cache', {
-  id: sqliteText('id').primaryKey(),
   userId: sqliteText('userId').notNull().default(''),
   noteId: sqliteText('noteId').notNull(),
   hash: sqliteText('hash').notNull(),
   cards: sqliteText('cards').notNull(),
   generatedAt: sqliteText('generatedAt').notNull(),
-});
+}, (t) => ({
+  pk: sqlitePrimaryKey({ columns: [t.userId, t.noteId] }),
+}));
 
 /** Per-card spaced repetition review data (SM-2 algorithm). */
 export const sqliteFlashcardReviews = sqliteTable('flashcard_reviews', {
@@ -125,10 +126,11 @@ export const pgReminders = pgTable('reminders', {
 });
 
 export const pgFlashcardCache = pgTable('flashcard_cache', {
-  id: pgText('id').primaryKey(),
   userId: pgText('userId').notNull().default(''),
   noteId: pgText('noteId').notNull(),
   hash: pgText('hash').notNull(),
   cards: pgText('cards').notNull(),
   generatedAt: pgText('generatedAt').notNull(),
-});
+}, (t) => ({
+  pk: pgPrimaryKey({ columns: [t.userId, t.noteId] }),
+}));
