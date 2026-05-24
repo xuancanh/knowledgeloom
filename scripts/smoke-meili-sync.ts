@@ -1,26 +1,28 @@
 import { createServer } from 'node:http';
-import { spawn } from 'node:child_process';
+import { spawn, ChildProcess } from 'node:child_process';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const rootDir = path.resolve(new URL('..', import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, '..');
 const noteRootDir = path.join(rootDir, 'knowledge', 'notes');
 const noteDir = path.join(noteRootDir, 'Testing');
 const notePath = path.join(noteDir, '2099-01-01-smoke-meili.md');
 const legacyNotePath = path.join(noteRootDir, '2099-01-01-smoke-meili.md');
 const smokeManifestPath = path.join(rootDir, 'knowledge', 'meili-sync-knowledge_smoke.json');
-const calls = [];
-let app;
+const calls: Array<{ method: string; url: string; body: string }> = [];
+let app: ChildProcess | undefined;
 let fakeMeiliStarted = false;
 
 // Fake Meili records requests so the test can assert that the backend tries to
 // sync real note documents without depending on an external Meili instance.
 const fakeMeili = createServer(async (request, response) => {
-  const chunks = [];
-  for await (const chunk of request) chunks.push(chunk);
+  const chunks: Buffer[] = [];
+  for await (const chunk of request) chunks.push(chunk as Buffer);
   calls.push({
-    method: request.method,
-    url: request.url,
+    method: request.method as string,
+    url: request.url as string,
     body: Buffer.concat(chunks).toString('utf8'),
   });
   response.writeHead(200, { 'content-type': 'application/json' });
@@ -44,10 +46,10 @@ createdAt: "2099-01-01T00:00:00.000Z"
 The backend updates Meilisearch when the markdown source is rebuilt.
 `);
 
-await new Promise((resolve) => fakeMeili.listen(7799, resolve));
+await new Promise<void>((resolve) => fakeMeili.listen(7799, resolve));
 fakeMeiliStarted = true;
 
-app = spawn('node', ['server/index.mjs'], {
+app = spawn('node', ['node_modules/.bin/ts-node', '--project', 'server/tsconfig.json', 'server/src/main.ts'], {
   cwd: rootDir,
   stdio: ['ignore', 'pipe', 'pipe'],
   env: {
@@ -58,19 +60,20 @@ app = spawn('node', ['server/index.mjs'], {
     MEILI_MASTER_KEY: 'test_key',
     MEILI_INDEX: 'knowledge_smoke',
     AI_FLASHCARDS_DISABLED: '1',
+    SKIP_JOBS: '1',
   },
 });
 
 /**
  * Waits for the temporary backend to boot and return a rebuilt manifest.
  */
-const waitForApi = async () => {
-  for (let i = 0; i < 40; i += 1) {
+const waitForApi = async (): Promise<unknown> => {
+  for (let i = 0; i < 80; i += 1) {
     try {
       const response = await fetch('http://127.0.0.1:8790/api/knowledge');
       if (response.ok) return response.json();
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
   throw new Error('API did not start');
@@ -80,7 +83,7 @@ const waitForApi = async () => {
  * Fire-and-forget fetch used during cleanup when a dev server may or may not
  * be running.
  */
-async function fetchIfAvailable(url) {
+async function fetchIfAvailable(url: string): Promise<void> {
   try {
     await fetch(url);
   } catch {
@@ -92,7 +95,7 @@ async function fetchIfAvailable(url) {
  * Removes temporary smoke data and asks any running backend to rebuild derived
  * state so the smoke document does not remain in Meilisearch.
  */
-async function cleanup() {
+async function cleanup(): Promise<void> {
   await rm(notePath, { force: true });
   await rm(legacyNotePath, { force: true });
 
@@ -104,15 +107,15 @@ async function cleanup() {
 
   if (app && !app.killed) app.kill('SIGTERM');
   if (fakeMeiliStarted) {
-    await new Promise((resolve) => fakeMeili.close(resolve));
+    await new Promise<void>((resolve) => fakeMeili.close(() => resolve()));
   }
 }
 
 try {
-  const state = await waitForApi();
+  const state = await waitForApi() as { notes: Array<{ id: string }> };
   const syncedDocs = calls
     .filter((call) => call.method === 'PUT' && call.url === '/indexes/knowledge_smoke/documents')
-    .map((call) => JSON.parse(call.body));
+    .map((call) => JSON.parse(call.body) as Array<{ id: string; category: string }>);
   const flattened = syncedDocs.flat();
   const hasSmokeDoc = flattened.some((doc) => doc.id === '2099-01-01-smoke-meili' && doc.category === 'Testing');
   if (!state.notes.some((note) => note.id === '2099-01-01-smoke-meili')) {
