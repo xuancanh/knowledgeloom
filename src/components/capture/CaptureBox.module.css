@@ -36,6 +36,29 @@
 }
 .promptStar { color: var(--accent); }
 
+/* ── Header right (full editor btn + mode switcher) ── */
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.fullEditorBtn {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 9px;
+  transition: color 120ms, border-color 120ms;
+  white-space: nowrap;
+}
+.fullEditorBtn:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)); }
+.fullEditorBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── Mode switcher ── */
 .modeSwitcher {
   display: flex;

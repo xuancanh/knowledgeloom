@@ -12,6 +12,7 @@ import { TagRoute } from './components/routes/TagRoute';
 import { AllCategoriesRoute } from './components/routes/AllCategoriesRoute';
 import { AllTagsRoute } from './components/routes/AllTagsRoute';
 import { FlashcardsRoute } from './components/routes/FlashcardsRoute';
+import { NewNoteRoute } from './components/routes/NewNoteRoute';
 import ContextPanel from './components/ContextPanel';
 
 /**
@@ -188,6 +189,9 @@ export default function App() {
                 />
               } />
             </Route>
+            <Route path="/new" element={
+              <NewNoteRoute onSubmit={submitCapture} readOnly={readOnly} />
+            } />
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
             } />
