@@ -483,6 +483,24 @@ body.reading .note-detail .h-meta .read-inline {
 }
 
 /* ── Read button in header ── */
+.read-inline {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 140ms, border-color 140ms, background 140ms;
+}
+.read-inline:hover {
+  color: var(--accent-2);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
 .read-toolbar {
   position: fixed;
   bottom: 0;
