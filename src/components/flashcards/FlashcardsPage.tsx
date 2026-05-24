@@ -28,10 +28,16 @@ export default function FlashcardsPage({
   scope,
   value,
   cardIdFromUrl,
+  searchQuery,
+  kindFilter,
+  ratingFilter,
+  selectedCategories,
+  selectedTags,
   onScopeChange,
   onOpenNote,
   onAddFlashcard,
   onDeleteFlashcard,
+  onFiltersChange,
 }: {
   flashcards: Flashcard[];
   notes: KnowledgeNote[];
@@ -40,10 +46,22 @@ export default function FlashcardsPage({
   scope: 'all' | 'category' | 'tag';
   value: string;
   cardIdFromUrl?: string;
+  searchQuery: string;
+  kindFilter: string | null;
+  ratingFilter: string | null;
+  selectedCategories: string[];
+  selectedTags: string[];
   onScopeChange: (scope: 'all' | 'category' | 'tag', value?: string) => void;
   onOpenNote: (id: string) => void;
   onAddFlashcard?: (noteId: string) => void;
   onDeleteFlashcard?: (cardId: string) => void;
+  onFiltersChange?: (updates: {
+    search?: string;
+    kind?: string | null;
+    rating?: string | null;
+    cats?: string[];
+    tags?: string[];
+  }) => void;
 }) {
   const [studying, setStudying] = useState(false);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
@@ -54,11 +72,6 @@ export default function FlashcardsPage({
   const [smartMode, setSmartMode] = useState(false);
   const [randomize, setRandomize] = useState(false);
   const [cardLimit, setCardLimit] = useState(0);
-  const [kindFilter, setKindFilter] = useState<string | null>(null);
-  const [ratingFilter, setRatingFilter] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sessionCards, setSessionCards] = useState<Flashcard[]>([]);
   const slideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -70,8 +83,6 @@ export default function FlashcardsPage({
     const path = id ? `${base}/${encodeURIComponent(id)}` : base;
     window.history.replaceState(null, '', params.length ? `${path}?${params.join('&')}` : path);
   }, [scope, value]);
-
-  const autoStartCardId = useRef(cardIdFromUrl);
 
   const scopedCards = useMemo(() => {
     let filtered = flashcards;
@@ -89,6 +100,7 @@ export default function FlashcardsPage({
 
   const dueCount = useMemo(() => scopedCards.filter(isCardDue).length, [scopedCards]);
 
+  const autoStartCardId = useRef(cardIdFromUrl);
   useEffect(() => {
     if (!cardIdFromUrl || studying || scopedCards.length === 0) return;
     const idx = scopedCards.findIndex((c) => c.id === cardIdFromUrl);
@@ -134,11 +146,6 @@ export default function FlashcardsPage({
     setSmartMode(false);
     setRandomize(false);
     setCardLimit(0);
-    setKindFilter(null);
-    setRatingFilter(null);
-    setSearchQuery('');
-    setSelectedCategories([]);
-    setSelectedTags([]);
     setSessionCards([]);
   }, [scope, value]);
 
@@ -229,6 +236,12 @@ export default function FlashcardsPage({
     if (firstCard) setUrlCardId(firstCard.id);
   }
 
+  function handleSearchChange(q: string) { onFiltersChange?.({ search: q }); }
+  function handleKindChange(k: string | null) { onFiltersChange?.({ kind: k }); }
+  function handleRatingChange(r: string | null) { onFiltersChange?.({ rating: r }); }
+  function handleCatsChange(ids: string[]) { onFiltersChange?.({ cats: ids }); }
+  function handleTagsChange(ids: string[]) { onFiltersChange?.({ tags: ids }); }
+
   if (studying && sessionDone) {
     return (
       <FlashcardDone
@@ -280,11 +293,11 @@ export default function FlashcardsPage({
       onScopeChange={onScopeChange}
       onStartStudy={(index) => startStudy(index)}
       onStartSession={(opts) => startStudy(0, opts)}
-      onKindFilterChange={setKindFilter}
-      onRatingFilterChange={setRatingFilter}
-      onSearchChange={setSearchQuery}
-      onSelectedCategoriesChange={setSelectedCategories}
-      onSelectedTagsChange={setSelectedTags}
+      onKindFilterChange={handleKindChange}
+      onRatingFilterChange={handleRatingChange}
+      onSearchChange={handleSearchChange}
+      onSelectedCategoriesChange={handleCatsChange}
+      onSelectedTagsChange={handleTagsChange}
       onAddFlashcard={onAddFlashcard}
       onDeleteFlashcard={onDeleteFlashcard}
     />
