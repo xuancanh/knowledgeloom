@@ -24,6 +24,8 @@
  */
 
 import { Logger } from '@nestjs/common';
+import { cpSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import type Database from 'better-sqlite3';
 import type { Pool } from 'pg';
 
@@ -199,7 +201,57 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0002_assign_local_userid',
+    run(db) {
+      // Reassign all rows created before auth existed (userId='') to userId='local'.
+      // These are pre-auth records from single-user local installs.
+      const TABLES = [
+        'jobs', 'reminders', 'flashcard_cache',
+        'flashcard_reviews', 'user_flashcards', 'hidden_flashcards',
+      ];
+      for (const table of TABLES) {
+        db.prepare(`UPDATE ${table} SET userId = 'local' WHERE userId = ''`).run();
+      }
+    },
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// Helpers used by migrations only during server startup
+// ---------------------------------------------------------------------------
+
+/** Count all files under a directory recursively. */
+function countFilesRecursive(dir: string): number {
+  if (!existsSync(dir)) return 0;
+  let n = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    n += entry.isDirectory() ? countFilesRecursive(join(dir, entry.name)) : 1;
+  }
+  return n;
+}
+
+/**
+ * Copy legacy single-user notes into the per-user path for 'local'.
+ * Called by the server's DatabaseModule after migrations run.
+ * Non-destructive: never overwrites files that already exist in the destination.
+ */
+export function migrateLocalNoteFiles(knowledgeDir: string, logger: Logger): void {
+  const src = join(knowledgeDir, 'notes');
+  const dst = join(knowledgeDir, 'users', 'local', 'notes');
+
+  if (!existsSync(src)) return;
+
+  const srcCount = countFilesRecursive(src);
+  if (srcCount === 0) return;
+
+  const dstCount = countFilesRecursive(dst);
+  if (dstCount >= srcCount) return; // already migrated
+
+  mkdirSync(dst, { recursive: true });
+  cpSync(src, dst, { recursive: true, force: false, errorOnExist: false });
+  logger.log(`Migrated ${srcCount} legacy note file(s) → users/local/notes/`);
+}
 
 export function runSqliteMigrations(db: Database.Database, logger: Logger): void {
   db.exec(SQLITE_CREATE_MIGRATIONS_TABLE);

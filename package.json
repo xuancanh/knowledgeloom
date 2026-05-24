@@ -15,7 +15,8 @@
     "smoke:meili": "npx tsx scripts/smoke-meili-sync.ts",
     "preview": "vite preview",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:migrate-local": "node scripts/migrate-local-user.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",
