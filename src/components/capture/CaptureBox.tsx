@@ -168,10 +168,10 @@ export default function CaptureBox({
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
+            </button>
             {!showMore && guidance && (
-              <span className={styles.guidancePreview}>{guidanceLabel}</span>
+              <span className={styles.guidancePreview}>Writing instruction: {guidanceLabel}</span>
             )}
-          </button>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.guidance}>
@@ -256,10 +256,10 @@ export default function CaptureBox({
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
+            </button>
             {!showMore && guidance && (
-              <span className={styles.guidancePreview}>{guidanceLabel}</span>
+              <span className={styles.guidancePreview}>Writing instruction: {guidanceLabel}</span>
             )}
-          </button>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.guidance}>
