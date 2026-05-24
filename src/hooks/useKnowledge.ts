@@ -22,7 +22,7 @@ import {
 import { loadTemplates, type GuidanceTemplate } from '../lib/guidance';
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder } from '../types';
 
-type Theme = 'light' | 'white' | 'dark';
+type Theme = 'light' | 'white' | 'dark' | 'midnight';
 type FontStyle = 'serif' | 'sans';
 type Toast = { id: string; kind: 'info' | 'success' | 'error'; message: string };
 
@@ -36,7 +36,8 @@ const preferenceKeys = {
 export const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
   light: { icon: '☀', next: 'white', label: 'Light' },
   white: { icon: '◐', next: 'dark', label: 'White' },
-  dark: { icon: '☾', next: 'light', label: 'Dark' },
+  dark: { icon: '☾', next: 'midnight', label: 'Dark' },
+  midnight: { icon: '◑', next: 'light', label: 'Night' },
 };
 
 export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle; label: string }> = {
@@ -46,7 +47,7 @@ export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle;
 
 function loadTheme(): Theme {
   const v = window.localStorage.getItem(preferenceKeys.theme);
-  return v === 'light' || v === 'white' || v === 'dark' ? v : 'light';
+  return v === 'light' || v === 'white' || v === 'dark' || v === 'midnight' ? v : 'light';
 }
 
 /**
