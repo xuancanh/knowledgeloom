@@ -133,7 +133,7 @@ export default function App() {
             } />
             <Route path="/categories">
               <Route index element={
-                <AllCategoriesRoute categories={categories} onOpenCategory={openCategory} />
+                <AllCategoriesRoute categories={categories} categoryTree={categoryTree} onOpenCategory={openCategory} />
               } />
               <Route path="*" element={
                 <CategoryRoute

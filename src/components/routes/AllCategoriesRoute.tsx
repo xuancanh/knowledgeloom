@@ -1,45 +1,123 @@
-import type { UiCategory } from '../../lib/view';
+import { useState } from 'react';
+import type { CategoryTreeNode, UiCategory } from '../../lib/view';
 
-export function AllCategoriesRoute({
-  categories, onOpenCategory,
-}: {
+type ViewMode = 'tree' | 'grid';
+
+function getColorVar(color: string): string {
+  const map: Record<string, string> = {
+    oxblood: 'var(--accent)', moss: 'var(--moss)',
+    indigo: 'var(--indigo)', ochre: 'var(--ochre)',
+    teal: 'var(--teal)', rust: 'var(--rust)',
+  };
+  return map[color] || 'var(--accent)';
+}
+
+function TreeNode({ node, depth, onOpenCategory }: {
+  node: CategoryTreeNode;
+  depth: number;
+  onOpenCategory: (id: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(depth < 1);
+  const color = getColorVar(node.color);
+  const hasChildren = node.children.length > 0;
+  const padLeft = 14 + depth * 22;
+
+  return (
+    <div className="cat-tree-node" style={{ marginLeft: depth > 0 ? 0 : 0 }}>
+      <button
+        className="cat-tree-row"
+        onClick={() => { hasChildren ? setExpanded(!expanded) : onOpenCategory(node.id); }}
+        style={{ paddingLeft: padLeft }}
+      >
+        {hasChildren ? (
+          <span className={`cat-tree-arrow ${expanded ? 'expanded' : ''}`}>▸</span>
+        ) : (
+          <span className="cat-tree-dot" style={{ color }}>·</span>
+        )}
+        <span className={`cat-tree-name ${!hasChildren ? 'leaf' : ''}`}
+              onClick={hasChildren ? undefined : () => onOpenCategory(node.id)}>
+          {node.label}
+        </span>
+        <span className="cat-tree-count">{node.count}</span>
+      </button>
+      {hasChildren && expanded && (
+        <div className="cat-tree-children">
+          {node.children.map((child) => (
+            <TreeNode key={child.id} node={child} depth={depth + 1} onOpenCategory={onOpenCategory} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FolderGrid({ categories, onOpenCategory }: {
   categories: UiCategory[];
   onOpenCategory: (id: string) => void;
 }) {
   return (
-    <div className="categories-page">
+    <div className="cat-grid">
+      {categories.map((cat) => {
+        const color = getColorVar(cat.color);
+        const depth = cat.id.split('/').length - 1;
+        const label = cat.id.split('/').pop() || cat.name;
+        return (
+          <button
+            key={cat.id}
+            className="cat-grid-card"
+            onClick={() => onOpenCategory(cat.id)}
+            style={{ '--cat-color': color } as React.CSSProperties}
+          >
+            <div className="cat-grid-icon" style={{ background: color }}>
+              {depth > 0 ? '📁' : '🗂'}
+            </div>
+            <span className="cat-grid-name">{label}</span>
+            {depth > 0 && <span className="cat-grid-path">{cat.id.replace(`/${label}`, '')}</span>}
+            <span className="cat-grid-count">{cat.count} note{cat.count !== 1 ? 's' : ''}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function AllCategoriesRoute({
+  categories,
+  categoryTree,
+  onOpenCategory,
+}: {
+  categories: UiCategory[];
+  categoryTree: CategoryTreeNode[];
+  onOpenCategory: (id: string) => void;
+}) {
+  const [viewMode, setViewMode] = useState<ViewMode>('tree');
+
+  return (
+    <div className="cat-page">
       <div className="crumbs">
         <span>Desk</span><span className="sep">/</span><span>Categories</span>
       </div>
-      <h1 style={{ fontSize: 30, fontWeight: 500, margin: '10px 0 6px' }}>All categories</h1>
-      <p style={{ color: 'var(--muted)', marginBottom: 24 }}>{categories.length} categor{categories.length !== 1 ? 'ies' : 'y'}</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => onOpenCategory(cat.id)}
-            style={{
-              border: '1px solid var(--rule)',
-              borderRadius: 8,
-              background: 'var(--surface)',
-              padding: '14px 16px',
-              textAlign: 'left',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 6,
-              transition: 'border-color 120ms',
-            }}
-            className="cat-index-card"
-          >
-            <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--ink)' }}>{cat.name}</span>
-            <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{cat.count} note{cat.count !== 1 ? 's' : ''}</span>
-            <span style={{ fontSize: 13, color: 'var(--muted-2)', lineHeight: 1.4 }}>
-              {cat.summary || 'View notes in this category'}
-            </span>
-          </button>
-        ))}
+
+      <div className="cat-page-head">
+        <div>
+          <h1>All categories</h1>
+          <p>{categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} — {categoryTree.length} root</p>
+        </div>
+        <div className="cat-view-toggle">
+          <button className={viewMode === 'tree' ? 'active' : ''} onClick={() => setViewMode('tree')}>▸ Tree</button>
+          <button className={viewMode === 'grid' ? 'active' : ''} onClick={() => setViewMode('grid')}>▦ Grid</button>
+        </div>
       </div>
+
+      {viewMode === 'tree' ? (
+        <div className="cat-tree">
+          {categoryTree.map((node) => (
+            <TreeNode key={node.id} node={node} depth={0} onOpenCategory={onOpenCategory} />
+          ))}
+        </div>
+      ) : (
+        <FolderGrid categories={categories} onOpenCategory={onOpenCategory} />
+      )}
     </div>
   );
 }
