@@ -1,5 +1,4 @@
 @import './styles/base.css';
-@import './styles/layout.css';
 @import './styles/rail.css';
 @import './styles/utility-bar.css';
 @import './styles/activity.css';
@@ -10,3 +9,4 @@
 @import './styles/search.css';
 @import './styles/flashcards.css';
 @import './styles/common.css';
+@import './styles/layout.css';
