@@ -101,7 +101,7 @@ export default function App() {
             <Route path="/activity" element={
               <ActivityPage jobs={jobs} onOpenNote={openNote} />
             } />
-            <Route path="/flashcards" element={
+            <Route path="/flashcards/*" element={
               <FlashcardsRoute
                 flashcards={state.flashcards || []}
                 notes={state.notes}

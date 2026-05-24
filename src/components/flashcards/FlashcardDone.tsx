@@ -1,9 +1,5 @@
-/**
- * Session-complete screen shown after the last flashcard is rated.
- *
- * Displays a star icon, per-rating breakdown (Again / Hard / Good counts),
- * and options to review the same cards again or return to the collection.
- */
+import { RATING_LABEL } from './constants';
+
 export function FlashcardDone({
   filteredLength,
   scopeLabel,
@@ -17,6 +13,8 @@ export function FlashcardDone({
   onRestart: () => void;
   onExit: () => void;
 }) {
+  const total = ratingCounts.again + ratingCounts.hard + ratingCounts.good;
+
   return (
     <div className="fc-page fc-center">
       <div className="fc-done" role="region" aria-label="Session complete">
@@ -28,20 +26,26 @@ export function FlashcardDone({
         <div className="fc-done-breakdown">
           <div className="fc-done-cell again">
             <b>{ratingCounts.again}</b>
-            <span>Again</span>
+            <span>{RATING_LABEL['again']}</span>
           </div>
           <div className="fc-done-cell hard">
             <b>{ratingCounts.hard}</b>
-            <span>Hard</span>
+            <span>{RATING_LABEL['hard']}</span>
           </div>
           <div className="fc-done-cell good">
             <b>{ratingCounts.good}</b>
-            <span>Good</span>
+            <span>{RATING_LABEL['good']}</span>
           </div>
+        </div>
+        <div className="fc-sr-summary">
+          <p>
+            <strong>{ratingCounts.good}</strong> card{ratingCounts.good !== 1 ? 's' : ''} mastered
+            · <strong>{ratingCounts.again + ratingCounts.hard}</strong> need{ratingCounts.again + ratingCounts.hard === 1 ? 's' : ''} practice
+          </p>
         </div>
         {ratingCounts.again > 0 && (
           <p className="fc-done-hint">
-            {ratingCounts.again} card{ratingCounts.again !== 1 ? 's' : ''} marked "Again" — reviewing them again now will help retention.
+            {ratingCounts.again} card{ratingCounts.again !== 1 ? 's' : ''} marked "{RATING_LABEL['again']}" will reappear sooner using spaced repetition to help retention.
           </p>
         )}
         <div className="fc-done-btns">

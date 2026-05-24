@@ -30,7 +30,7 @@ import { mkdirSync, existsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
-import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE } from './database.constants';
+import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE } from './database.constants';
 
 export type DrizzleDb = any;
 
@@ -74,6 +74,36 @@ const DDL = `
     generatedAt TEXT NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_flashcard_cache_hash ON flashcard_cache(hash);
+
+  CREATE TABLE IF NOT EXISTS flashcard_reviews (
+    cardId      TEXT PRIMARY KEY,
+    noteId      TEXT NOT NULL,
+    isUserCard  INTEGER NOT NULL DEFAULT 0,
+    easeFactor  TEXT NOT NULL DEFAULT '2.5',
+    interval    INTEGER NOT NULL DEFAULT 0,
+    repetitions INTEGER NOT NULL DEFAULT 0,
+    nextReviewAt TEXT,
+    lastReviewAt TEXT,
+    lastRating  TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_note_id ON flashcard_reviews(noteId);
+  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_next_review ON flashcard_reviews(nextReviewAt);
+
+  CREATE TABLE IF NOT EXISTS user_flashcards (
+    id          TEXT PRIMARY KEY,
+    noteId      TEXT NOT NULL,
+    prompt      TEXT NOT NULL,
+    lesson      TEXT NOT NULL,
+    kind        TEXT NOT NULL DEFAULT 'concept',
+    createdAt   TEXT NOT NULL,
+    updatedAt   TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_user_flashcards_note_id ON user_flashcards(noteId);
+
+  CREATE TABLE IF NOT EXISTS hidden_flashcards (
+    cardId      TEXT PRIMARY KEY,
+    createdAt   TEXT NOT NULL
+  );
 `;
 
 const PG_DDL = `
@@ -113,6 +143,36 @@ const PG_DDL = `
     "generatedAt" TEXT NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_flashcard_cache_hash ON flashcard_cache(hash);
+
+  CREATE TABLE IF NOT EXISTS flashcard_reviews (
+    "cardId"      TEXT PRIMARY KEY,
+    "noteId"      TEXT NOT NULL,
+    "isUserCard"  INTEGER NOT NULL DEFAULT 0,
+    "easeFactor"  TEXT NOT NULL DEFAULT '2.5',
+    "interval"    INTEGER NOT NULL DEFAULT 0,
+    "repetitions" INTEGER NOT NULL DEFAULT 0,
+    "nextReviewAt" TEXT,
+    "lastReviewAt" TEXT,
+    "lastRating"  TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_note_id ON flashcard_reviews("noteId");
+  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_next_review ON flashcard_reviews("nextReviewAt");
+
+  CREATE TABLE IF NOT EXISTS user_flashcards (
+    "id"          TEXT PRIMARY KEY,
+    "noteId"      TEXT NOT NULL,
+    prompt      TEXT NOT NULL,
+    lesson      TEXT NOT NULL,
+    kind        TEXT NOT NULL DEFAULT 'concept',
+    "createdAt"   TEXT NOT NULL,
+    "updatedAt"   TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_user_flashcards_note_id ON user_flashcards("noteId");
+
+  CREATE TABLE IF NOT EXISTS hidden_flashcards (
+    "cardId"      TEXT PRIMARY KEY,
+    "createdAt"   TEXT NOT NULL
+  );
 `;
 
 const drizzleProvider = {
@@ -171,6 +231,33 @@ const flashcardCacheTableProvider = {
   },
 };
 
+const flashcardReviewsTableProvider = {
+  provide: FLASHCARD_REVIEWS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.sqliteFlashcardReviewsPg : schema.sqliteFlashcardReviews;
+  },
+};
+
+const userFlashcardsTableProvider = {
+  provide: USER_FLASHCARDS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgUserFlashcards : schema.sqliteUserFlashcards;
+  },
+};
+
+const hiddenFlashcardsTableProvider = {
+  provide: HIDDEN_FLASHCARDS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgHiddenFlashcards : schema.sqliteHiddenFlashcards;
+  },
+};
+
 @Global()
 @Module({
   providers: [
@@ -178,12 +265,18 @@ const flashcardCacheTableProvider = {
     jobsTableProvider,
     remindersTableProvider,
     flashcardCacheTableProvider,
+    flashcardReviewsTableProvider,
+    userFlashcardsTableProvider,
+    hiddenFlashcardsTableProvider,
   ],
   exports: [
     DRIZZLE_DB,
     JOBS_TABLE,
     REMINDERS_TABLE,
     FLASHCARD_CACHE_TABLE,
+    FLASHCARD_REVIEWS_TABLE,
+    USER_FLASHCARDS_TABLE,
+    HIDDEN_FLASHCARDS_TABLE,
   ],
 })
 export class DatabaseModule implements OnModuleInit {

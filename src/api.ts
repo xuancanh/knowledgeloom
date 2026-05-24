@@ -87,6 +87,49 @@ export async function deleteReminder(id: string): Promise<{ deleted: string }> {
   return response.json();
 }
 
+/**
+ * Creates a user-owned flashcard linked to a note.
+ */
+export async function createFlashcard(payload: {
+  noteId: string; prompt: string; lesson: string; kind: string;
+}): Promise<{ flashcard: any }> {
+  const response = await fetch('/api/flashcards', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Failed to create flashcard: ${response.status}`);
+  return response.json();
+}
+
+/**
+ * Updates a user-owned flashcard.
+ */
+export async function updateFlashcard(id: string, payload: { prompt: string; lesson: string; kind: string }): Promise<{ updated: string }> {
+  const response = await fetch(`/api/flashcards/${encodeURIComponent(id)}`, {
+    method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Failed to update flashcard: ${response.status}`);
+  return response.json();
+}
+
+/**
+ * Removes (hides) a flashcard, either AI-generated or user-created.
+ */
+export async function deleteFlashcard(id: string): Promise<void> {
+  const response = await fetch(`/api/flashcards/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(`Failed to delete flashcard: ${response.status}`);
+}
+
+/**
+ * Submits a review rating for a flashcard (spaced repetition).
+ */
+export async function reviewFlashcard(id: string, payload: { rating: 'again' | 'hard' | 'good'; noteId: string; isUserCard?: boolean }): Promise<{ review: any }> {
+  const response = await fetch(`/api/flashcards/${encodeURIComponent(id)}/review`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Failed to submit review: ${response.status}`);
+  return response.json();
+}
+
 export type NoteUpdate = {
   title: string;
   category: string;
