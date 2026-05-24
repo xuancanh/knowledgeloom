@@ -10,7 +10,7 @@
  */
 import { Injectable } from '@nestjs/common';
 import { CodexRunnerService } from '../codex/codex-runner.service';
-import type { AiProvider, AiCompletionOptions } from './ai-provider.interface';
+import type { AiProvider, AiCompletionOptions, AiMessage } from './ai-provider.interface';
 
 @Injectable()
 export class CodexAiProvider implements AiProvider {
@@ -19,5 +19,11 @@ export class CodexAiProvider implements AiProvider {
   complete(prompt: string, opts?: AiCompletionOptions): Promise<string> {
     const ext = opts?.outputFormat === 'json' ? 'json' : 'md';
     return this.runner.run(prompt, ext);
+  }
+
+  async *completeStream(messages: AiMessage[]): AsyncGenerator<string> {
+    const prompt = messages.map((m) => `${m.role === 'user' ? 'User' : m.role === 'assistant' ? 'Assistant' : 'System'}: ${m.content}`).join('\n\n');
+    const result = await this.complete(prompt);
+    yield result;
   }
 }

@@ -15,17 +15,19 @@ smart-knowledge-app/
 │   │   ├── activity/       # ActivityPage + CSS module
 │   │   ├── capture/        # CaptureBox + CSS module
 │   │   ├── categories/     # CategoryIndex + CSS module
+│   │   ├── chat/           # ChatPanel.tsx + ChatPanel.module.css (floating AI chat panel)
 │   │   ├── flashcards/     # FlashcardsPage, browse/study/done sub-components, constants
 │   │   ├── notes/          # NoteDetail, AiAssistPanel, ReminderSection, LinkEditor
-│   │   ├── routes/         # URL→component wrappers (NoteRoute, CategoryRoute, etc.)
+│   │   ├── routes/         # URL→component wrappers (NoteRoute, CategoryRoute, NewNoteRoute, AllCategoriesRoute, AllTagsRoute, etc.)
 │   │   ├── settings/       # SettingsPage + CSS module
 │   │   ├── tags/           # TagIndex + CSS module
 │   │   ├── ContextPanel.tsx  Rail.tsx  Home.tsx      # Layout / shell
-│   │   ├── LiveEditor.tsx   NoteList.tsx              # Shared editor / list
+│   │   ├── LiveEditor.tsx   NoteList.tsx              # Shared editor / list (LiveEditor.tsx is used by CaptureBox and NoteDetail)
 │   │   ├── MiniGraph.tsx    SearchOverlay.tsx         # Shared widgets
-│   │   └── RichEditor.tsx                             # Unused (Ti​pTap editor)
+│   │   └── RichEditor.tsx                             # TipTap-based editor, currently unused in UI flow
 │   ├── hooks/              # Shared custom hooks
-│   │   └── useKnowledge.ts # Central state, polling, mutations, derived data
+│   │   ├── useKnowledge.ts # Central state, polling, mutations, derived data
+│   │   └── useRagChat.ts   # Chat message state, localStorage persistence, streaming abort
 │   ├── lib/                # Pure utility functions (no React imports except view.tsx)
 │   │   ├── format.ts       # Date formatting
 │   │   ├── guidance.ts     # Writing guidance template CRUD (localStorage)
@@ -46,9 +48,11 @@ smart-knowledge-app/
 │   │   ├── database/       # Drizzle ORM setup + DDL
 │   │   ├── flashcards/     # AI flashcard generation + cache
 │   │   ├── jobs/           # Durable Codex job queue
+│   │   ├── images/         # POST /api/images — image upload
 │   │   ├── knowledge/      # Index rebuild pipeline
 │   │   ├── learn/          # Note capture endpoint
 │   │   ├── notes/          # Note CRUD
+│   │   ├── rag/            # POST /api/rag/stream — streaming RAG over the knowledge base
 │   │   ├── reminders/      # Note reminders
 │   │   ├── search/         # Pluggable search (Meilisearch / in-memory)
 │   │   ├── status/         # Health endpoint
@@ -111,6 +115,22 @@ Three layers of the backend are abstract and swappable via env vars:
 | `AI_PROVIDER=codex` | `CodexAiProvider` | Spawns `codex exec` CLI |
 | `AI_PROVIDER=openrouter` | `OpenRouterAiProvider` | Any OpenAI-compatible HTTP API |
 
+The `AiProvider` interface exposes two methods:
+
+```typescript
+interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string; }
+
+interface AiProvider {
+  complete(prompt: string, opts?: AiCompletionOptions): Promise<string>;
+  completeStream(messages: AiMessage[], opts?: AiCompletionOptions): AsyncGenerator<string>;
+}
+```
+
+`complete()` is used by note creation (Codex queue) and flashcard generation.
+`completeStream()` is used by RAG streaming. `CodexAiProvider` provides a non-streaming
+fallback (yields the full `complete()` result as one chunk). `OpenRouterAiProvider` uses
+OpenAI SSE streaming.
+
 To add a new AI provider: implement `AiProvider`, register it in `AiModule`.
 
 ### Search provider (`server/src/search/`)
@@ -149,6 +169,10 @@ To add a new storage provider: implement `NoteStorageProvider`, register it in `
 5. **NoteStorageProvider contract.** `listFiles()` must return paths relative to
    the notes root, sorted alphabetically, ending in `.md`. `parseNote(file, markdown)`
    uses the relative path to build the note id and the `path` field.
+
+6. **Route ordering in controllers.** Static routes (e.g. `POST 'assist-draft'`) must
+   be declared before parameterized routes (e.g. `POST ':id/assist'`) in the same
+   controller to prevent Express treating the static segment as a parameter value.
 
 ---
 
@@ -243,6 +267,10 @@ or Redux — the single hook + prop drilling pattern keeps data flow explicit.
 - All navigation callbacks (`openNote`, `openCategory`, `openTag`, etc.)
 - All derived state (`categories` with UI props, `categoryTree`, `tagCounts`)
 
+> Chat state (messages, streaming) lives in `useRagChat` (`src/hooks/useRagChat.ts`),
+> separate from `useKnowledge`. Chat history is persisted to localStorage under
+> `kl:chat-history` (max 200 messages).
+
 ### Component organization
 
 **Feature directories** contain a page component + its CSS Module (co-located):
@@ -250,6 +278,7 @@ or Redux — the single hook + prop drilling pattern keeps data flow explicit.
 components/activity/      ActivityPage.tsx + ActivityPage.module.css
 components/capture/       CaptureBox.tsx + CaptureBox.module.css
 components/categories/    CategoryIndex.tsx + CategoryIndex.module.css
+components/chat/          ChatPanel.tsx + ChatPanel.module.css
 components/flashcards/    FlashcardsPage.tsx + browse/study/done + constants/types
 components/notes/         NoteDetail.tsx + AiAssistPanel/ReminderSection/LinkEditor
 components/settings/      SettingsPage.tsx + SettingsPage.module.css
@@ -278,6 +307,20 @@ and `useSearchParams()`.
 - **CSS Modules** for feature components; global CSS in `src/styles/` for
   shared styles (layout, rail, base variables, common widgets).
 
+### Route table
+
+| Path | Component | Notes |
+|------|-----------|-------|
+| `/` | `Home` | Landing / empty state |
+| `/notes/:id` | `NoteRoute` | Note detail view |
+| `/categories/:id` | `CategoryRoute` | Category view |
+| `/tags/:tag` | `TagRoute` | Tag view |
+| `/flashcards` | `FlashcardsRoute` | Flashcard study |
+| `/activity` | `ActivityPage` | Job activity log |
+| `/new` | `NewNoteRoute` | Full-page write editor; reads draft from `sessionStorage` key `kl:new-note-draft` |
+| `/categories` | `AllCategoriesRoute` | All categories overview with tree view |
+| `/tags` | `AllTagsRoute` | All tags overview |
+
 ### Data flow
 ```
 useKnowledge hook (polling + state)
@@ -287,14 +330,23 @@ useKnowledge hook (polling + state)
        │         └→ Sub-components (local state + callbacks)
        ├→ Rail (sidebar nav, category tree, tag list)
        ├→ ContextPanel (right sidebar, connections graph)
-       └→ SearchOverlay (command palette, calls API directly)
+       ├→ SearchOverlay (command palette, calls API directly)
+       └→ ChatPanel (floating AI chat, available on all routes)
 ```
+
+### App.tsx responsibilities
+- Calls `useKnowledge` and distributes state via props.
+- Declares the top-level route table (see table above).
+- Renders the layout shell: `Rail`, `ContextPanel`, `SearchOverlay`.
+- Renders `<ChatPanel>` (floating AI chat button + sliding panel) at the root level so it is available on all routes.
 
 ### API layer (`src/api.ts`)
 - Every backend endpoint has a matching exported async function.
 - Functions return typed responses (no `any`).
 - Error handling: throw on non-2xx with status code in message.
 - `NoteUpdate` type is the canonical editor draft format.
+- `streamRagAnswer(question, scope, history, signal?)` — returns `AsyncGenerator<string>` consuming the RAG chunked stream.
+- `assistDraft(draft, prompt)` — AI assist for unsaved capture-box drafts (calls `POST /api/notes/assist-draft`).
 
 ### Lib layer (`src/lib/`)
 - Pure utility functions (no React imports, except `view.tsx` which has
@@ -316,3 +368,37 @@ useKnowledge hook (polling + state)
   (`light`, `white`, `dark`). Theme is toggled via `documentElement.dataset.theme`.
 - When adding a new feature component, prefer a co-located CSS Module.
   Use global CSS only for styles shared by multiple feature components.
+
+---
+
+## Component details
+
+### CaptureBox (`components/capture/CaptureBox.tsx`)
+
+Multi-mode note-capture widget. Mode is toggled via a tab bar at the top.
+
+| Mode | Description |
+|------|-------------|
+| Quick | Plain-text quick note |
+| Write | Full markdown note with title, category, tags |
+| Link | URL bookmarking with title + notes |
+| Voice | Voice memo (transcription via backend) |
+
+**Write tab specifics:**
+- **AI Assist** button opens a popup modal where the user types an instruction; calls `POST /api/notes/assist-draft` and applies the returned text to the form.
+- **Full Editor** button saves the current draft to `sessionStorage` key `kl:new-note-draft` and navigates to `/new`.
+
+**Guidance chips** appear below the mode bar. Each chip corresponds to a writing guidance template. When the template has a `color` field, the chip shows a **colored dot** using that color. The active chip uses the template color as its text/border color.
+
+### NoteDetail (`components/notes/NoteDetail.tsx`)
+
+Displays an individual note. Supports read mode and edit mode.
+
+- When in editing mode, the "Reading mode" button is renamed to **"Focus mode"** to better describe its purpose (dims chrome, expands width, allows font-size adjustment).
+- Font size controls in reading/focus mode inject a `<style>` tag that targets `body.reading .note-detail .ne-view-content .tiptap` with `!important` to override the editor's base styles.
+
+### SettingsPage (`components/settings/SettingsPage.tsx`)
+
+Application settings and configuration UI.
+
+- Each guidance template now supports an optional **color** field (CSS variable name, e.g. `moss`, `indigo`, `teal`). Color swatches are shown as 20 px circles using the `--swatch-color` CSS variable. The CaptureBox chips reflect the selected color.

@@ -14,9 +14,14 @@ UI preferences (`theme`, `compactMode`, `railOpen`, `searchOpen`), `toasts`,
 and `templates`. Data is polled every 2.5 seconds. All mutation handlers and
 navigation callbacks also live here.
 
+`src/hooks/useRagChat.ts` manages AI chat state independently: the message
+array, streaming flag, and abort controller. Chat history is persisted to
+`localStorage` under key `kl:chat-history` (max 200 messages; streaming flag
+stripped before write). This hook is consumed only by `ChatPanel`.
+
 `App.tsx` calls `useKnowledge()`, renders the layout shell (Rail, utility bar,
-ContextPanel, SearchOverlay, Toast stack), and wires props through react-router
-`<Route>` elements.
+ContextPanel, SearchOverlay, ChatPanel, Toast stack), and wires props through
+react-router `<Route>` elements.
 
 ### Data flow
 ```
@@ -42,10 +47,13 @@ useKnowledge (polling, mutations, derived state)
 |-----|--------------|----------------|----------|
 | `/` | _(none)_ | `Home` | `components/Home.tsx` |
 | `/activity` | _(none)_ | `ActivityPage` | `components/activity/` |
+| `/categories` | `AllCategoriesRoute` | _(inline)_ | `components/routes/` |
 | `/categories/*` | `CategoryRoute` | `CategoryIndex` | `components/categories/` |
 | `/flashcards` | `FlashcardsRoute` | `FlashcardsPage` | `components/flashcards/` |
+| `/new` | `NewNoteRoute` | _(inline)_ | `components/routes/` |
 | `/notes/:id` | `NoteRoute` | `NoteDetail` | `components/notes/` |
 | `/settings` | _(none)_ | `SettingsPage` | `components/settings/` |
+| `/tags` | `AllTagsRoute` | _(inline)_ | `components/routes/` |
 | `/tags/:tag` | `TagRoute` | `TagIndex` | `components/tags/` |
 
 ---
@@ -58,6 +66,8 @@ Root component. ~145 lines after extracting `useKnowledge` and route wrappers.
 - Calls `useKnowledge()` to get all state, handlers, and derived data.
 - Renders shell: `<Rail>`, utility bar (theme/compact/Desk toggle, search trigger),
   toast stack, `<SearchOverlay>`, and conditional `<ContextPanel>`.
+- Renders `<ChatPanel>` at the root level (outside `<Routes>`) so the floating
+  AI chat button and sliding panel are available on every page.
 - Wires props through `<Routes>` to route wrappers and page components.
 - Applies `dense` CSS class when `compactMode` is on.
 - Hides right sidebar (`no-right` class) when no note is selected.
@@ -97,6 +107,29 @@ the appropriate URL pattern.
 
 ---
 
+## useRagChat (`src/hooks/useRagChat.ts`)
+
+Custom hook for AI chat state. Consumed exclusively by `ChatPanel`.
+
+**State**: `messages: ChatMessage[]`, `streaming: boolean`.
+
+**Persistence**: Messages are loaded from `localStorage` on mount (`kl:chat-history`
+key, max 200 entries). The `streaming` flag is cleared on load so a half-finished
+message from a crashed session never shows a blinking cursor. Saves are triggered
+after streaming ends (not per-token) to avoid thrashing storage.
+
+**Methods**:
+- `sendMessage(text, scope)` — appends a user message and a streaming assistant
+  placeholder, calls `streamRagAnswer()`, and accumulates tokens into the
+  placeholder message.
+- `abort()` — cancels the in-flight `AbortController`.
+- `clearHistory()` — empties the message array and removes the localStorage entry.
+
+**History passed to backend**: Only the settled messages at call time (not the
+in-progress streaming message) are forwarded as conversation history.
+
+---
+
 ## Home (`components/Home.tsx`)
 
 **Route**: `/`
@@ -118,10 +151,21 @@ Three capture modes toggled by header buttons:
 |------|-----------|-----------|
 | Research | `research` | AI researches topic and writes a note (durable queue) |
 | Link | `link` | AI fetches URL and converts to a note (durable queue) |
-| Write | `write` or `polish` | Direct save; optional AI polish via checkbox |
+| Write | `write` | Direct save to markdown |
 
-**Guidance section**: Shows writing instruction templates from `lib/guidance.ts`
-(chips + free-text input). "Manage" button navigates to `/settings`.
+**Write tab extras**: Below the body editor, two action buttons appear:
+- **AI Assist** — opens a modal popup with a textarea for a free-text instruction.
+  On submit, calls `POST /api/notes/assist-draft` via `assistDraft()` and applies
+  the returned `NoteUpdate` proposal to the form fields. The user still saves
+  manually via the normal submit flow.
+- **Full Editor** — serialises the current draft (title, body, category, summary,
+  tags) to `sessionStorage` under key `kl:new-note-draft` and navigates to `/new`
+  (the full-page `NewNoteRoute` editor).
+
+**Guidance chips**: Chips show a **colored dot** when the template has a `color`
+field (a CSS variable name like `moss`, `indigo`, `teal`). The active chip uses
+that color for its text and border. Guidance choice is persisted per-mode in
+`localStorage`.
 
 **Keyboard**: `/` focuses the primary input; `⌘Enter` submits.
 
@@ -194,6 +238,13 @@ Note reader and editor.
 
 Opening the editor snapshots the latest note props into local draft state,
 so background polling doesn't overwrite in-progress edits.
+
+**Reading / Focus mode**: Toggled by the "Read" button in the reader header.
+When in editing mode, the button is labelled **"Focus"** instead. Focus mode
+adds `body.reading` class and injects a `<style>` tag targeting
+`body.reading .note-detail .ne-view-content .tiptap` with `!important` to
+override the editor's base font size. Font size (`s` / `m` / `l`) and content
+width are adjustable via controls shown in focus mode only.
 
 **Sub-components**:
 - `AiAssistPanel` — AI instruction input, runs `/api/notes/:id/assist`.
@@ -291,6 +342,42 @@ jobs with `note.id` are clickable and navigate to the note.
 
 ---
 
+## NewNoteRoute (`components/routes/NewNoteRoute.tsx`)
+
+**Route**: `/new`
+**CSS Module**: `NewNoteRoute.module.css`
+
+Full-page write editor for new notes. Renders a large title input, italic
+summary textarea, `LiveEditor` for the markdown body, and `MetaFields`
+(category, tags) in a bottom section.
+
+On mount, reads a draft from `sessionStorage` under key `kl:new-note-draft`
+(written by `CaptureBox`'s "Full Editor" button) and pre-populates all fields.
+The key is removed immediately after reading so the draft is consumed once.
+
+Save calls `onSubmit({ mode: 'write', title, body, category, summary, tags })`.
+Cancel navigates back. The `NEW_NOTE_DRAFT_KEY` constant is exported from this
+file for use by `CaptureBox`.
+
+---
+
+## AllCategoriesRoute (`components/routes/AllCategoriesRoute.tsx`)
+
+**Route**: `/categories`
+
+Overview of all categories with a tree view and count summaries. Receives
+`categories` and `categoryTree` from `App.tsx` via `useKnowledge`.
+
+---
+
+## AllTagsRoute (`components/routes/AllTagsRoute.tsx`)
+
+**Route**: `/tags`
+
+Overview of all tags sorted by note count. Receives `tagCounts` from `App.tsx`.
+
+---
+
 ## SettingsPage (`components/settings/SettingsPage.tsx`)
 
 **Route**: `/settings`
@@ -298,8 +385,49 @@ jobs with `note.id` are clickable and navigate to the note.
 
 Guidance template CRUD management. Shows built-in and custom templates grouped
 by mode (research / link / both). Inline editing for label, text, and mode.
+Each template supports an optional **color** field (a CSS variable name, e.g.
+`moss`, `indigo`, `teal`). Colors are selected via 20 px circle swatches; the
+active swatch renders with an outline ring via `--swatch-color` CSS variable.
 Changes persist to `localStorage` via `lib/guidance.ts`. On change, notifies
 parent via `onTemplatesChange` so `CaptureBox` picks up new templates immediately.
+
+---
+
+## ChatPanel (`components/chat/ChatPanel.tsx`)
+
+**CSS Module**: `ChatPanel.module.css`
+
+Floating AI chat interface available on every page, rendered at the root level
+by `App.tsx` (outside `<Routes>`).
+
+**Trigger**: A pill-shaped "Ask AI" button in the bottom-right corner
+(`position: fixed`). The button hides itself (`display: none`) when the panel
+is open to avoid overlapping the panel's own "Ask" send button.
+
+**Panel**: Slides in from the right (400 px wide) using `transform: translateX`.
+A transparent backdrop div sits behind the panel to dismiss it on outside click.
+
+**Scope selector**: Auto-detects the current route on mount and on navigation:
+- `/notes/:id` → `{ type: 'note', id }`
+- `/tags/:tag` → `{ type: 'tag', tag }`
+- `/categories/*` → `{ type: 'category', path }`
+- anything else → `{ type: 'all' }`
+
+Scope chips at the top let the user switch between the detected scope and "All
+notes". The detected scope is reset when the route changes, but not when the
+user manually selects a different scope within the same route.
+
+**Messages**: User messages render in an accent-tinted left-bordered bubble.
+Assistant messages render as plain body text. A blinking `2 px` cursor
+(animated via `@keyframes blink`) indicates streaming in progress. Auto-scrolls
+to the bottom on each new token.
+
+**Input**: Auto-resizing textarea. `Enter` sends (or stops streaming if in
+progress). `Shift+Enter` inserts a newline. `Escape` closes the panel. The send
+button turns red ("Stop") while streaming.
+
+**State**: Managed by `useRagChat` hook. History persists across page reloads
+via `localStorage` (`kl:chat-history`, max 200 messages).
 
 ---
 
