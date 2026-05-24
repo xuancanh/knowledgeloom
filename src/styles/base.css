@@ -47,6 +47,12 @@
   --shadow: 0 1px 0 rgba(30, 35, 28, 0.04), 0 6px 18px -12px rgba(30, 35, 28, 0.22);
 }
 
+/* White-theme capture box overrides */
+[data-theme="white"] .capture [class*="primaryZone"] {
+  background: #f2efe8;
+  border-color: #c5c0b5;
+}
+
 [data-theme="dark"] {
   --paper: #181410;
   --paper-2: #201a14;
