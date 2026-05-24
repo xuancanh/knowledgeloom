@@ -52,6 +52,17 @@
   background: #f2efe8;
   border-color: #c5c0b5;
 }
+[data-theme="white"] [class*="moreBody"],
+[data-theme="white"] [class*="guidanceInputWrap"] {
+  background: #f2efe8;
+  border-color: #c5c0b5;
+}
+[data-theme="white"] [class*="metaInput"],
+[data-theme="white"] [class*="seedArea"] {
+  background: #faf8f3;
+  border-color: #c5c0b5;
+  color: #171714;
+}
 
 [data-theme="dark"] {
   --paper: #181410;
