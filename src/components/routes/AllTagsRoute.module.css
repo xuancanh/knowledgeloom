@@ -1,0 +1,56 @@
+.page {}
+
+.head {
+  margin-bottom: 22px;
+}
+.title {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 8px 0 4px;
+  color: var(--ink);
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: var(--surface);
+  padding: 6px 13px;
+  cursor: pointer;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: border-color 120ms, background 120ms, color 120ms;
+  line-height: 1;
+}
+.tag:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  color: var(--ink);
+}
+
+.tagHash {
+  color: var(--accent);
+}
+.tagName {
+  /* font-size set inline based on weight */
+}
+.tagCount {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+}
