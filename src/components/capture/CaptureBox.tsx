@@ -149,41 +149,6 @@ export default function CaptureBox({
               autoFocus={!readOnly}
             />
           </div>
-          <div className={styles.guidance}>
-            <div className={styles.guidanceTop}>
-              <span className={styles.guidanceLabel}>Writing instructions</span>
-              <div className={styles.guidanceLine} />
-              <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-                Manage
-              </button>
-            </div>
-            {modeTemplates.length > 0 && (
-              <div className={styles.chips}>
-                {modeTemplates.map((tpl) => (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
-                    onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
-                    disabled={readOnly}
-                  >
-                    {tpl.label}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className={styles.guidanceInputWrap}>
-              <span className={styles.guidanceInputIcon}>✎</span>
-              <input
-                className={styles.guidanceInput}
-                value={guidance}
-                onChange={(e) => setGuidance(e.target.value)}
-                onKeyDown={onKey}
-                placeholder="Custom instructions — depth, format, audience, code style…"
-                disabled={readOnly}
-              />
-            </div>
-          </div>
           <button
             type="button"
             className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
@@ -194,6 +159,41 @@ export default function CaptureBox({
           </button>
           {showMore && (
             <div className={styles.moreBody}>
+              <div className={styles.guidance}>
+                <div className={styles.guidanceTop}>
+                  <span className={styles.guidanceLabel}>Writing instructions</span>
+                  <div className={styles.guidanceLine} />
+                  <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
+                    Manage
+                  </button>
+                </div>
+                {modeTemplates.length > 0 && (
+                  <div className={styles.chips}>
+                    {modeTemplates.map((tpl) => (
+                      <button
+                        key={tpl.id}
+                        type="button"
+                        className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                        onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
+                        disabled={readOnly}
+                      >
+                        {tpl.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className={styles.guidanceInputWrap}>
+                  <span className={styles.guidanceInputIcon}>✎</span>
+                  <input
+                    className={styles.guidanceInput}
+                    value={guidance}
+                    onChange={(e) => setGuidance(e.target.value)}
+                    onKeyDown={onKey}
+                    placeholder="Custom instructions — depth, format, audience, code style…"
+                    disabled={readOnly}
+                  />
+                </div>
+              </div>
               <label className={styles.fieldLabel}>What you already know</label>
               <textarea
                 className={styles.seedArea}
@@ -242,41 +242,6 @@ export default function CaptureBox({
               disabled={readOnly}
             />
           </div>
-          <div className={styles.guidance}>
-            <div className={styles.guidanceTop}>
-              <span className={styles.guidanceLabel}>Writing instructions</span>
-              <div className={styles.guidanceLine} />
-              <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-                Manage
-              </button>
-            </div>
-            {modeTemplates.length > 0 && (
-              <div className={styles.chips}>
-                {modeTemplates.map((tpl) => (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
-                    onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
-                    disabled={readOnly}
-                  >
-                    {tpl.label}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className={styles.guidanceInputWrap}>
-              <span className={styles.guidanceInputIcon}>✎</span>
-              <input
-                className={styles.guidanceInput}
-                value={guidance}
-                onChange={(e) => setGuidance(e.target.value)}
-                onKeyDown={onKey}
-                placeholder="Custom instructions — focus area, audience, format…"
-                disabled={readOnly}
-              />
-            </div>
-          </div>
           <button
             type="button"
             className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
@@ -287,6 +252,41 @@ export default function CaptureBox({
           </button>
           {showMore && (
             <div className={styles.moreBody}>
+              <div className={styles.guidance}>
+                <div className={styles.guidanceTop}>
+                  <span className={styles.guidanceLabel}>Writing instructions</span>
+                  <div className={styles.guidanceLine} />
+                  <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
+                    Manage
+                  </button>
+                </div>
+                {modeTemplates.length > 0 && (
+                  <div className={styles.chips}>
+                    {modeTemplates.map((tpl) => (
+                      <button
+                        key={tpl.id}
+                        type="button"
+                        className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                        onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
+                        disabled={readOnly}
+                      >
+                        {tpl.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className={styles.guidanceInputWrap}>
+                  <span className={styles.guidanceInputIcon}>✎</span>
+                  <input
+                    className={styles.guidanceInput}
+                    value={guidance}
+                    onChange={(e) => setGuidance(e.target.value)}
+                    onKeyDown={onKey}
+                    placeholder="Custom instructions — focus area, audience, format…"
+                    disabled={readOnly}
+                  />
+                </div>
+              </div>
               <label className={styles.fieldLabel}>What to focus on</label>
               <textarea
                 className={styles.seedArea}
