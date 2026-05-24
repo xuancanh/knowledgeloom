@@ -82,16 +82,48 @@ export default function NoteDetail({
   const backlinks = notes.filter((item) => item.links.includes(note.id));
   const blocks = useMemo(() => parseMarkdownBlocks(markdown), [markdown]);
 
+  const themeColors: Record<string, { bg: string; text: string; heading: string; muted: string }> = {
+    light: { bg: '#fff', text: '#1a1a1a', heading: '#111', muted: '#555' },
+    sepia: { bg: '#f4ecd8', text: '#5b4636', heading: '#3a2a1a', muted: '#7a5a3a' },
+    dark:  { bg: '#1a1a2e', text: '#d0d0d0', heading: '#e8e8e8', muted: '#a0a0a0' },
+  };
+
   useEffect(() => {
+    const styleId = 'kl-reading-style';
+    const existing = document.getElementById(styleId);
+    if (existing) existing.remove();
     document.body.classList.toggle('reading', reading);
     document.body.dataset.readTheme = reading ? readTheme : '';
     document.body.dataset.readWidth = reading ? readWidth : '';
     document.body.dataset.readSize = reading ? readSize : '';
+    if (!reading) return;
+    const c = themeColors[readTheme];
+    const w = readWidth === 'narrow' ? 560 : readWidth === 'wide' ? 1080 : 800;
+    const fs = readSize === 's' ? 0.88 : readSize === 'l' ? 1.25 : 1.05;
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      html,body{background:${c.bg}!important;color:${c.text}!important}
+      .app,.note-detail,.note-detail .note-body,.note-detail .lede,
+      .note-detail main,main{background:transparent!important;color:${c.text}!important}
+      .note-detail .note-body p,.note-detail .note-body blockquote,
+      .note-detail .note-body h3{color:${c.text}!important}
+      .note-detail h1{color:${c.heading}!important}
+      .note-detail .lede{color:${c.text}!important}
+      main{max-width:${w}px!important}
+      .note-detail .note-body{font-size:${fs}rem!important}
+      .note-detail .note-body p,.note-detail .note-body h3,
+      .note-detail .note-body blockquote{font-size:1em!important}
+      .note-detail h1{font-size:${readSize==='s'?1.8:readSize==='l'?2.6:2.2}rem!important}
+    `;
+    document.head.appendChild(style);
     return () => {
       document.body.classList.remove('reading');
       document.body.dataset.readTheme = '';
       document.body.dataset.readWidth = '';
       document.body.dataset.readSize = '';
+      const s = document.getElementById(styleId);
+      if (s) s.remove();
     };
   }, [reading, readTheme, readWidth, readSize]);
 
