@@ -4,7 +4,6 @@ import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCate
 import NoteList, { type ViewMode } from '../NoteList';
 import styles from './CategoryIndex.module.css';
 
-/** Maps category colour names to their CSS variable values for inline styles. */
 const COLOR_VAR: Record<string, string> = {
   oxblood: 'var(--accent)',
   moss: 'var(--moss)',
@@ -39,8 +38,6 @@ export default function CategoryIndex({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [showFolders, setShowFolders] = useState(false);
-  const [showTags, setShowTags] = useState(false);
 
   const inCat = useMemo(
     () =>
@@ -134,22 +131,6 @@ export default function CategoryIndex({
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {childCategories.length > 0 && (
-              <button
-                className={`${styles.chip} ${styles.chipAction}${showFolders ? ` ${styles.chipOpen}` : ''}`}
-                onClick={() => setShowFolders((v) => !v)}
-              >
-                {childCategories.length} {childCategories.length === 1 ? 'folder' : 'folders'}
-              </button>
-            )}
-            {tagCounts.length > 0 && (
-              <button
-                className={`${styles.chip} ${styles.chipAction}${showTags ? ` ${styles.chipOpen}` : ''}`}
-                onClick={() => setShowTags((v) => !v)}
-              >
-                {tagCounts.length} tags
-              </button>
-            )}
             {totalLinks > 0 && <span className={styles.chip}>{totalLinks} links</span>}
           </div>
         </div>
@@ -158,42 +139,27 @@ export default function CategoryIndex({
         )}
       </div>
 
-      {/* Subcategories */}
-      {showFolders && childCategories.length > 0 && (
-        <div className={styles.strip}>
-          <span className={styles.stripLabel}>Folders</span>
-          <div className={styles.stripItems}>
+      {/* Subfolders — always visible when present */}
+      {childCategories.length > 0 && (
+        <div className={styles.foldersSection}>
+          <div className={styles.foldersLabel}>Subfolders</div>
+          <div className={styles.folderList}>
             {childCategories.map((cat) => {
               const catColor = COLOR_VAR[cat.color] || 'var(--accent)';
               const catNoteCount = notes.filter((n) => categoryContains(cat.id, categoryId(n.category))).length;
               return (
                 <button
                   key={cat.id}
-                  className={styles.subcatPill}
+                  className={styles.folderRow}
                   onClick={() => onOpenCategory(cat.id)}
                   style={{ '--cat-color': catColor } as React.CSSProperties}
                 >
-                  <span className={styles.subcatDot} style={{ background: catColor }} />
-                  {categoryLabel(cat.name)}
-                  <em>{catNoteCount}</em>
+                  <span className={styles.folderDot} style={{ background: catColor }} />
+                  <span className={styles.folderName}>{categoryLabel(cat.name)}</span>
+                  <span className={styles.folderCount}>{catNoteCount}</span>
                 </button>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* Tag chips — navigate to tag page */}
-      {showTags && tagCounts.length > 0 && (
-        <div className={styles.strip}>
-          <span className={styles.stripLabel}>Tags</span>
-          <div className={styles.stripItems}>
-            {tagCounts.slice(0, 14).map(([tag, count]) => (
-              <button key={tag} className={styles.tagChip} onClick={() => onOpenTag(tag)}>
-                #{tag}
-                <em>{count}</em>
-              </button>
-            ))}
           </div>
         </div>
       )}
@@ -256,6 +222,9 @@ export default function CategoryIndex({
               {tagFilter === tag && <span className={styles.filterClear}>✕</span>}
             </button>
           ))}
+          {tagFilter && (
+            <button className={styles.clearAll} onClick={() => setTagFilter(null)}>Clear filter</button>
+          )}
         </div>
       )}
 
