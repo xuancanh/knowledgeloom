@@ -48,19 +48,15 @@
 .chipAction:hover {
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
 }
-.chipOpen {
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
-  border-color: var(--accent);
-}
 
-/* ── Strip rows ── */
-.strip {
+/* ── Metadata sections (categories, related tags) — always visible ── */
+.metaSection {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
-.stripLabel {
+.metaLabel {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   font-weight: 700;
@@ -69,9 +65,9 @@
   color: var(--muted-2);
   white-space: nowrap;
   padding-top: 4px;
-  min-width: 40px;
+  min-width: 44px;
 }
-.stripItems {
+.metaItems {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -91,12 +87,11 @@
   font-weight: 500;
   padding: 3px 9px;
   cursor: pointer;
-  transition: border-color 130ms, background 130ms, transform 130ms;
+  transition: border-color 130ms, background 130ms;
 }
 .catPill:hover {
   border-color: var(--cat-color, var(--accent));
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 7%, var(--surface));
-  transform: translateY(-1px);
 }
 .catPillActive {
   border-color: var(--cat-color, var(--accent));
@@ -205,4 +200,5 @@
 @media (max-width: 760px) {
   .headTag { font-size: 16px; }
   .sectionHead { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .metaSection { flex-direction: column; gap: 4px; }
 }

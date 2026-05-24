@@ -4,7 +4,6 @@ import { categoryId, formatCreated, type UiCategory } from '../../lib/view';
 import NoteList, { type ViewMode } from '../NoteList';
 import styles from './TagIndex.module.css';
 
-/** Notes per page in the paginated tag view. */
 const PAGE_SIZE = 10;
 
 const COLOR_VAR: Record<string, string> = {
@@ -43,8 +42,6 @@ export default function TagIndex({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
   const [catFilter, setCatFilter] = useState<string | null>(null);
-  const [showIn, setShowIn] = useState(false);
-  const [showRelated, setShowRelated] = useState(false);
 
   const taggedNotes = useMemo(
     () =>
@@ -68,7 +65,7 @@ export default function TagIndex({
         }
       }
     }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
   }, [taggedNotes, tag]);
 
   const catCounts = useMemo(() => {
@@ -106,6 +103,8 @@ export default function TagIndex({
   const start = (safePage - 1) * PAGE_SIZE;
   const visibleNotes = viewMode === 'grid' ? filtered : filtered.slice(start, start + PAGE_SIZE);
 
+  const maxCoCount = coTags[0]?.[1] || 1;
+
   function changePage(next: number) {
     onPage(Math.min(Math.max(1, next), totalPages));
   }
@@ -119,8 +118,6 @@ export default function TagIndex({
     setCatFilter((prev) => (prev === cid ? null : cid));
     onPage(1);
   }
-
-  const maxCoCount = coTags[0]?.[1] || 1;
 
   return (
     <div className={styles.page}>
@@ -143,31 +140,15 @@ export default function TagIndex({
                 {relatedFlashcards.length} flashcards ↗
               </button>
             )}
-            {catCounts.length > 0 && (
-              <button
-                className={`${styles.chip} ${styles.chipAction}${showIn ? ` ${styles.chipOpen}` : ''}`}
-                onClick={() => setShowIn((v) => !v)}
-              >
-                {catCounts.length} {catCounts.length === 1 ? 'category' : 'categories'}
-              </button>
-            )}
-            {coTags.length > 0 && (
-              <button
-                className={`${styles.chip} ${styles.chipAction}${showRelated ? ` ${styles.chipOpen}` : ''}`}
-                onClick={() => setShowRelated((v) => !v)}
-              >
-                {coTags.length} related tags
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Category filter pills */}
-      {showIn && catCounts.length > 0 && (
-        <div className={styles.strip}>
-          <span className={styles.stripLabel}>In</span>
-          <div className={styles.stripItems}>
+      {/* Categories this tag appears in — always visible, doubles as filter */}
+      {catCounts.length > 0 && (
+        <div className={styles.metaSection}>
+          <span className={styles.metaLabel}>In</span>
+          <div className={styles.metaItems}>
             {catCounts.map(([cid, count]) => {
               const cat = categories.find((c) => c.id === cid);
               const color = COLOR_VAR[cat?.color || 'oxblood'] || 'var(--accent)';
@@ -178,7 +159,7 @@ export default function TagIndex({
                   className={`${styles.catPill}${isActive ? ` ${styles.catPillActive}` : ''}`}
                   onClick={() => toggleCatFilter(cid)}
                   style={{ '--cat-color': color } as React.CSSProperties}
-                  title={isActive ? 'Click to clear filter' : 'Click to filter by this category'}
+                  title={isActive ? 'Click to clear filter' : 'Filter by this category'}
                 >
                   <span className={styles.catDot} style={{ background: color }} />
                   {cat?.name || cid}
@@ -191,11 +172,11 @@ export default function TagIndex({
         </div>
       )}
 
-      {/* Related tags */}
-      {showRelated && coTags.length > 0 && (
-        <div className={styles.strip}>
-          <span className={styles.stripLabel}>Related</span>
-          <div className={styles.stripItems}>
+      {/* Related tags — always visible */}
+      {coTags.length > 0 && (
+        <div className={styles.metaSection}>
+          <span className={styles.metaLabel}>Related</span>
+          <div className={styles.metaItems}>
             {coTags.map(([coTag, count]) => {
               const weight = count / maxCoCount;
               return (
