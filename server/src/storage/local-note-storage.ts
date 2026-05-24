@@ -1,61 +1,77 @@
 /**
  * LocalNoteStorage — NoteStorageProvider backed by the local filesystem.
  *
- * This is the default storage implementation for development and self-hosted
- * deployments. Notes are stored as markdown files under `knowledge/notes/`,
+ * Notes are stored as markdown files under `knowledge/users/{userId}/notes/`,
  * organised into sub-directories that mirror the category hierarchy.
  *
  * All file operations are performed with Node.js `fs/promises` and are therefore
  * fully async, matching the NoteStorageProvider contract. Parent directories are
  * created automatically on write.
  *
+ * Path traversal prevention: every resolved path is asserted to start with the
+ * expected user directory prefix before any I/O is performed.
+ *
  * Enabled when NOTE_STORAGE=local (or when NOTE_STORAGE is unset).
  */
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, dirname, basename } from 'node:path';
+import { join, dirname, basename, resolve, sep } from 'node:path';
 import type { NoteStorageProvider } from './note-storage.interface';
 
 @Injectable()
 export class LocalNoteStorage implements NoteStorageProvider {
-  private readonly notesDir: string;
-  private readonly categoriesDir: string;
-  private readonly indexPath: string;
+  private readonly usersDir: string;
 
   constructor(config: ConfigService) {
-    this.notesDir = config.get<string>('notesDir');
-    this.categoriesDir = config.get<string>('categoriesDir');
-    this.indexPath = config.get<string>('indexPath');
+    this.usersDir = config.get<string>('usersDir'); // knowledge/users
   }
 
-  async ensureStore(): Promise<void> {
-    await mkdir(this.notesDir, { recursive: true });
-    await mkdir(this.categoriesDir, { recursive: true });
-    if (!existsSync(this.indexPath)) {
-      await writeFile(this.indexPath, JSON.stringify({ notes: [], categories: [] }, null, 2));
+  private userNotesDir(userId: string): string {
+    return join(this.usersDir, userId, 'notes');
+  }
+
+  /**
+   * Security: verify path doesn't escape user's directory (path traversal prevention).
+   */
+  private assertUserPath(userId: string, fullPath: string): void {
+    const expectedBase = join(this.usersDir, userId);
+    const resolved = resolve(fullPath);
+    if (!resolved.startsWith(expectedBase + sep) && resolved !== expectedBase) {
+      throw new ForbiddenException('Path traversal attempt detected');
     }
   }
 
-  async listFiles(): Promise<string[]> {
-    await this.ensureStore();
-    return this.walkDir(this.notesDir, '');
+  async ensureStore(userId: string): Promise<void> {
+    const notesDir = this.userNotesDir(userId);
+    await mkdir(notesDir, { recursive: true });
   }
 
-  async read(relativePath: string): Promise<string> {
-    const content = await readFile(join(this.notesDir, relativePath), 'utf8');
-    return content;
+  async listFiles(userId: string): Promise<string[]> {
+    const notesDir = this.userNotesDir(userId);
+    await mkdir(notesDir, { recursive: true });
+    return this.walkDir(notesDir, '');
   }
 
-  async write(relativePath: string, content: string): Promise<void> {
-    const fullPath = join(this.notesDir, relativePath);
+  async read(userId: string, relativePath: string): Promise<string> {
+    const fullPath = join(this.userNotesDir(userId), relativePath);
+    this.assertUserPath(userId, fullPath);
+    return readFile(fullPath, 'utf8');
+  }
+
+  async write(userId: string, relativePath: string, content: string): Promise<void> {
+    const fullPath = join(this.userNotesDir(userId), relativePath);
+    this.assertUserPath(userId, fullPath);
     await mkdir(dirname(fullPath), { recursive: true });
     await writeFile(fullPath, content);
   }
 
-  async move(fromRelative: string, toRelative: string, content: string): Promise<void> {
-    const toPath = join(this.notesDir, toRelative);
+  async move(userId: string, fromRelative: string, toRelative: string, content: string): Promise<void> {
+    const fromPath = join(this.userNotesDir(userId), fromRelative);
+    const toPath = join(this.userNotesDir(userId), toRelative);
+    this.assertUserPath(userId, fromPath);
+    this.assertUserPath(userId, toPath);
     await mkdir(dirname(toPath), { recursive: true });
     if (existsSync(toPath)) {
       const err: any = new Error(`cannot move ${fromRelative}; ${toRelative} already exists`);
@@ -63,15 +79,19 @@ export class LocalNoteStorage implements NoteStorageProvider {
       throw err;
     }
     await writeFile(toPath, content);
-    await rm(join(this.notesDir, fromRelative), { force: true });
+    await rm(fromPath, { force: true });
   }
 
-  async delete(relativePath: string): Promise<void> {
-    await rm(join(this.notesDir, relativePath), { force: true });
+  async delete(userId: string, relativePath: string): Promise<void> {
+    const fullPath = join(this.userNotesDir(userId), relativePath);
+    this.assertUserPath(userId, fullPath);
+    await rm(fullPath, { force: true });
   }
 
-  async exists(relativePath: string): Promise<boolean> {
-    return existsSync(join(this.notesDir, relativePath));
+  async exists(userId: string, relativePath: string): Promise<boolean> {
+    const fullPath = join(this.userNotesDir(userId), relativePath);
+    this.assertUserPath(userId, fullPath);
+    return existsSync(fullPath);
   }
 
   private async walkDir(dir: string, prefix: string): Promise<string[]> {

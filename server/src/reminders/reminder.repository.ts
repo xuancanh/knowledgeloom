@@ -5,9 +5,7 @@
  * service layer still exposes async signatures for uniformity with the rest of
  * the NestJS codebase.
  *
- * The reminders table is consolidated into app.sqlite (previously a separate
- * reminders.sqlite sidecar). DatabaseModule runs the one-time migration on
- * startup.
+ * Every query filters by userId to ensure complete data isolation between users.
  */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -35,10 +33,10 @@ export class ReminderRepository {
     private readonly config: ConfigService,
   ) {}
 
-  async list({ noteId, status }: { noteId?: string; status?: string } = {}): Promise<Reminder[]> {
+  async list(userId: string, { noteId, status }: { noteId?: string; status?: string } = {}): Promise<Reminder[]> {
     if (this.config.get<boolean>('readOnly') || !this.db) return [];
 
-    const conditions: any[] = [];
+    const conditions: any[] = [eq(this.remindersTable.userId, userId)];
     if (noteId) conditions.push(eq(this.remindersTable.noteId, String(noteId)));
     if (status === 'active') conditions.push(isNull(this.remindersTable.completedAt));
     if (status === 'done') conditions.push(isNotNull(this.remindersTable.completedAt));
@@ -47,9 +45,7 @@ export class ReminderRepository {
       conditions.push(lte(this.remindersTable.remindAt, new Date().toISOString()));
     }
 
-    const rows = conditions.length
-      ? await this.db.select().from(this.remindersTable).where(and(...conditions))
-      : await this.db.select().from(this.remindersTable);
+    const rows = await this.db.select().from(this.remindersTable).where(and(...conditions));
 
     return rows
       .sort((a, b) => {
@@ -61,21 +57,22 @@ export class ReminderRepository {
       .map(serialize);
   }
 
-  async findById(id: string): Promise<Reminder | null> {
+  async findById(userId: string, id: string): Promise<Reminder | null> {
     if (!this.db) return null;
     const rows = await this.db
       .select()
       .from(this.remindersTable)
-      .where(eq(this.remindersTable.id, String(id)))
+      .where(and(eq(this.remindersTable.userId, userId), eq(this.remindersTable.id, String(id))))
       .limit(1);
     const row = rows[0];
     return row ? serialize(row) : null;
   }
 
-  async insert(reminder: Reminder): Promise<void> {
+  async insert(userId: string, reminder: Reminder): Promise<void> {
     if (!this.db) return;
     await this.db.insert(this.remindersTable).values({
       id: reminder.id,
+      userId,
       noteId: reminder.noteId,
       remindAt: reminder.remindAt,
       message: reminder.message || '',
@@ -84,28 +81,28 @@ export class ReminderRepository {
     });
   }
 
-  async update(id: string, fields: { remindAt: string; message: string; completedAt: string | null }): Promise<void> {
+  async update(userId: string, id: string, fields: { remindAt: string; message: string; completedAt: string | null }): Promise<void> {
     if (!this.db) return;
     await this.db
       .update(this.remindersTable)
       .set(fields)
-      .where(eq(this.remindersTable.id, String(id)));
+      .where(and(eq(this.remindersTable.userId, userId), eq(this.remindersTable.id, String(id))));
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(userId: string, id: string): Promise<boolean> {
     if (!this.db) return false;
     const result = await this.db
       .delete(this.remindersTable)
-      .where(eq(this.remindersTable.id, String(id)))
+      .where(and(eq(this.remindersTable.userId, userId), eq(this.remindersTable.id, String(id))))
       .returning();
     return result.length > 0;
   }
 
-  async removeForNote(noteId: string): Promise<number> {
+  async removeForNote(userId: string, noteId: string): Promise<number> {
     if (!this.db) return 0;
     const result = await this.db
       .delete(this.remindersTable)
-      .where(eq(this.remindersTable.noteId, String(noteId)))
+      .where(and(eq(this.remindersTable.userId, userId), eq(this.remindersTable.noteId, String(noteId))))
       .returning();
     return result.length;
   }

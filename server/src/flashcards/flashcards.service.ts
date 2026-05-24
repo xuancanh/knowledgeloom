@@ -72,8 +72,8 @@ export class FlashcardsService {
     };
   }
 
-  async sync(noteSources: NoteSource[], { force = false } = {}): Promise<Flashcard[]> {
-    const cache = await this.cacheRepo.load();
+  async sync(userId: string, noteSources: NoteSource[], { force = false } = {}): Promise<Flashcard[]> {
+    const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled');
 
     if (disabled) {
@@ -98,7 +98,7 @@ export class FlashcardsService {
       nextNotes[note.id] = { hash, cards, generatedAt: new Date().toISOString() };
     }
 
-    await this.cacheRepo.replace(nextNotes);
+    await this.cacheRepo.replace(userId, nextNotes);
     return Object.values(nextNotes).flatMap((entry: any) => entry.cards || []);
   }
 
@@ -106,15 +106,15 @@ export class FlashcardsService {
    * Loads user-created flashcards, hidden card IDs, and review data for the
    * knowledge state merge. Returns enriched flashcards with review metadata.
    */
-  async loadEnrichedData(noteSources: NoteSource[]): Promise<{
+  async loadEnrichedData(userId: string, noteSources: NoteSource[]): Promise<{
     allCards: Flashcard[];
     reviews: Map<string, FlashcardReview>;
   }> {
     const noteIds = new Set(noteSources.map(({ note }) => note.id));
-    const aiCards = await this.sync(noteSources);
-    const userCards = await this.userFlashcardsRepo.loadAll();
-    const hidden = await this.hiddenFlashcardsRepo.loadAll();
-    const reviews = await this.reviewsRepo.loadAll();
+    const aiCards = await this.sync(userId, noteSources);
+    const userCards = await this.userFlashcardsRepo.loadAll(userId);
+    const hidden = await this.hiddenFlashcardsRepo.loadAll(userId);
+    const reviews = await this.reviewsRepo.loadAll(userId);
 
     const noteMap = new Map(noteSources.map(({ note }) => [note.id, note]));
 

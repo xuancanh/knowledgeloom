@@ -5,8 +5,7 @@
  * validates input (future date, required noteId), computes derived state
  * (completedAt), and delegates persistence to ReminderRepository.
  *
- * All validation errors use NestJS built-in HTTP exceptions so the global
- * exception filter converts them to consistent JSON responses.
+ * All methods require a userId and filter exclusively on that user's reminders.
  */
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -26,11 +25,11 @@ export class RemindersService {
     this.readOnly = config.get<boolean>('readOnly');
   }
 
-  async list(opts: { noteId?: string; status?: string } = {}): Promise<Reminder[]> {
-    return this.repo.list(opts);
+  async list(userId: string, opts: { noteId?: string; status?: string } = {}): Promise<Reminder[]> {
+    return this.repo.list(userId, opts);
   }
 
-  async create({ noteId, remindAt, message }: any): Promise<Reminder> {
+  async create(userId: string, { noteId, remindAt, message }: any): Promise<Reminder> {
     this.assertWritable();
     const cleanNoteId = basename(String(noteId || '').trim());
     if (!cleanNoteId) throw new BadRequestException('noteId is required');
@@ -44,13 +43,13 @@ export class RemindersService {
       createdAt: now,
       completedAt: null,
     };
-    await this.repo.insert(reminder);
+    await this.repo.insert(userId, reminder);
     return reminder;
   }
 
-  async patch(id: string, updates: any): Promise<Reminder> {
+  async patch(userId: string, id: string, updates: any): Promise<Reminder> {
     this.assertWritable();
-    const existing = await this.repo.findById(id);
+    const existing = await this.repo.findById(userId, id);
     if (!existing) throw new NotFoundException('reminder not found');
 
     const completedAt =
@@ -63,22 +62,22 @@ export class RemindersService {
     const remindAt = updates.remindAt ? this.normalizeRemindAt(updates.remindAt) : existing.remindAt;
     const message = updates.message === undefined ? existing.message : String(updates.message || '').trim();
 
-    await this.repo.update(id, { remindAt, message, completedAt });
-    const updated = await this.repo.findById(id);
+    await this.repo.update(userId, id, { remindAt, message, completedAt });
+    const updated = await this.repo.findById(userId, id);
     return updated!;
   }
 
-  async remove(id: string): Promise<{ deleted: string }> {
+  async remove(userId: string, id: string): Promise<{ deleted: string }> {
     this.assertWritable();
-    const removed = await this.repo.remove(id);
+    const removed = await this.repo.remove(userId, id);
     if (!removed) throw new NotFoundException('reminder not found');
     return { deleted: id };
   }
 
   /** Called when a note is deleted to clean up orphaned reminders. */
-  async removeForNote(noteId: string): Promise<void> {
+  async removeForNote(userId: string, noteId: string): Promise<void> {
     if (this.readOnly) return;
-    await this.repo.removeForNote(noteId);
+    await this.repo.removeForNote(userId, noteId);
   }
 
   private normalizeRemindAt(value: unknown): string {

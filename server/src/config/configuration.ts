@@ -37,6 +37,8 @@ export default () => {
   }
 
   const knowledgeDir = join(rootDir, 'knowledge');
+  // Per-user data root: knowledge/users/{userId}/
+  const usersDir = join(knowledgeDir, 'users');
   const meiliIndex = process.env.MEILI_INDEX || 'knowledge_notes';
 
   const databaseDialect = getArg('--db-dialect') || getArg('--database-dialect') || process.env.DATABASE_DIALECT || 'sqlite';
@@ -46,8 +48,11 @@ export default () => {
     port: Number(process.env.PORT || 8787),
     rootDir,
     knowledgeDir,
+    // Per-user isolation: all per-user data lives under knowledge/users/{userId}/
+    usersDir,
     databaseDialect,
     databaseUrl,
+    // Legacy single-user paths kept for backward-compat during migration
     notesDir: join(knowledgeDir, 'notes'),
     categoriesDir: join(knowledgeDir, 'categories'),
     indexPath: join(knowledgeDir, 'index.json'),
@@ -55,6 +60,10 @@ export default () => {
     flashcardsPath: join(knowledgeDir, 'flashcards.json'),
     appDbPath: process.env.APP_DB_PATH || join(knowledgeDir, 'app.sqlite'),
     remindersDbPath: join(knowledgeDir, 'reminders.sqlite'),
+    // Supabase auth
+    supabaseUrl: process.env.SUPABASE_URL || '',
+    supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET || '',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
     codexCommand: process.env.CODEX_COMMAND || 'codex',
     codexTimeoutMs: Number(process.env.CODEX_TIMEOUT_MS || 180000),
     codexJobMaxAttempts: Number(process.env.CODEX_JOB_MAX_ATTEMPTS || 3),

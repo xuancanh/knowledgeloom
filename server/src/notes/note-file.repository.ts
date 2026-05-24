@@ -6,13 +6,12 @@
  * write index JSON) while delegating raw file I/O to the injected storage
  * backend (local filesystem or S3-compatible).
  *
- * This separation keeps the storage interface minimal (read/write/list/delete)
- * while allowing the repository to add app-specific logic like note parsing,
- * source object assembly, and the category markdown format.
+ * Every public method requires a userId and scopes all operations to that user's
+ * namespace. Data for one user is never accessible to another.
  */
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { basename } from 'node:path';
+import { basename, join } from 'node:path';
 import { mkdir, writeFile, readdir, rm } from 'node:fs/promises';
 import { NOTE_STORAGE, NoteStorageProvider } from '../storage/note-storage.interface';
 import { parseNote } from '../common/note-parser.util';
@@ -20,86 +19,90 @@ import type { KnowledgeNote, NoteSource } from '../types';
 
 @Injectable()
 export class NoteFileRepository {
-  private readonly categoriesDir: string;
-  private readonly indexPath: string;
+  private readonly usersDir: string;
   private readonly readOnly: boolean;
 
   constructor(
     @Inject(NOTE_STORAGE) private readonly storage: NoteStorageProvider,
     private readonly config: ConfigService,
   ) {
-    this.categoriesDir = config.get<string>('categoriesDir');
-    this.indexPath = config.get<string>('indexPath');
+    this.usersDir = config.get<string>('usersDir');
     this.readOnly = config.get<boolean>('readOnly');
   }
 
-  async ensureStore(): Promise<void> {
-    return this.storage.ensureStore();
+  async ensureStore(userId: string): Promise<void> {
+    return this.storage.ensureStore(userId);
   }
 
-  async listFiles(): Promise<string[]> {
-    return this.storage.listFiles();
+  async listFiles(userId: string): Promise<string[]> {
+    return this.storage.listFiles(userId);
   }
 
-  async findById(id: string): Promise<string | null> {
+  async findById(userId: string, id: string): Promise<string | null> {
     const safeId = basename(id);
     const fileName = `${safeId}.md`;
-    const files = await this.storage.listFiles();
-    return files.find((f) => basename(f) === fileName) || null;
+    const files = await this.storage.listFiles(userId);
+    const found = files.find((f) => basename(f) === fileName);
+    // Double-check: the relative path must not escape this user's namespace
+    if (found && found.includes('..')) {
+      throw new ForbiddenException('Invalid note path');
+    }
+    return found || null;
   }
 
-  async readAll(): Promise<KnowledgeNote[]> {
-    await this.storage.ensureStore();
-    const files = await this.storage.listFiles();
+  async readAll(userId: string): Promise<KnowledgeNote[]> {
+    await this.storage.ensureStore(userId);
+    const files = await this.storage.listFiles(userId);
     const notes: KnowledgeNote[] = [];
     for (const file of files) {
-      const markdown = await this.storage.read(file);
+      const markdown = await this.storage.read(userId, file);
       notes.push(parseNote(file, markdown));
     }
     return notes;
   }
 
-  async readAllSources(): Promise<NoteSource[]> {
-    await this.storage.ensureStore();
-    const files = await this.storage.listFiles();
+  async readAllSources(userId: string): Promise<NoteSource[]> {
+    await this.storage.ensureStore(userId);
+    const files = await this.storage.listFiles(userId);
     const sources: NoteSource[] = [];
     for (const file of files) {
-      const markdown = await this.storage.read(file);
+      const markdown = await this.storage.read(userId, file);
       sources.push({ file, markdown, note: parseNote(file, markdown) });
     }
     return sources;
   }
 
-  async readMarkdown(id: string): Promise<string> {
-    const file = await this.findById(id);
+  async readMarkdown(userId: string, id: string): Promise<string> {
+    const file = await this.findById(userId, id);
     if (!file) {
       const err: any = new Error('note not found');
       err.status = 404;
       throw err;
     }
-    return this.storage.read(file);
+    return this.storage.read(userId, file);
   }
 
-  async write(relativePath: string, markdown: string): Promise<void> {
-    return this.storage.write(relativePath, markdown);
+  async write(userId: string, relativePath: string, markdown: string): Promise<void> {
+    return this.storage.write(userId, relativePath, markdown);
   }
 
-  async move(fromRelative: string, toRelative: string, markdown: string): Promise<void> {
-    return this.storage.move(fromRelative, toRelative, markdown);
+  async move(userId: string, fromRelative: string, toRelative: string, markdown: string): Promise<void> {
+    return this.storage.move(userId, fromRelative, toRelative, markdown);
   }
 
-  async delete(relativePath: string): Promise<void> {
-    return this.storage.delete(relativePath);
+  async delete(userId: string, relativePath: string): Promise<void> {
+    return this.storage.delete(userId, relativePath);
   }
 
-  async writeCategoryFiles(categories: any[]): Promise<void> {
+  async writeCategoryFiles(userId: string, categories: any[]): Promise<void> {
     if (this.readOnly) return;
     // Category files are only written to local fs for now.
     // S3 deployments rely on the JSON index instead of category markdown files.
     try {
-      const { readdir, rm, writeFile } = await import('node:fs/promises');
-      const staleCategoryFiles = (await readdir(this.categoriesDir)).filter((f) => f.endsWith('.md'));
-      await Promise.all(staleCategoryFiles.map((f) => rm(`${this.categoriesDir}/${f}`, { force: true })));
+      const categoriesDir = join(this.usersDir, userId, 'categories');
+      await mkdir(categoriesDir, { recursive: true });
+      const staleCategoryFiles = (await readdir(categoriesDir)).filter((f) => f.endsWith('.md'));
+      await Promise.all(staleCategoryFiles.map((f) => rm(`${categoriesDir}/${f}`, { force: true })));
       for (const category of categories) {
         const body = [
           `# ${category.name}`,
@@ -111,18 +114,19 @@ export class NoteFileRepository {
           ...category.notes.map((note: any) => `- [[${note.id}]] ${note.title} - ${note.summary}`),
           '',
         ].join('\n');
-        await writeFile(`${this.categoriesDir}/${category.slug}.md`, body);
+        await writeFile(`${categoriesDir}/${category.slug}.md`, body);
       }
     } catch {
       // Category files are non-critical in S3 or read-only mode.
     }
   }
 
-  async writeIndexJson(state: any): Promise<void> {
+  async writeIndexJson(userId: string, state: any): Promise<void> {
     if (this.readOnly) return;
     try {
-      const { writeFile } = await import('node:fs/promises');
-      await writeFile(this.indexPath, JSON.stringify(state, null, 2));
+      const indexPath = join(this.usersDir, userId, 'index.json');
+      await mkdir(join(this.usersDir, userId), { recursive: true });
+      await writeFile(indexPath, JSON.stringify(state, null, 2));
     } catch {
       // Non-critical in S3-only setups.
     }

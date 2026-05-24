@@ -17,10 +17,11 @@
  * Injects AiProvider rather than CodexRunnerService directly so the underlying
  * AI backend (Codex CLI, OpenRouter, DeepSeek, Ollama…) can be swapped via
  * environment variable without modifying this service.
+ *
+ * All methods that read/write notes require a userId for data isolation.
  */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { writeFile } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NoteFileRepository } from '../notes/note-file.repository';
@@ -35,7 +36,7 @@ import type { KnowledgeNote } from '../types';
 
 @Injectable()
 export class CodexService {
-  private readonly notesDir: string;
+  private readonly usersDir: string;
 
   constructor(
     @Inject(AI_PROVIDER) private readonly ai: AiProvider,
@@ -43,20 +44,22 @@ export class CodexService {
     private readonly knowledgeService: KnowledgeService,
     private readonly config: ConfigService,
   ) {
-    this.notesDir = config.get<string>('notesDir');
+    this.usersDir = config.get<string>('usersDir');
   }
 
   /**
    * Generates one AI-authored note and persists it. Called by JobsService
    * when a queued job is processed.
    *
-   * @param payload  The full job payload forwarded from the queue.
+   * @param payload  The full job payload forwarded from the queue (must include userId).
    */
   async createNote(payload: any): Promise<any> {
+    const userId = String(payload.userId || '');
     const mode = payload.mode === 'polish' ? 'polish' : payload.mode === 'link' ? 'link' : 'research';
     const topic = String(payload.topic || payload.title || '').trim();
-    const existingNotes = await this.noteRepo.readAll();
-    const slug = uniqueNoteSlug(topic || payload.url || 'linked-source', this.notesDir);
+    const existingNotes = await this.noteRepo.readAll(userId);
+    const userNotesDir = join(this.usersDir, userId, 'notes');
+    const slug = uniqueNoteSlug(topic || payload.url || 'linked-source', userNotesDir);
 
     const prompt =
       mode === 'polish'
@@ -71,10 +74,11 @@ export class CodexService {
       originalRequest: this.originalRequestFor(payload, mode, topic),
     });
 
-    // Write directly to notesDir root; rebuildIndexes migrates to correct folder.
-    await writeFile(join(this.notesDir, `${slug}.md`), markdown.endsWith('\n') ? markdown : `${markdown}\n`);
+    // Write to user's notes root; rebuildIndexes migrates to correct folder.
+    const relativePath = `${slug}.md`;
+    await this.noteRepo.write(userId, relativePath, markdown.endsWith('\n') ? markdown : `${markdown}\n`);
 
-    const state = await this.knowledgeService.rebuildIndexes();
+    const state = await this.knowledgeService.rebuildIndexes(userId);
     const note = state.notes.find((n) => n.id === slug);
     return { note, state, codexStatus: 'completed' };
   }
@@ -84,7 +88,10 @@ export class CodexService {
    * Used by the capture box "AI Assist" feature on new notes.
    */
   async assistDraft(draft: any, instruction: string): Promise<any> {
-    const existingNotes = await this.noteRepo.readAll();
+    // For draft assist we use an empty userId since there's no note lookup needed
+    // (this uses pre-existing notes for context only, none are written)
+    const userId = String(draft.userId || '');
+    const existingNotes = userId ? await this.noteRepo.readAll(userId) : [];
     const prompt = this.buildDraftAssistPrompt({ draft, instruction, existingNotes });
     const output = await this.ai.complete(prompt);
     const update = this.parseEditAssistJson(output);
@@ -101,10 +108,11 @@ export class CodexService {
    * before saving through PUT /api/notes/:id.
    */
   async assistEdit(id: string, draft: any, instruction: string): Promise<any> {
+    const userId = String(draft.userId || '');
     const safeId = basename(id);
-    const currentMarkdown = await this.noteRepo.readMarkdown(safeId);
+    const currentMarkdown = await this.noteRepo.readMarkdown(userId, safeId);
     const current = parseNote(`${safeId}.md`, currentMarkdown);
-    const existingNotes = await this.noteRepo.readAll();
+    const existingNotes = await this.noteRepo.readAll(userId);
 
     const prompt = this.buildEditAssistPrompt({
       current,
