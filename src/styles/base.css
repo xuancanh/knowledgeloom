@@ -92,25 +92,28 @@
 }
 
 [data-theme="simplistic"] {
+  /* surfaces: nearly white — borders do the visual separation work */
   --paper: #ffffff;
-  --paper-2: #f9f9f9;
-  --surface: #f3f3f3;
-  --surface-2: #ececec;
-  --ink: #111111;
-  --ink-2: #444444;
-  --muted: #888888;
-  --muted-2: #b0b0b0;
-  --rule: #e3e3e3;
-  --rule-2: #cccccc;
-  --accent: #111111;
-  --accent-2: #444444;
-  --moss: #2d7a4f;
+  --paper-2: #fafafa;
+  --surface: #f6f6f6;
+  --surface-2: #eeeeee;
+  /* text: strong hierarchy, muted stays readable */
+  --ink: #0c0c0c;
+  --ink-2: #2a2a2a;
+  --muted: #525252;
+  --muted-2: #808080;
+  /* borders: clearly visible against the white surfaces */
+  --rule: #d8d8d8;
+  --rule-2: #b8b8b8;
+  --accent: #0c0c0c;
+  --accent-2: #2a2a2a;
+  --moss: #2a7a4a;
   --indigo: #2a52be;
-  --ochre: #b08020;
-  --teal: #1d7a7a;
-  --rust: #c04030;
-  --highlight: #f5f5aa;
-  --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px -8px rgba(0,0,0,0.08);
+  --ochre: #a07818;
+  --teal: #1d7272;
+  --rust: #b83c2e;
+  --highlight: #fef9c3;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 14px -8px rgba(0,0,0,0.12);
 }
 
 * { box-sizing: border-box; }
