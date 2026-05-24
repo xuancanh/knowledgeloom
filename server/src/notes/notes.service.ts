@@ -141,6 +141,11 @@ export class NotesService {
    * The proposal is returned to the client; writing to disk happens only when
    * the user explicitly saves through update().
    */
+  async assistDraft(draft: any, instruction: string): Promise<any> {
+    this.assertWritable();
+    return this.codexService.assistDraft(draft, instruction);
+  }
+
   async assistEdit(id: string, draft: any, instruction: string): Promise<any> {
     this.assertWritable();
     return this.codexService.assistEdit(id, draft, instruction);
