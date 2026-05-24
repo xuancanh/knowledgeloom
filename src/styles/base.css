@@ -52,6 +52,9 @@
   background: #f2efe8 !important;
   border-color: #c5c0b5 !important;
 }
+[data-theme="white"] [class*="primaryZone"]:focus-within {
+  border-color: var(--accent) !important;
+}
 [data-theme="white"] [class*="moreBody"],
 [data-theme="white"] [class*="guidanceInputWrap"] {
   background: #f2efe8 !important;
@@ -62,6 +65,10 @@
   background: #faf8f3 !important;
   border-color: #c5c0b5 !important;
   color: #171714 !important;
+}
+[data-theme="white"] [class*="metaInput"]:focus,
+[data-theme="white"] [class*="seedArea"]:focus {
+  border-color: var(--rule-2) !important;
 }
 
 [data-theme="dark"] {
