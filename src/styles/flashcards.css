@@ -18,7 +18,7 @@
   background: var(--surface);
   color: var(--ink-2);
   font: inherit;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -45,7 +45,7 @@
 }
 .flashcard-search span {
   color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
 }
 .flashcard-search input {
   border: 0;
@@ -63,7 +63,7 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -87,12 +87,12 @@
 }
 .flashcard-progress b {
   color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 17px;
 }
 .flashcard-progress span {
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   letter-spacing: 0.05em;
   text-align: right;
@@ -146,7 +146,7 @@
 .flashcard-tile em {
   align-self: end;
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-style: normal;
   letter-spacing: 0.04em;
@@ -188,14 +188,14 @@
 .flashcard-source,
 .flashcard-nav {
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .flashcard-kind {
   color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.09em;
@@ -236,7 +236,7 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -290,7 +290,7 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -331,7 +331,7 @@
 }
 .flashcard-list em {
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-style: normal;
   letter-spacing: 0.04em;
@@ -366,7 +366,7 @@
 }
 
 .fc-back-btn {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -402,7 +402,7 @@
 }
 
 .fc-bar-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -415,7 +415,7 @@
   gap: 5px;
 }
 .fc-lc {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -529,7 +529,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -567,7 +567,7 @@
   padding-top: 12px;
 }
 .fc-note-ref {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -581,7 +581,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted-2);
   white-space: nowrap;
@@ -636,7 +636,7 @@
   flex-shrink: 0;
 }
 .fc-note-link {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--accent);
   font-weight: 700;
@@ -648,7 +648,7 @@
 }
 .fc-note-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .fc-note-cat {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -666,7 +666,7 @@
   gap: 10px;
 }
 .fc-prev-badge {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -687,7 +687,7 @@
   color: var(--paper);
   border: 0;
   border-radius: 7px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -713,7 +713,7 @@
   animation: fcEnter 200ms ease;
 }
 .fc-rate-prompt {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.07em;
@@ -734,7 +734,7 @@
   border-radius: 8px;
   border: 2px solid var(--rule);
   padding: 14px 10px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -765,7 +765,7 @@
   gap: 14px;
 }
 .fc-nav-btn {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -781,7 +781,7 @@
 .fc-nav-hint {
   flex: 1;
   text-align: center;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -803,7 +803,7 @@
   align-items: center;
 }
 .fc-nav-finish {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -853,7 +853,7 @@
 }
 .fc-done-sub {
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -873,14 +873,14 @@
 .fc-done-cell b {
   display: block;
   font-size: 26px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-weight: 700;
   line-height: 1;
   margin-bottom: 6px;
 }
 .fc-done-cell span {
   display: block;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.09em;
@@ -906,7 +906,7 @@
   border: 1px solid var(--rule);
   border-radius: 6px;
   color: var(--ink-2);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -919,7 +919,7 @@
   border: 0;
   border-radius: 6px;
   color: #faf3e2;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -967,7 +967,7 @@
 }
 .fc-browse-progress .fc-bar-track { width: 100%; }
 .fc-browse-progress span {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -978,7 +978,7 @@
   color: #faf3e2;
   border: 0;
   border-radius: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -1003,7 +1003,7 @@
   border-radius: 4px;
   background: var(--surface);
   color: var(--muted-2);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1037,7 +1037,7 @@
 .fc-search-box:focus-within { border-color: var(--accent); }
 .fc-search-icon {
   color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
 }
 .fc-search-box input {
   flex: 1;
@@ -1066,7 +1066,7 @@
   background: var(--surface);
   color: var(--ink-2);
   font: inherit;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1105,7 +1105,7 @@
 .fc-multi-item input[type="checkbox"] { margin: 0; accent-color: var(--accent); }
 .fc-multi-name { flex: 1; color: var(--ink); }
 .fc-multi-count {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -1127,7 +1127,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -1150,7 +1150,7 @@
 }
 .fc-filter-chip button:hover { opacity: 1; }
 .fc-filter-clear {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -1179,7 +1179,7 @@
   border-radius: 4px;
   background: var(--surface);
   padding: 5px 10px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--ink-2);
   font-weight: 600;
@@ -1234,7 +1234,7 @@
   border-radius: 4px;
   background: var(--surface);
   padding: 5px 10px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--ink-2);
   font-weight: 600;
@@ -1315,7 +1315,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1323,7 +1323,7 @@
 }
 .fc-tile-r {
   margin-left: auto;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1342,7 +1342,7 @@
   flex: 1;
 }
 .fc-tile-src {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -1400,7 +1400,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
 /* ── Due badges ── */
 .fc-due-badge {
   margin-left: auto;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1465,7 +1465,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -1521,14 +1521,14 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.04em;
 }
 .fc-next-review {
   margin-left: auto;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -1589,7 +1589,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   border-top: 1px solid var(--rule);
 }
 .fc-dialog-scope {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.05em;
@@ -1609,7 +1609,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   margin-right: auto;
 }
 .fc-dialog-hint {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -1627,7 +1627,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   border-radius: 5px;
   background: var(--surface);
   color: var(--ink-2);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
   padding: 7px 14px;
@@ -1652,7 +1652,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   margin-top: 4px;
 }
 .fc-dialog-count {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -1679,7 +1679,7 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   border: 1px solid var(--rust);
   border-radius: 6px;
   color: #faf3e2;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.07em;

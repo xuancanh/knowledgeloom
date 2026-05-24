@@ -25,13 +25,13 @@
 }
 .search-trigger:hover { border-color: var(--rule-2); color: var(--ink-2); }
 .search-trigger .glyph {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   color: var(--accent);
   font-style: normal;
 }
 .search-trigger kbd {
   margin-left: auto;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   border: 1px solid var(--rule);
   border-radius: 3px;
@@ -40,7 +40,7 @@
 }
 .util-actions { display: flex; align-items: center; gap: 8px; }
 .util-actions button {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -56,7 +56,7 @@
 }
 .util-actions button:hover { color: var(--ink); border-color: var(--rule-2); }
 .util-actions .glyph {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   color: var(--accent);
 }
 .search-hint {
@@ -67,3 +67,72 @@
   text-align: left;
 }
 
+/* ── Theme dropdown ── */
+.theme-drop-wrap {
+  position: relative;
+}
+.theme-drop-trigger {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.theme-drop-trigger:hover,
+.theme-drop-trigger.open { color: var(--ink); border-color: var(--rule-2); }
+.util-arrow {
+  font-size: 8px;
+  color: var(--muted);
+  margin-left: 2px;
+}
+.theme-drop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+.theme-drop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  min-width: 120px;
+  overflow: hidden;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.theme-drop button {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  padding: 7px 12px;
+  text-align: left;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  white-space: nowrap;
+  transition: background 100ms;
+}
+.theme-drop button:hover { background: var(--surface-2); color: var(--ink); }
+.theme-drop button.active {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+}
