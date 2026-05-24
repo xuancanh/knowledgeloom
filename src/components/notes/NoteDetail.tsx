@@ -53,9 +53,9 @@ export default function NoteDetail({
   const [showSource, setShowSource] = useState(false);
   const [editing, setEditing] = useState(false);
   const [reading, setReading] = useState(false);
-  const [readTheme, setReadTheme] = useState<'light' | 'dark' | 'sepia'>(() => {
+  const [readTheme, setReadTheme] = useState<'light' | 'white' | 'dark' | 'midnight'>(() => {
     const v = localStorage.getItem('kl:read-theme');
-    return v === 'dark' || v === 'sepia' ? v : 'light';
+    return v === 'white' || v === 'dark' || v === 'midnight' ? v : 'light';
   });
   const [readWidth, setReadWidth] = useState<'narrow' | 'medium' | 'wide'>(() => {
     const v = localStorage.getItem('kl:read-width');
@@ -65,7 +65,9 @@ export default function NoteDetail({
     const v = localStorage.getItem('kl:read-size');
     return v === 's' || v === 'l' ? v : 'm';
   });
+  const [toolbarOpen, setToolbarOpen] = useState(false);
   const [progress, setProgress] = useState(0);
+  const savedTheme = useRef<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [category, setCategory] = useState(note.category);
@@ -82,46 +84,35 @@ export default function NoteDetail({
   const backlinks = notes.filter((item) => item.links.includes(note.id));
   const blocks = useMemo(() => parseMarkdownBlocks(markdown), [markdown]);
 
-  const themeColors: Record<string, { bg: string; text: string; heading: string; muted: string }> = {
-    light: { bg: '#fff', text: '#1a1a1a', heading: '#111', muted: '#555' },
-    sepia: { bg: '#f4ecd8', text: '#5b4636', heading: '#3a2a1a', muted: '#7a5a3a' },
-    dark:  { bg: '#1a1a2e', text: '#d0d0d0', heading: '#e8e8e8', muted: '#a0a0a0' },
-  };
-
   useEffect(() => {
     const styleId = 'kl-reading-style';
     const existing = document.getElementById(styleId);
     if (existing) existing.remove();
     document.body.classList.toggle('reading', reading);
-    document.body.dataset.readTheme = reading ? readTheme : '';
     document.body.dataset.readWidth = reading ? readWidth : '';
     document.body.dataset.readSize = reading ? readSize : '';
-    if (!reading) return;
-    const c = themeColors[readTheme];
+    if (!reading) {
+      if (savedTheme.current) document.documentElement.dataset.theme = savedTheme.current;
+      savedTheme.current = null;
+      return;
+    }
+    savedTheme.current = document.documentElement.dataset.theme || 'light';
+    document.documentElement.dataset.theme = readTheme;
     const w = readWidth === 'narrow' ? 560 : readWidth === 'wide' ? 1080 : 800;
     const fs = readSize === 's' ? 0.88 : readSize === 'l' ? 1.25 : 1.05;
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      html,body{background:${c.bg}!important;color:${c.text}!important}
-      .app,.note-detail,.note-detail .note-body,.note-detail .lede,
-      .note-detail main,main{background:transparent!important;color:${c.text}!important}
-      .note-detail .note-body p,.note-detail .note-body blockquote,
-      .note-detail .note-body h3{color:${c.text}!important}
-      .note-detail h1{color:${c.heading}!important}
-      .note-detail .lede{color:${c.text}!important}
-      main{max-width:${w}px!important}
-      .note-detail .note-body{font-size:${fs}rem!important}
+      main{max-width:${w}px!important;background:transparent!important}
+      .note-detail .note-body{font-size:${fs}rem!important;line-height:1.8!important}
       .note-detail .note-body p,.note-detail .note-body h3,
       .note-detail .note-body blockquote{font-size:1em!important}
       .note-detail h1{font-size:${readSize==='s'?1.8:readSize==='l'?2.6:2.2}rem!important}
     `;
     document.head.appendChild(style);
     return () => {
-      document.body.classList.remove('reading');
-      document.body.dataset.readTheme = '';
-      document.body.dataset.readWidth = '';
-      document.body.dataset.readSize = '';
+      if (savedTheme.current) document.documentElement.dataset.theme = savedTheme.current;
+      savedTheme.current = null;
       const s = document.getElementById(styleId);
       if (s) s.remove();
     };
@@ -345,22 +336,30 @@ export default function NoteDetail({
 
       {reading && (
         <>
-          <div className="read-toolbar">
-            <span className="read-toolbar-group">
-              <button onClick={() => setReadSizeState('s')} className={readSize === 's' ? 'active' : ''}>A</button>
-              <button onClick={() => setReadSizeState('m')} className={readSize === 'm' ? 'active' : ''} style={{ fontSize: '1.15em' }}>A</button>
-              <button onClick={() => setReadSizeState('l')} className={readSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
-            </span>
-            <span className="read-toolbar-group">
-              <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>Narrow</button>
-              <button onClick={() => setReadWidthState('medium')} className={readWidth === 'medium' ? 'active' : ''}>Medium</button>
-              <button onClick={() => setReadWidthState('wide')} className={readWidth === 'wide' ? 'active' : ''}>Wide</button>
-            </span>
-            <span className="read-toolbar-group">
-              <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Light</button>
-              <button onClick={() => setReadThemeAndSave('sepia')} className={readTheme === 'sepia' ? 'active' : ''}>Sepia</button>
-              <button onClick={() => setReadThemeAndSave('dark')} className={readTheme === 'dark' ? 'active' : ''}>Dark</button>
-            </span>
+          <div className={`read-toolbar${toolbarOpen ? ' open' : ''}`}>
+            <button className="read-toolbar-toggle" onClick={() => setToolbarOpen(!toolbarOpen)}>
+              {toolbarOpen ? '▾' : '▸'} Options
+            </button>
+            {toolbarOpen && (
+              <>
+                <span className="read-toolbar-group">
+                  <button onClick={() => setReadSizeState('s')} className={readSize === 's' ? 'active' : ''}>A</button>
+                  <button onClick={() => setReadSizeState('m')} className={readSize === 'm' ? 'active' : ''} style={{ fontSize: '1.15em' }}>A</button>
+                  <button onClick={() => setReadSizeState('l')} className={readSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
+                </span>
+                <span className="read-toolbar-group">
+                  <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>Narrow</button>
+                  <button onClick={() => setReadWidthState('medium')} className={readWidth === 'medium' ? 'active' : ''}>Medium</button>
+                  <button onClick={() => setReadWidthState('wide')} className={readWidth === 'wide' ? 'active' : ''}>Wide</button>
+                </span>
+                <span className="read-toolbar-group">
+                  <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Light</button>
+                  <button onClick={() => setReadThemeAndSave('white')} className={readTheme === 'white' ? 'active' : ''}>White</button>
+                  <button onClick={() => setReadThemeAndSave('dark')} className={readTheme === 'dark' ? 'active' : ''}>Dark</button>
+                  <button onClick={() => setReadThemeAndSave('midnight')} className={readTheme === 'midnight' ? 'active' : ''}>Night</button>
+                </span>
+              </>
+            )}
             <button className="read-toolbar-exit" onClick={() => setReading(false)}>✕ Exit</button>
           </div>
           <div className="read-progress" style={{ width: `${progress}%` }} />
