@@ -50,7 +50,7 @@
 .statBadge span {
   color: var(--muted);
   display: block;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -69,7 +69,7 @@
   margin-bottom: 16px;
 }
 .filterBtn {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -120,7 +120,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -155,13 +155,13 @@
   flex-shrink: 0;
 }
 .jobTime {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.03em;
 }
 .jobCat {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   color: var(--muted);
   background: var(--surface-2);

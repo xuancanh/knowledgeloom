@@ -1,6 +1,6 @@
 /* Knowledge Loom — calm scholarly, warm paper */
 
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
   /* Light (warm paper) */
@@ -91,6 +91,28 @@
   --shadow: 0 1px 0 rgba(0,0,0,0.32), 0 8px 24px -10px rgba(0,0,0,0.7);
 }
 
+[data-theme="simplistic"] {
+  --paper: #ffffff;
+  --paper-2: #f9f9f9;
+  --surface: #f3f3f3;
+  --surface-2: #ececec;
+  --ink: #111111;
+  --ink-2: #444444;
+  --muted: #888888;
+  --muted-2: #b0b0b0;
+  --rule: #e3e3e3;
+  --rule-2: #cccccc;
+  --accent: #111111;
+  --accent-2: #444444;
+  --moss: #2d7a4f;
+  --indigo: #2a52be;
+  --ochre: #b08020;
+  --teal: #1d7a7a;
+  --rust: #c04030;
+  --highlight: #f5f5aa;
+  --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px -8px rgba(0,0,0,0.08);
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -116,7 +138,7 @@ html, body {
 }
 [data-font="sans"] .mono,
 [data-font="sans"] [class*="Mono"] {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
 }
 [data-font="sans"] h1,
 [data-font="sans"] h2,
@@ -129,7 +151,7 @@ html, body {
 
 #root { min-height: 100vh; }
 
-.mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
 
 /* Tighter base for small uppercase mono labels — boosted size + weight,
    reduced tracking, slightly darker muted color comes from --muted above. */

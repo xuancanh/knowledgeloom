@@ -15,7 +15,7 @@
   background: var(--surface);
   color: var(--ink-2);
   box-shadow: var(--shadow);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -62,7 +62,7 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -70,7 +70,7 @@
   text-transform: uppercase;
 }
 .activity-head .label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -78,13 +78,13 @@
   font-weight: 600;
 }
 .activity-head .meta {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted);
 }
 .activity-meta {
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: 0.06em;
   margin-bottom: 14px;
@@ -101,7 +101,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -198,7 +198,7 @@
 .activity-count span {
   color: var(--muted);
   display: block;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.08em;

@@ -12,7 +12,7 @@
 .note-row:hover { background: var(--surface); }
 .note-row.focused { background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
 .note-row .date {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   color: var(--muted);
   text-transform: uppercase;
@@ -44,7 +44,7 @@
   border: 1px solid var(--rule);
   border-radius: 3px;
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   letter-spacing: 0;
   padding: 1px 6px;
@@ -58,7 +58,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11.5px;
   color: var(--muted);
   text-transform: uppercase;
@@ -165,7 +165,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   text-transform: uppercase;
@@ -204,13 +204,13 @@
   border: 1px solid var(--rule);
   border-radius: 3px;
   color: var(--muted);
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   padding: 1px 5px;
 }
 .nc-tags button:hover { border-color: var(--accent); color: var(--accent); }
 .nc-foot {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   text-transform: uppercase;
@@ -234,7 +234,7 @@
 }
 .note-compact-row:hover { background: var(--surface); }
 .ncr-date {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10.5px;
   color: var(--muted);
   text-transform: uppercase;
@@ -253,7 +253,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   color: var(--muted);
   text-transform: uppercase;

@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -43,7 +43,7 @@
   flex-shrink: 0;
 }
 .modeBtn {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -137,12 +137,11 @@
 .urlRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 0 4px;
+  gap: 10px;
 }
 .urlGlyph {
   color: var(--indigo);
-  font-size: 15px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 .urlInput {
@@ -151,11 +150,13 @@
   outline: 0;
   background: transparent;
   color: var(--ink);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 14px;
+  font-family: "Source Serif 4", serif;
+  font-size: 21px;
+  line-height: 1.3;
+  padding: 13px 0 11px;
   min-width: 0;
 }
-.urlInput::placeholder { color: var(--muted); }
+.urlInput::placeholder { color: var(--muted); font-style: italic; }
 
 /* Thin divider between URL and title hint, both inside primaryZone */
 .titleHint {
@@ -185,7 +186,7 @@
   margin-bottom: 6px;
 }
 .guidanceLabel {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -200,7 +201,7 @@
   background: var(--rule);
 }
 .guidanceManage {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -217,7 +218,7 @@
   margin-bottom: 6px;
 }
 .chip {
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -266,7 +267,7 @@
   background: transparent;
   color: var(--ink-2);
   font-size: 12.5px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   min-width: 0;
 }
 .guidanceInput::placeholder { color: var(--muted); font-style: italic; }
@@ -319,7 +320,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -358,7 +359,7 @@
 }
 .fieldLabel {
   display: block;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
@@ -406,7 +407,7 @@
 }
 .hint {
   flex: 1;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted-2);
 }
@@ -424,7 +425,7 @@
   color: #faf3e2;
   padding: 7px 16px;
   border-radius: 4px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
