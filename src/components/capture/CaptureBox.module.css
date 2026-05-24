@@ -336,13 +336,11 @@
   font-weight: 400;
   font-style: italic;
   color: var(--muted);
-  text-transform: none;
-  letter-spacing: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-left: 4px;
-  max-width: 250px;
+  max-width: 300px;
+  margin-left: auto;
 }
 .moreBody {
   margin-top: 8px;
