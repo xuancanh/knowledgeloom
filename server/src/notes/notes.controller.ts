@@ -9,38 +9,40 @@
  *   POST   /api/notes/assist-draft — AI edit proposal for an unsaved draft
  *   POST   /api/notes/:id/assist   — AI edit proposal (does not write to disk)
  *
- * Write routes are guarded by WritableGuard. The assist routes also require
- * writable mode since they invoke CodexService.
+ * All routes require authentication. Write routes also require writable mode.
  */
 import { Controller, Get, Put, Patch, Delete, Post, Param, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { NotesService } from './notes.service';
+import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 
 @Controller('api/notes')
+@UseGuards(SupabaseAuthGuard)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Get(':id')
-  async getMarkdown(@Param('id') id: string) {
-    return { markdown: await this.notesService.getMarkdown(id) };
+  async getMarkdown(@CurrentUser() userId: string, @Param('id') id: string) {
+    return { markdown: await this.notesService.getMarkdown(userId, id) };
   }
 
   @Put(':id')
   @UseGuards(WritableGuard)
-  update(@Param('id') id: string, @Body() body: any) {
-    return this.notesService.update(id, body || {});
+  update(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: any) {
+    return this.notesService.update(userId, id, body || {});
   }
 
   @Patch(':id')
   @UseGuards(WritableGuard)
-  patch(@Param('id') id: string, @Body() body: any) {
-    return this.notesService.update(id, body || {});
+  patch(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: any) {
+    return this.notesService.update(userId, id, body || {});
   }
 
   @Delete(':id')
   @UseGuards(WritableGuard)
-  delete(@Param('id') id: string) {
-    return this.notesService.delete(id);
+  delete(@CurrentUser() userId: string, @Param('id') id: string) {
+    return this.notesService.delete(userId, id);
   }
 
   @Post('assist-draft')

@@ -32,6 +32,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
+import { AuthModule } from './auth/auth.module';
 import { StatusModule } from './status/status.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { NotesModule } from './notes/notes.module';
@@ -39,12 +40,14 @@ import { RemindersModule } from './reminders/reminders.module';
 import { JobsModule } from './jobs/jobs.module';
 import { LearnModule } from './learn/learn.module';
 import { ImagesModule } from './images/images.module';
+import { RagModule } from './rag/rag.module';
 
 @Module({
   imports: [
     // Global providers — no need to import these in feature modules.
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     DatabaseModule,
+    AuthModule,
     ...(process.env.SKIP_JOBS === '1' ? [] : [
       BullModule.forRootAsync({
         inject: [ConfigService],
@@ -65,6 +68,7 @@ import { ImagesModule } from './images/images.module';
     JobsModule,
     LearnModule,
     ImagesModule,
+    RagModule,
   ],
 })
 export class AppModule {}

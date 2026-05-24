@@ -16,13 +16,18 @@
  * Write mode is synchronous because it does not depend on Codex and the user
  * expects immediate feedback. The other modes return 202 Accepted with a job id
  * the client can poll via GET /api/jobs/:id.
+ *
+ * All routes require authentication.
  */
 import { Controller, Post, Body, UseGuards, BadRequestException } from '@nestjs/common';
 import { NotesService } from '../notes/notes.service';
 import { JobsService } from '../jobs/jobs.service';
+import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 
 @Controller('api/learn')
+@UseGuards(SupabaseAuthGuard)
 export class LearnController {
   constructor(
     private readonly notesService: NotesService,
@@ -31,7 +36,7 @@ export class LearnController {
 
   @Post()
   @UseGuards(WritableGuard)
-  async learn(@Body() body: any) {
+  async learn(@CurrentUser() userId: string, @Body() body: any) {
     const b = body || {};
     const mode = ['write', 'polish', 'research', 'link'].includes(b.mode) ? b.mode : 'research';
     const topic = typeof b.title === 'string' ? b.title.trim() : typeof b.topic === 'string' ? b.topic.trim() : '';
@@ -52,8 +57,8 @@ export class LearnController {
     // Direct write: synchronous, no Codex.
     if (mode === 'write') {
       if (!draftBody) throw new BadRequestException('body is required for direct notes');
-      const result = await this.notesService.createFromDraft({ ...b, title: topic, body: draftBody });
-      const job = await this.jobsService.recordCompleted({ ...b, mode, topic, title: topic }, result);
+      const result = await this.notesService.createFromDraft(userId, { ...b, title: topic, body: draftBody });
+      const job = await this.jobsService.recordCompleted(userId, { ...b, mode, topic, title: topic }, result);
       return { jobId: job.id, job, ...result };
     }
 
@@ -61,7 +66,7 @@ export class LearnController {
       throw new BadRequestException('body is required for polish mode');
     }
 
-    const job = await this.jobsService.enqueue({
+    const job = await this.jobsService.enqueue(userId, {
       ...b,
       mode,
       topic: topic || url,

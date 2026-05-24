@@ -40,6 +40,7 @@ const DDL = `
 
   CREATE TABLE IF NOT EXISTS jobs (
     id          TEXT    PRIMARY KEY,
+    userId      TEXT    NOT NULL DEFAULT '',
     status      TEXT    NOT NULL,
     mode        TEXT    NOT NULL,
     topic       TEXT    NOT NULL,
@@ -54,9 +55,11 @@ const DDL = `
   );
   CREATE INDEX IF NOT EXISTS idx_jobs_status_next_run ON jobs(status, nextRunAt);
   CREATE INDEX IF NOT EXISTS idx_jobs_created_at      ON jobs(createdAt);
+  CREATE INDEX IF NOT EXISTS idx_jobs_user_id         ON jobs(userId);
 
   CREATE TABLE IF NOT EXISTS reminders (
     id          TEXT PRIMARY KEY,
+    userId      TEXT NOT NULL DEFAULT '',
     noteId      TEXT NOT NULL,
     remindAt    TEXT NOT NULL,
     message     TEXT NOT NULL DEFAULT '',
@@ -66,17 +69,23 @@ const DDL = `
   CREATE INDEX IF NOT EXISTS idx_reminders_note_id      ON reminders(noteId);
   CREATE INDEX IF NOT EXISTS idx_reminders_remind_at    ON reminders(remindAt);
   CREATE INDEX IF NOT EXISTS idx_reminders_completed_at ON reminders(completedAt);
+  CREATE INDEX IF NOT EXISTS idx_reminders_user_id      ON reminders(userId);
 
   CREATE TABLE IF NOT EXISTS flashcard_cache (
-    noteId      TEXT PRIMARY KEY,
+    id          TEXT NOT NULL DEFAULT (lower(hex(randomblob(8)))),
+    userId      TEXT NOT NULL DEFAULT '',
+    noteId      TEXT NOT NULL,
     hash        TEXT NOT NULL,
     cards       TEXT NOT NULL,
-    generatedAt TEXT NOT NULL
+    generatedAt TEXT NOT NULL,
+    PRIMARY KEY (userId, noteId)
   );
-  CREATE INDEX IF NOT EXISTS idx_flashcard_cache_hash ON flashcard_cache(hash);
+  CREATE INDEX IF NOT EXISTS idx_flashcard_cache_hash    ON flashcard_cache(hash);
+  CREATE INDEX IF NOT EXISTS idx_flashcard_cache_user_id ON flashcard_cache(userId);
 
   CREATE TABLE IF NOT EXISTS flashcard_reviews (
     cardId      TEXT PRIMARY KEY,
+    userId      TEXT NOT NULL DEFAULT '',
     noteId      TEXT NOT NULL,
     isUserCard  INTEGER NOT NULL DEFAULT 0,
     easeFactor  TEXT NOT NULL DEFAULT '2.5',
@@ -86,11 +95,13 @@ const DDL = `
     lastReviewAt TEXT,
     lastRating  TEXT
   );
-  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_note_id ON flashcard_reviews(noteId);
+  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_note_id    ON flashcard_reviews(noteId);
   CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_next_review ON flashcard_reviews(nextReviewAt);
+  CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_user_id    ON flashcard_reviews(userId);
 
   CREATE TABLE IF NOT EXISTS user_flashcards (
     id          TEXT PRIMARY KEY,
+    userId      TEXT NOT NULL DEFAULT '',
     noteId      TEXT NOT NULL,
     prompt      TEXT NOT NULL,
     lesson      TEXT NOT NULL,
@@ -98,12 +109,15 @@ const DDL = `
     createdAt   TEXT NOT NULL,
     updatedAt   TEXT NOT NULL
   );
-  CREATE INDEX IF NOT EXISTS idx_user_flashcards_note_id ON user_flashcards(noteId);
+  CREATE INDEX IF NOT EXISTS idx_user_flashcards_note_id  ON user_flashcards(noteId);
+  CREATE INDEX IF NOT EXISTS idx_user_flashcards_user_id  ON user_flashcards(userId);
 
   CREATE TABLE IF NOT EXISTS hidden_flashcards (
     cardId      TEXT PRIMARY KEY,
+    userId      TEXT NOT NULL DEFAULT '',
     createdAt   TEXT NOT NULL
   );
+  CREATE INDEX IF NOT EXISTS idx_hidden_flashcards_user_id ON hidden_flashcards(userId);
 `;
 
 const PG_DDL = `
@@ -198,6 +212,18 @@ const drizzleProvider = {
 
       const sqlite = new Database(appDbPath);
       sqlite.exec(DDL);
+      // Add userId columns to pre-existing tables (idempotent).
+      const addUserIdMigrations = [
+        'ALTER TABLE jobs              ADD COLUMN userId TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE reminders         ADD COLUMN userId TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE flashcard_cache   ADD COLUMN userId TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE flashcard_reviews ADD COLUMN userId TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE user_flashcards   ADD COLUMN userId TEXT NOT NULL DEFAULT ""',
+        'ALTER TABLE hidden_flashcards ADD COLUMN userId TEXT NOT NULL DEFAULT ""',
+      ];
+      for (const sql of addUserIdMigrations) {
+        try { sqlite.exec(sql); } catch { /* column already exists */ }
+      }
 
       return drizzleSqlite(sqlite, { schema });
     }

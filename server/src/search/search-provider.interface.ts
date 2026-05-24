@@ -7,7 +7,7 @@
  *
  * Implementations ship out of the box:
  *
- *  - MeilisearchProvider  — Incremental sync to a Meilisearch index.
+ *  - MeilisearchProvider  — Incremental sync to a per-user Meilisearch index.
  *                           Best for self-hosted setups with a running
  *                           Meilisearch Docker container.
  *
@@ -24,7 +24,6 @@
  *   SEARCH_PROVIDER=meilisearch
  *   MEILI_HOST=http://localhost:7700
  *   MEILI_MASTER_KEY=your-key          # optional
- *   MEILI_INDEX=knowledge_notes        # optional, default shown
  *
  *   # No search infrastructure needed
  *   SEARCH_PROVIDER=inmemory
@@ -47,25 +46,27 @@ export interface SearchProvider {
    * Incrementally syncs the search index with the current note set.
    * Called by KnowledgeService.rebuildIndexes() after every mutation.
    *
+   * @param userId  The authenticated user whose index to sync.
    * @param notes   Current set of notes to index.
    * @returns       Stats about the sync operation.
    */
-  sync(notes: KnowledgeNote[]): Promise<{ mode: string; addedOrUpdated: number; deleted: number }>;
+  sync(userId: string, notes: KnowledgeNote[]): Promise<{ mode: string; addedOrUpdated: number; deleted: number }>;
 
   /**
    * Removes a single document from the search index.
    * Called immediately on note deletion so search results are accurate even
    * before the next full rebuild runs.
    */
-  deleteDocument(id: string): Promise<{ deleted: number }>;
+  deleteDocument(userId: string, id: string): Promise<{ deleted: number }>;
 
   /**
    * Executes a search query and returns matching notes.
    *
+   * @param userId    The authenticated user whose index to query.
    * @param query     Free-text search string (empty = all).
    * @param category  Optional category filter ('All' = no filter).
    */
-  search(query: string, category?: string): Promise<SearchHit[]>;
+  search(userId: string, query: string, category?: string): Promise<SearchHit[]>;
 }
 
 /** Injection token for the SearchProvider. */

@@ -74,6 +74,7 @@ export type JobMode = 'research' | 'link' | 'polish' | 'write';
 
 export interface Job {
   id: string;
+  userId?: string;
   status: JobStatus;
   mode: JobMode;
   topic: string;

@@ -4,6 +4,9 @@
  * Performs a case-insensitive substring match across title, summary, and tags.
  * No external process, no network calls, no infrastructure required.
  *
+ * Data is stored per user in a Map<userId, KnowledgeNote[]> so users never
+ * see each other's notes.
+ *
  * Suitable for:
  *  - Local development without a running Meilisearch container
  *  - Read-only cloud deployments where Meilisearch is unavailable
@@ -22,24 +25,26 @@ import type { KnowledgeNote } from '../types';
 
 @Injectable()
 export class InMemorySearchProvider implements SearchProvider {
-  /** Current note snapshot — updated on every sync() call. */
-  private notes: KnowledgeNote[] = [];
+  /** Per-user note snapshot — updated on every sync() call. */
+  private readonly store = new Map<string, KnowledgeNote[]>();
 
-  async sync(notes: KnowledgeNote[]): Promise<{ mode: string; addedOrUpdated: number; deleted: number }> {
-    const prev = this.notes.length;
-    this.notes = notes;
+  async sync(userId: string, notes: KnowledgeNote[]): Promise<{ mode: string; addedOrUpdated: number; deleted: number }> {
+    const prev = (this.store.get(userId) || []).length;
+    this.store.set(userId, notes);
     return { mode: 'inmemory', addedOrUpdated: notes.length - prev, deleted: 0 };
   }
 
-  async deleteDocument(id: string): Promise<{ deleted: number }> {
-    const before = this.notes.length;
-    this.notes = this.notes.filter((n) => n.id !== id);
-    return { deleted: before - this.notes.length };
+  async deleteDocument(userId: string, id: string): Promise<{ deleted: number }> {
+    const notes = this.store.get(userId) || [];
+    const before = notes.length;
+    this.store.set(userId, notes.filter((n) => n.id !== id));
+    return { deleted: before - (this.store.get(userId) || []).length };
   }
 
-  async search(query: string, category?: string): Promise<SearchHit[]> {
+  async search(userId: string, query: string, category?: string): Promise<SearchHit[]> {
+    const notes = this.store.get(userId) || [];
     const normalized = (query || '').toLowerCase();
-    return this.notes
+    return notes
       .filter((note) => {
         const inCategory = !category || category === 'All' || note.category === category;
         if (!inCategory) return false;

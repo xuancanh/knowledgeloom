@@ -29,43 +29,43 @@
 
 export interface NoteStorageProvider {
   /**
-   * Returns all relative paths (e.g. `Engineering/note-id.md`) in the notes
-   * store, sorted alphabetically. Used by KnowledgeService to rebuild indexes.
+   * Returns all relative paths (e.g. `Engineering/note-id.md`) in the user's
+   * notes store, sorted alphabetically. Used by KnowledgeService to rebuild indexes.
    */
-  listFiles(): Promise<string[]>;
+  listFiles(userId: string): Promise<string[]>;
 
   /**
    * Reads the raw markdown content of a file by its relative path.
    * Throws if the file does not exist.
    */
-  read(relativePath: string): Promise<string>;
+  read(userId: string, relativePath: string): Promise<string>;
 
   /**
    * Writes (creates or overwrites) a file at the given relative path.
    */
-  write(relativePath: string, content: string): Promise<void>;
+  write(userId: string, relativePath: string, content: string): Promise<void>;
 
   /**
    * Moves a file from one relative path to another.
    * Throws if the destination already exists.
    */
-  move(fromRelative: string, toRelative: string, content: string): Promise<void>;
+  move(userId: string, fromRelative: string, toRelative: string, content: string): Promise<void>;
 
   /**
    * Deletes a file. A missing file is silently ignored.
    */
-  delete(relativePath: string): Promise<void>;
+  delete(userId: string, relativePath: string): Promise<void>;
 
   /**
    * Returns true if a file with the given relative path exists.
    */
-  exists(relativePath: string): Promise<boolean>;
+  exists(userId: string, relativePath: string): Promise<boolean>;
 
   /**
    * Ensures the backing store is initialised (creates root folders, etc.).
    * Called once at startup; subsequent calls are no-ops.
    */
-  ensureStore(): Promise<void>;
+  ensureStore(userId: string): Promise<void>;
 }
 
 /** Injection token for the NoteStorageProvider. */

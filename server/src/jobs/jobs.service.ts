@@ -7,6 +7,8 @@
  *  - BullMQ/Redis manages the active scheduling, delays, retries, and sequential execution.
  *  - In-memory job state caching is removed to prevent memory leaks in long-running processes.
  *  - Satisfies the single job serialization constraint by configuring Worker concurrency to 1.
+ *
+ * All user-facing methods require a userId to scope results correctly.
  */
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -61,12 +63,13 @@ export class JobsService implements OnModuleInit {
    * Adds a new job to the durable queue and schedules immediate processing.
    * Returns the job record so the caller can provide the id to the client.
    */
-  async enqueue(payload: any): Promise<Job> {
+  async enqueue(userId: string, payload: any): Promise<Job> {
     const topic = String(payload.topic || payload.title || '').trim();
     const jobId = `${Date.now()}-${slugify(topic)}`;
     const now = new Date().toISOString();
     const job: Job = {
       id: jobId,
+      userId,
       status: 'queued',
       mode: (payload.mode as JobMode) || 'research',
       topic,
@@ -109,12 +112,13 @@ export class JobsService implements OnModuleInit {
    * Direct writes do not invoke Codex but are stored in the same job log so
    * the activity rail shows every creation attempt.
    */
-  async recordCompleted(payload: any, result: any): Promise<Job> {
+  async recordCompleted(userId: string, payload: any, result: any): Promise<Job> {
     if (this.readOnly) return null as any;
     const topic = String(payload.topic || payload.title || result.note?.title || '').trim();
     const now = new Date().toISOString();
     const job: Job = {
       id: `${Date.now()}-${slugify(topic)}`,
+      userId,
       status: 'done',
       mode: (payload.mode as JobMode) || 'write',
       topic,
@@ -138,16 +142,16 @@ export class JobsService implements OnModuleInit {
   }
 
   /**
-   * Returns all historical jobs from database.
+   * Returns all historical jobs for the given user from database.
    */
-  async listAll(): Promise<Job[]> {
-    return this.repo.listAll();
+  async listAll(userId: string): Promise<Job[]> {
+    return this.repo.listAll(userId);
   }
 
   /**
-   * Returns a single job by id from database.
+   * Returns a single job by id for the given user from database.
    */
-  async getJob(id: string): Promise<Job | null> {
-    return this.repo.findById(id);
+  async getJob(userId: string, id: string): Promise<Job | null> {
+    return this.repo.findById(userId, id);
   }
 }

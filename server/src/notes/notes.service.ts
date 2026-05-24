@@ -7,11 +7,12 @@
  *
  * The service also delegates AI edit proposals to CodexService. Proposals are
  * returned to the client; the user reviews them before saving through update().
+ *
+ * All methods require a userId parameter — data is scoped per user.
  */
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { join, basename, dirname } from 'node:path';
-import { mkdir } from 'node:fs/promises';
+import { basename } from 'node:path';
 import { NoteFileRepository } from './note-file.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { RemindersService } from '../reminders/reminders.service';
@@ -29,7 +30,6 @@ import type { KnowledgeNote } from '../types';
 @Injectable()
 export class NotesService {
   private readonly readOnly: boolean;
-  private readonly notesDir: string;
 
   constructor(
     private readonly noteRepo: NoteFileRepository,
@@ -40,12 +40,11 @@ export class NotesService {
     private readonly config: ConfigService,
   ) {
     this.readOnly = config.get<boolean>('readOnly');
-    this.notesDir = config.get<string>('notesDir');
   }
 
   /** Returns the raw markdown for the editor. */
-  async getMarkdown(id: string): Promise<string> {
-    return this.noteRepo.readMarkdown(basename(id));
+  async getMarkdown(userId: string, id: string): Promise<string> {
+    return this.noteRepo.readMarkdown(userId, basename(id));
   }
 
   /**
@@ -53,13 +52,16 @@ export class NotesService {
    * Routes through the same markdown composer and index rebuild as AI-created
    * notes so direct notes behave identically in category pages and search.
    */
-  async createFromDraft(draft: any): Promise<any> {
+  async createFromDraft(userId: string, draft: any): Promise<any> {
     this.assertWritable();
     const title = String(draft.title || '').trim();
     const body = String(draft.body || '').trim();
     if (!title || !body) throw new BadRequestException('title and body are required');
 
-    const slug = uniqueNoteSlug(title, this.notesDir);
+    // Build user notes dir path for slug uniqueness check
+    const usersDir = this.config.get<string>('usersDir');
+    const userNotesDir = require('node:path').join(usersDir, userId, 'notes');
+    const slug = uniqueNoteSlug(title, userNotesDir);
     const markdown = composeMarkdown({
       title,
       category: draft.category || 'Uncategorized',
@@ -71,9 +73,9 @@ export class NotesService {
     });
 
     const relativePath = noteRelativePath(slug, draft.category || 'Uncategorized');
-    await this.noteRepo.write(relativePath, markdown);
+    await this.noteRepo.write(userId, relativePath, markdown);
 
-    const state = await this.knowledgeService.rebuildIndexes();
+    const state = await this.knowledgeService.rebuildIndexes(userId);
     const note = state.notes.find((n) => n.id === slug);
     return { note, state, markdown, codexStatus: 'not-used' };
   }
@@ -82,13 +84,13 @@ export class NotesService {
    * Rewrites one note file from editor data and triggers a full rebuild.
    * Handles category-driven file moves transparently.
    */
-  async update(id: string, updates: any): Promise<any> {
+  async update(userId: string, id: string, updates: any): Promise<any> {
     this.assertWritable();
     const safeId = basename(id);
-    const currentFile = await this.noteRepo.findById(safeId);
+    const currentFile = await this.noteRepo.findById(userId, safeId);
     if (!currentFile) throw new NotFoundException('note not found');
 
-    const currentMarkdown = await this.noteRepo.readMarkdown(safeId);
+    const currentMarkdown = await this.noteRepo.readMarkdown(userId, safeId);
     const current = parseNote(currentFile, currentMarkdown);
 
     const markdown = composeMarkdown({
@@ -105,12 +107,12 @@ export class NotesService {
 
     const nextCategory = updates.category ?? current.category;
     const nextFile = noteRelativePath(safeId, nextCategory);
-    await this.noteRepo.write(nextFile, markdown);
+    await this.noteRepo.write(userId, nextFile, markdown);
     if (nextFile !== currentFile) {
-      await this.noteRepo.delete(currentFile);
+      await this.noteRepo.delete(userId, currentFile);
     }
 
-    const state = await this.knowledgeService.rebuildIndexes();
+    const state = await this.knowledgeService.rebuildIndexes(userId);
     const note = state.notes.find((n) => n.id === safeId);
     return { note, state, markdown };
   }
@@ -120,19 +122,19 @@ export class NotesService {
    * rebuilds the index. Meilisearch cleanup is explicit so the removed note
    * disappears from search immediately even when the sync manifest is stale.
    */
-  async delete(id: string): Promise<any> {
+  async delete(userId: string, id: string): Promise<any> {
     this.assertWritable();
     const safeId = basename(id);
-    const currentFile = await this.noteRepo.findById(safeId);
+    const currentFile = await this.noteRepo.findById(userId, safeId);
     if (!currentFile) throw new NotFoundException('note not found');
 
-    await this.noteRepo.delete(currentFile);
-    await this.remindersService.removeForNote(safeId);
-    await this.searchService.deleteDocument(safeId).catch((err: Error) => {
+    await this.noteRepo.delete(userId, currentFile);
+    await this.remindersService.removeForNote(userId, safeId);
+    await this.searchService.deleteDocument(userId, safeId).catch((err: Error) => {
       console.warn(`Meilisearch delete skipped for ${safeId}: ${err.message}`);
     });
 
-    const state = await this.knowledgeService.rebuildIndexes();
+    const state = await this.knowledgeService.rebuildIndexes(userId);
     return { deleted: safeId, state };
   }
 

@@ -1,0 +1,166 @@
+/**
+ * RagService — retrieval-augmented generation for the knowledge base.
+ *
+ * Pipeline:
+ *   1. Resolve scope (note / category / tag / all)
+ *   2. Retrieve relevant notes via search or direct lookup
+ *   3. Assemble a context-aware prompt with conversation history
+ *   4. Stream tokens from the AI provider back to the caller
+ *
+ * All operations are scoped to the authenticated userId.
+ */
+import { Injectable, Inject } from '@nestjs/common';
+import { AI_PROVIDER, AiProvider, AiMessage } from '../ai/ai-provider.interface';
+import { SearchService } from '../search/search.service';
+import { NoteFileRepository } from '../notes/note-file.repository';
+import { stripFrontmatter } from '../common/note-parser.util';
+import type { KnowledgeNote } from '../types';
+
+export type RagScope =
+  | { type: 'all' }
+  | { type: 'note'; id: string }
+  | { type: 'category'; path: string }
+  | { type: 'tag'; tag: string };
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface RagRequest {
+  userId?: string;
+  question: string;
+  scope: RagScope;
+  history: ChatMessage[];
+}
+
+/** Rough character budget for context (~4k tokens × 4 chars/token). */
+const CONTEXT_CHAR_LIMIT = 16_000;
+/** Max notes to include in context. */
+const MAX_CONTEXT_NOTES = 12;
+
+@Injectable()
+export class RagService {
+  constructor(
+    @Inject(AI_PROVIDER) private readonly ai: AiProvider,
+    private readonly search: SearchService,
+    private readonly noteRepo: NoteFileRepository,
+  ) {}
+
+  async *stream(userId: string, req: RagRequest): AsyncGenerator<string> {
+    const notes = await this.retrieveNotes(userId, req);
+    const messages = this.buildMessages(req, notes);
+    yield* this.ai.completeStream(messages);
+  }
+
+  private async retrieveNotes(userId: string, req: RagRequest): Promise<KnowledgeNote[]> {
+    const { scope, question } = req;
+
+    if (scope.type === 'note') {
+      try {
+        const markdown = await this.noteRepo.readMarkdown(userId, scope.id);
+        const all = await this.noteRepo.readAll(userId);
+        const note = all.find((n) => n.id === scope.id);
+        if (note) return [{ ...note, summary: markdown }];
+      } catch {
+        // fall through to all-notes search
+      }
+    }
+
+    if (scope.type === 'category') {
+      const all = await this.noteRepo.readAll(userId);
+      const filtered = all.filter((n) => n.category.startsWith(scope.path));
+      return this.rankByRelevance(filtered, question);
+    }
+
+    if (scope.type === 'tag') {
+      const all = await this.noteRepo.readAll(userId);
+      const filtered = all.filter((n) => n.tags.includes(scope.tag));
+      return this.rankByRelevance(filtered, question);
+    }
+
+    // scope = all: use search to find relevant notes
+    try {
+      const hits = await this.search.search(userId, question);
+      return hits.slice(0, MAX_CONTEXT_NOTES) as KnowledgeNote[];
+    } catch {
+      const all = await this.noteRepo.readAll(userId);
+      return this.rankByRelevance(all, question);
+    }
+  }
+
+  /** Simple keyword-based ranking when semantic search is unavailable. */
+  private rankByRelevance(notes: KnowledgeNote[], query: string): KnowledgeNote[] {
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+    const scored = notes.map((n) => {
+      const haystack = `${n.title} ${n.summary} ${n.tags.join(' ')}`.toLowerCase();
+      const score = words.reduce((s, w) => s + (haystack.includes(w) ? 1 : 0), 0);
+      return { note: n, score };
+    });
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_CONTEXT_NOTES)
+      .map((s) => s.note);
+  }
+
+  private buildMessages(req: RagRequest, notes: KnowledgeNote[]): AiMessage[] {
+    const contextBlock = this.buildContextBlock(notes);
+    const scopeDesc = this.scopeDescription(req.scope);
+
+    const system: AiMessage = {
+      role: 'system',
+      content: `You are a helpful knowledge assistant. The user is exploring their personal knowledge base.
+
+Scope: ${scopeDesc}
+
+${contextBlock}
+
+Guidelines:
+- Answer based on the provided notes. If the notes don't contain enough information, say so clearly.
+- Cite note titles when referencing specific information, e.g. [Note: "Title"].
+- Be concise and precise. Use markdown formatting for readability.
+- If the user asks to find or list notes, reference them by their exact titles.`,
+    };
+
+    const history: AiMessage[] = req.history.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    return [system, ...history, { role: 'user', content: req.question }];
+  }
+
+  private buildContextBlock(notes: KnowledgeNote[]): string {
+    if (!notes.length) return 'No notes found for this scope.';
+
+    let total = 0;
+    const chunks: string[] = [];
+
+    for (const note of notes) {
+      const body = note.summary || '';
+      const entry = `### ${note.title}\n**Category:** ${note.category}  **Tags:** ${note.tags.join(', ') || 'none'}\n${body}`;
+      if (total + entry.length > CONTEXT_CHAR_LIMIT) break;
+      chunks.push(entry);
+      total += entry.length;
+    }
+
+    return `## Retrieved notes (${chunks.length} of ${notes.length})\n\n${chunks.join('\n\n---\n\n')}`;
+  }
+
+  private scopeDescription(scope: RagScope): string {
+    if (scope.type === 'note') return `Focused on note "${scope.id}"`;
+    if (scope.type === 'category') return `Category: ${scope.path}`;
+    if (scope.type === 'tag') return `Tag: #${scope.tag}`;
+    return 'Entire knowledge base';
+  }
+
+  /** Load full markdown body for a specific note into context. */
+  async enrichNoteContext(userId: string, note: KnowledgeNote): Promise<KnowledgeNote> {
+    try {
+      const md = await this.noteRepo.readMarkdown(userId, note.id);
+      return { ...note, summary: stripFrontmatter(md) };
+    } catch {
+      return note;
+    }
+  }
+}

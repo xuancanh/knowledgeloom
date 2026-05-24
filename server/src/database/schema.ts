@@ -4,6 +4,7 @@ import { pgTable, text as pgText, integer as pgInteger } from 'drizzle-orm/pg-co
 // --- SQLite Tables ---
 export const sqliteJobs = sqliteTable('jobs', {
   id: sqliteText('id').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
   status: sqliteText('status').notNull(),
   mode: sqliteText('mode').notNull(),
   topic: sqliteText('topic').notNull(),
@@ -19,6 +20,7 @@ export const sqliteJobs = sqliteTable('jobs', {
 
 export const sqliteReminders = sqliteTable('reminders', {
   id: sqliteText('id').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
   noteId: sqliteText('noteId').notNull(),
   remindAt: sqliteText('remindAt').notNull(),
   message: sqliteText('message').notNull().default(''),
@@ -27,7 +29,9 @@ export const sqliteReminders = sqliteTable('reminders', {
 });
 
 export const sqliteFlashcardCache = sqliteTable('flashcard_cache', {
-  noteId: sqliteText('noteId').primaryKey(),
+  id: sqliteText('id').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
+  noteId: sqliteText('noteId').notNull(),
   hash: sqliteText('hash').notNull(),
   cards: sqliteText('cards').notNull(),
   generatedAt: sqliteText('generatedAt').notNull(),
@@ -36,6 +40,7 @@ export const sqliteFlashcardCache = sqliteTable('flashcard_cache', {
 /** Per-card spaced repetition review data (SM-2 algorithm). */
 export const sqliteFlashcardReviews = sqliteTable('flashcard_reviews', {
   cardId: sqliteText('cardId').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
   noteId: sqliteText('noteId').notNull(),
   isUserCard: sqliteInteger('isUserCard').notNull().default(0),
   easeFactor: sqliteText('easeFactor').notNull().default('2.5'),
@@ -47,6 +52,7 @@ export const sqliteFlashcardReviews = sqliteTable('flashcard_reviews', {
 });
 export const sqliteFlashcardReviewsPg = pgTable('flashcard_reviews', {
   cardId: pgText('cardId').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
   noteId: pgText('noteId').notNull(),
   isUserCard: pgInteger('isUserCard').notNull().default(0),
   easeFactor: pgText('easeFactor').notNull().default('2.5'),
@@ -60,6 +66,7 @@ export const sqliteFlashcardReviewsPg = pgTable('flashcard_reviews', {
 /** User-created flashcards linked to notes. */
 export const sqliteUserFlashcards = sqliteTable('user_flashcards', {
   id: sqliteText('id').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
   noteId: sqliteText('noteId').notNull(),
   prompt: sqliteText('prompt').notNull(),
   lesson: sqliteText('lesson').notNull(),
@@ -69,6 +76,7 @@ export const sqliteUserFlashcards = sqliteTable('user_flashcards', {
 });
 export const pgUserFlashcards = pgTable('user_flashcards', {
   id: pgText('id').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
   noteId: pgText('noteId').notNull(),
   prompt: pgText('prompt').notNull(),
   lesson: pgText('lesson').notNull(),
@@ -80,16 +88,19 @@ export const pgUserFlashcards = pgTable('user_flashcards', {
 /** Hidden/dismissed flashcards (either AI-generated or user-created). */
 export const sqliteHiddenFlashcards = sqliteTable('hidden_flashcards', {
   cardId: sqliteText('cardId').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
   createdAt: sqliteText('createdAt').notNull(),
 });
 export const pgHiddenFlashcards = pgTable('hidden_flashcards', {
   cardId: pgText('cardId').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
   createdAt: pgText('createdAt').notNull(),
 });
 
 // --- PostgreSQL Tables ---
 export const pgJobs = pgTable('jobs', {
   id: pgText('id').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
   status: pgText('status').notNull(),
   mode: pgText('mode').notNull(),
   topic: pgText('topic').notNull(),
@@ -105,6 +116,7 @@ export const pgJobs = pgTable('jobs', {
 
 export const pgReminders = pgTable('reminders', {
   id: pgText('id').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
   noteId: pgText('noteId').notNull(),
   remindAt: pgText('remindAt').notNull(),
   message: pgText('message').notNull().default(''),
@@ -113,7 +125,9 @@ export const pgReminders = pgTable('reminders', {
 });
 
 export const pgFlashcardCache = pgTable('flashcard_cache', {
-  noteId: pgText('noteId').primaryKey(),
+  id: pgText('id').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
+  noteId: pgText('noteId').notNull(),
   hash: pgText('hash').notNull(),
   cards: pgText('cards').notNull(),
   generatedAt: pgText('generatedAt').notNull(),

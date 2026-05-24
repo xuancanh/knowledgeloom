@@ -6,6 +6,9 @@
  * cross-cutting concerns (logging, metrics, error wrapping) without touching
  * the provider implementations or their callers.
  *
+ * Every method requires a userId so searches are scoped to the authenticated
+ * user's notes only.
+ *
  * The underlying provider (Meilisearch or InMemory) is selected at startup
  * by SearchModule based on the SEARCH_PROVIDER environment variable.
  */
@@ -17,15 +20,15 @@ import type { KnowledgeNote } from '../types';
 export class SearchService {
   constructor(@Inject(SEARCH_PROVIDER) private readonly provider: SearchProvider) {}
 
-  sync(notes: KnowledgeNote[]) {
-    return this.provider.sync(notes);
+  sync(userId: string, notes: KnowledgeNote[]) {
+    return this.provider.sync(userId, notes);
   }
 
-  deleteDocument(id: string) {
-    return this.provider.deleteDocument(id);
+  deleteDocument(userId: string, id: string) {
+    return this.provider.deleteDocument(userId, id);
   }
 
-  search(query: string, category?: string): Promise<SearchHit[]> {
-    return this.provider.search(query, category);
+  search(userId: string, query: string, category?: string): Promise<SearchHit[]> {
+    return this.provider.search(userId, query, category);
   }
 }

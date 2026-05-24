@@ -5,10 +5,14 @@
  * attempts) so the queue processor can filter efficiently without JSON parsing.
  * The complete job payload is also serialised as a JSON blob for forward
  * compatibility — new fields on the Job interface do not require migrations.
+ *
+ * All public methods that are user-facing require a userId to scope results.
+ * Internal methods (getRunningJobs, save) do not require userId because they
+ * are called by the queue processor with the full job payload.
  */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, and } from 'drizzle-orm';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, JOBS_TABLE } from '../database/database.constants';
 import type { Job } from '../types';
@@ -21,21 +25,22 @@ export class JobRepository {
     private readonly config: ConfigService,
   ) {}
 
-  async listAll(): Promise<Job[]> {
+  async listAll(userId: string): Promise<Job[]> {
     if (this.config.get<boolean>('readOnly') || !this.db) return [];
     const rows = await this.db
       .select()
       .from(this.jobsTable)
+      .where(eq(this.jobsTable.userId, userId))
       .orderBy(asc(this.jobsTable.createdAt));
     return rows.map((row: any) => JSON.parse(row.payload));
   }
 
-  async findById(id: string): Promise<Job | null> {
+  async findById(userId: string, id: string): Promise<Job | null> {
     if (!this.db) return null;
     const rows = await this.db
       .select()
       .from(this.jobsTable)
-      .where(eq(this.jobsTable.id, id))
+      .where(and(eq(this.jobsTable.userId, userId), eq(this.jobsTable.id, id)))
       .limit(1);
     const row = rows[0];
     return row ? JSON.parse(row.payload) : null;
@@ -78,6 +83,7 @@ export class JobRepository {
   private bind(job: Job) {
     return {
       id: String(job.id),
+      userId: String((job as any).userId || ''),
       status: String(job.status || 'queued'),
       mode: String(job.mode || 'research'),
       topic: String(job.topic || ''),

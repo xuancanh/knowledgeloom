@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, FLASHCARD_REVIEWS_TABLE } from '../database/database.constants';
 
@@ -24,9 +24,12 @@ export class FlashcardReviewsRepository {
     private readonly config: ConfigService,
   ) {}
 
-  async loadAll(): Promise<Map<string, FlashcardReview>> {
+  async loadAll(userId: string): Promise<Map<string, FlashcardReview>> {
     if (this.config.get<boolean>('readOnly') || !this.db) return new Map();
-    const rows = await this.db.select().from(this.table);
+    const rows = await this.db
+      .select()
+      .from(this.table)
+      .where(eq(this.table.userId, userId));
     const map = new Map<string, FlashcardReview>();
     for (const row of rows) {
       map.set(row.cardId, {
@@ -44,7 +47,7 @@ export class FlashcardReviewsRepository {
     return map;
   }
 
-  async upsert(review: {
+  async upsert(userId: string, review: {
     cardId: string;
     noteId: string;
     isUserCard: boolean;
@@ -59,7 +62,7 @@ export class FlashcardReviewsRepository {
     const existing = await this.db
       .select()
       .from(this.table)
-      .where(eq(this.table.cardId, review.cardId))
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId)))
       .get();
     if (existing) {
       await this.db
@@ -72,13 +75,14 @@ export class FlashcardReviewsRepository {
           lastReviewAt: review.lastReviewAt,
           lastRating: review.lastRating,
         })
-        .where(eq(this.table.cardId, review.cardId))
+        .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId)))
         .run();
     } else {
       await this.db
         .insert(this.table)
         .values({
           cardId: review.cardId,
+          userId,
           noteId: review.noteId,
           isUserCard: review.isUserCard ? 1 : 0,
           easeFactor: review.easeFactor,
@@ -92,8 +96,11 @@ export class FlashcardReviewsRepository {
     }
   }
 
-  async delete(cardId: string): Promise<void> {
+  async delete(userId: string, cardId: string): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
-    await this.db.delete(this.table).where(eq(this.table.cardId, cardId)).run();
+    await this.db
+      .delete(this.table)
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId)))
+      .run();
   }
 }

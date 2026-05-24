@@ -3,7 +3,7 @@
  * in sync with the markdown source of truth.
  *
  * Responsibilities:
- *  1. Read all note files via NoteFileRepository.
+ *  1. Read all note files via NoteFileRepository (scoped to userId).
  *  2. Migrate note files to the correct category folder when the category
  *     front-matter changes (e.g. after an AI edit).
  *  3. Build the category hierarchy from the collected note metadata.
@@ -13,6 +13,7 @@
  *
  * This service is intentionally free of HTTP concerns; every mutating route
  * calls it at the end to settle the knowledge graph into a consistent state.
+ * All methods require a userId and operate exclusively on that user's data.
  */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -28,7 +29,7 @@ import type { KnowledgeNote, NoteSource, CategoryEntry, KnowledgeState } from '.
 @Injectable()
 export class KnowledgeService {
   private readonly readOnly: boolean;
-  private readonly notesDir: string;
+  private readonly usersDir: string;
 
   constructor(
     private readonly noteRepo: NoteFileRepository,
@@ -37,7 +38,7 @@ export class KnowledgeService {
     private readonly config: ConfigService,
   ) {
     this.readOnly = config.get<boolean>('readOnly');
-    this.notesDir = config.get<string>('notesDir');
+    this.usersDir = config.get<string>('usersDir');
   }
 
   /**
@@ -47,21 +48,21 @@ export class KnowledgeService {
    * Returns the complete knowledge state that the frontend consumes from
    * GET /api/knowledge.
    */
-  async rebuildIndexes(): Promise<KnowledgeState> {
-    const noteSources = await this.noteRepo.readAllSources();
+  async rebuildIndexes(userId: string): Promise<KnowledgeState> {
+    const noteSources = await this.noteRepo.readAllSources(userId);
 
     // Migrate notes to the folder that matches their category front-matter.
     // This makes every create/update idempotent: the correct folder layout is
     // always restored, even when Codex writes a note to a flat location.
     if (!this.readOnly) {
-      await this.migrateFolders(noteSources);
+      await this.migrateFolders(userId, noteSources);
     }
 
     const notes = noteSources.map((s) => s.note);
     const categories = this.buildCategories(notes);
 
     if (!this.readOnly) {
-      await this.noteRepo.writeCategoryFiles(categories);
+      await this.noteRepo.writeCategoryFiles(userId, categories);
     }
 
     // Graph edges only include links that resolve to an existing note.
@@ -72,7 +73,7 @@ export class KnowledgeService {
       targets: note.links.filter((t) => noteIds.has(t)),
     }));
 
-    const { allCards: flashcards, reviews } = await this.flashcardsService.loadEnrichedData(noteSources);
+    const { allCards: flashcards, reviews } = await this.flashcardsService.loadEnrichedData(userId, noteSources);
     const enrichedFlashcards = flashcards.map((card) => {
       const review = reviews.get(card.id);
       if (!review) return card;
@@ -91,8 +92,8 @@ export class KnowledgeService {
     const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, updatedAt: new Date().toISOString() };
 
     if (!this.readOnly) {
-      await this.noteRepo.writeIndexJson(state);
-      await this.searchService.sync(notes).catch((err: Error) => {
+      await this.noteRepo.writeIndexJson(userId, state);
+      await this.searchService.sync(userId, notes).catch((err: Error) => {
         console.warn(`Search sync skipped: ${err.message}`);
       });
     }
@@ -109,12 +110,13 @@ export class KnowledgeService {
    * front-matter. This runs during every rebuild so even manual edits to
    * front-matter are eventually reflected in the folder tree.
    */
-  private async migrateFolders(sources: NoteSource[]): Promise<void> {
+  private async migrateFolders(userId: string, sources: NoteSource[]): Promise<void> {
+    const userNotesDir = join(this.usersDir, userId, 'notes');
     for (const source of sources) {
       const desired = noteRelativePath(source.note.id, source.note.category);
       if (source.file === desired) continue;
 
-      const destination = join(this.notesDir, desired);
+      const destination = join(userNotesDir, desired);
       await mkdir(dirname(destination), { recursive: true });
 
       if (existsSync(destination)) {
@@ -123,7 +125,7 @@ export class KnowledgeService {
         throw err;
       }
 
-      await this.noteRepo.move(source.file, desired, source.markdown);
+      await this.noteRepo.move(userId, source.file, desired, source.markdown);
       source.file = desired;
       // Re-parse so subsequent steps use the updated path field.
       source.note = parseNote(desired, source.markdown);

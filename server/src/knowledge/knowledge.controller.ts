@@ -5,16 +5,21 @@
  * notes, categories, flashcards, and the link graph. It rebuilds derived state
  * from the markdown source so the frontend always reflects the latest disk
  * state even when notes are edited outside the app.
+ *
+ * Requires authentication — results are scoped to the authenticated user.
  */
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { KnowledgeService } from './knowledge.service';
+import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/knowledge')
+@UseGuards(SupabaseAuthGuard)
 export class KnowledgeController {
   constructor(private readonly knowledgeService: KnowledgeService) {}
 
   @Get()
-  getKnowledge() {
-    return this.knowledgeService.rebuildIndexes();
+  getKnowledge(@CurrentUser() userId: string) {
+    return this.knowledgeService.rebuildIndexes(userId);
   }
 }
