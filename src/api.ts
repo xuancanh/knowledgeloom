@@ -2,6 +2,7 @@ import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Remind
 import { supabase } from './lib/supabase';
 
 async function authHeaders(): Promise<Record<string, string>> {
+  if (!supabase) return {};
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   return token ? { Authorization: `Bearer ${token}` } : {};
