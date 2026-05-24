@@ -107,9 +107,7 @@ main { background: var(--surface); }
   font-size: 13.5px;
   padding: 7px 9px;
 }
-.app.dense .markdown-editor {
-  gap: 10px;
-}
+.app.dense .markdown-editor { gap: 10px; }
 .app.dense .live-md-editor {
   max-height: 410px;
   min-height: 260px;
