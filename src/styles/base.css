@@ -48,7 +48,7 @@
 }
 
 /* White-theme capture box overrides */
-[data-theme="white"] .capture [class*="primaryZone"] {
+[data-theme="white"] [class*="primaryZone"] {
   background: #f2efe8;
   border-color: #c5c0b5;
 }
