@@ -31,10 +31,28 @@ export default function CaptureBox({
   const navigate = useNavigate();
   const editorRef = useRef<NoteEditorHandle>(null);
 
-  const [mode, setMode] = useState<CaptureMode>('research');
+  const [mode, setMode] = useState<CaptureMode>(() => {
+    const draft = sessionStorage.getItem('kl:landing-draft');
+    if (draft && /^https?:\/\//.test(draft.trim())) return 'link';
+    return 'research';
+  });
   const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [guidance, setGuidance] = useState(() => localStorage.getItem('kl:cap-research') || '');
+  const [url, setUrl] = useState(() => {
+    const draft = sessionStorage.getItem('kl:landing-draft');
+    if (draft && /^https?:\/\//.test(draft.trim())) {
+      sessionStorage.removeItem('kl:landing-draft');
+      return draft.trim();
+    }
+    return '';
+  });
+  const [guidance, setGuidance] = useState(() => {
+    const draft = sessionStorage.getItem('kl:landing-draft');
+    if (draft && !/^https?:\/\//.test(draft.trim())) {
+      sessionStorage.removeItem('kl:landing-draft');
+      return draft;
+    }
+    return localStorage.getItem('kl:cap-research') || '';
+  });
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [showMore, setShowMore] = useState(false);

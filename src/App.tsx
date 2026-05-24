@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { useKnowledge, themeLabels, fontStyleLabels, type Theme } from './hooks/useKnowledge';
+import { useAuth } from './hooks/useAuth';
 import ActivityPage from './components/activity/ActivityPage';
 import Home from './components/Home';
 import Rail from './components/Rail';
@@ -14,16 +15,28 @@ import { AllTagsRoute } from './components/routes/AllTagsRoute';
 import { FlashcardsRoute } from './components/routes/FlashcardsRoute';
 import { NewNoteRoute } from './components/routes/NewNoteRoute';
 import ContextPanel from './components/ContextPanel';
+import { ChatPanel } from './components/chat/ChatPanel';
+import { LandingPage } from './components/landing/LandingPage';
+import { LoginPage } from './components/auth/LoginPage';
 
-/**
- * Root application component.
- *
- * Calls `useKnowledge()` for all state, polled data, navigation callbacks, and
- * mutation handlers. Renders the layout shell: Rail (left sidebar), utility bar,
- * route content (via react-router <Routes>), ContextPanel (right sidebar),
- * SearchOverlay (command palette), and toast notification stack.
- */
 export default function App() {
+  const { session, loading: authLoading } = useAuth();
+
+  if (authLoading) return null;
+
+  if (!session) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<LandingPage />} />
+      </Routes>
+    );
+  }
+
+  return <AuthenticatedApp />;
+}
+
+function AuthenticatedApp() {
   const [themeDropOpen, setThemeDropOpen] = useState(false);
 
   const {
@@ -195,6 +208,7 @@ export default function App() {
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
             } />
+            <Route path="/login" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </main>
@@ -210,6 +224,8 @@ export default function App() {
         categories={categories}
         onOpen={openNote}
       />
+
+      <ChatPanel notes={state.notes} categories={categories} />
 
       <div className="toast-stack" role="status" aria-live="polite">
         {toasts.map((toast) => (
