@@ -25,7 +25,7 @@ import { mkdirSync, existsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
-import { runSqliteMigrations, runPgMigrations } from './migrator';
+import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
 import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE } from './database.constants';
 
 export type DrizzleDb = any;
@@ -147,6 +147,9 @@ export class DatabaseModule implements OnModuleInit {
     if (!this.db) return;
     const dialect = this.config.get<string>('databaseDialect') || 'sqlite';
     if (dialect === 'postgres') return;
+
+    const knowledgeDir = this.config.get<string>('knowledgeDir');
+    migrateLocalNoteFiles(knowledgeDir, this.logger);
 
     const remindersDbPath = this.config.get<string>('remindersDbPath');
     this.migrateReminders(remindersDbPath);
