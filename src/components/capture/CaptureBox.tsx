@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { CreateNoteRequest } from '../../types';
 import { templatesForMode, type GuidanceTemplate } from '../../lib/guidance';
-import LiveEditor, { type LiveEditorHandle } from '../LiveEditor';
+import NoteEditor, { type NoteEditorHandle } from '../notes/NoteEditor';
+import MetaFields from '../notes/MetaFields';
 import styles from './CaptureBox.module.css';
 
 /** Note capture mode: research, link (URL→note), or write (direct input). */
@@ -26,14 +27,14 @@ export default function CaptureBox({
   templates: GuidanceTemplate[];
 }) {
   const navigate = useNavigate();
-  const editorRef = useRef<LiveEditorHandle>(null);
+  const editorRef = useRef<NoteEditorHandle>(null);
 
   const [mode, setMode] = useState<CaptureMode>('research');
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [guidance, setGuidance] = useState(() => localStorage.getItem('kl:cap-research') || '');
   const [category, setCategory] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [showMore, setShowMore] = useState(false);
   const [seed, setSeed] = useState('');
   const [ctx, setCtx] = useState('');
@@ -75,7 +76,7 @@ export default function CaptureBox({
   }
 
   function reset() {
-    setTitle(''); setUrl(''); setGuidance(''); setCategory(''); setTags('');
+    setTitle(''); setUrl(''); setGuidance(''); setCategory(''); setTags([]);
     setSeed(''); setCtx(''); setSummary(''); setLinks(''); setAiPolish(false);
     setShowMore(false);
     editorRef.current?.clear();
@@ -97,7 +98,7 @@ export default function CaptureBox({
       body,
       context: ctx.trim(),
       category: category.trim(),
-      tags: splitList(tags),
+      tags,
       summary: summary.trim(),
       links: splitList(links),
       guidance: guidance.trim(),
@@ -221,10 +222,14 @@ export default function CaptureBox({
                 rows={3}
                 disabled={readOnly}
               />
-              <div className={styles.metaRow}>
-                <input className={styles.metaInput} value={category} onChange={(e) => setCategory(e.target.value)} onKeyDown={onKey} placeholder="Category hint" disabled={readOnly} />
-                <input className={styles.metaInput} value={tags} onChange={(e) => setTags(e.target.value)} onKeyDown={onKey} placeholder="Tags hint, comma-separated" disabled={readOnly} />
-              </div>
+              <MetaFields
+                category={category}
+                onCategoryChange={setCategory}
+                tags={tags}
+                onTagsChange={setTags}
+                disabled={readOnly}
+                compact
+              />
               <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder="Context — why you're learning this, where you found it…" disabled={readOnly} />
             </div>
           )}
@@ -311,10 +316,14 @@ export default function CaptureBox({
                 rows={2}
                 disabled={readOnly}
               />
-              <div className={styles.metaRow}>
-                <input className={styles.metaInput} value={category} onChange={(e) => setCategory(e.target.value)} onKeyDown={onKey} placeholder="Category hint" disabled={readOnly} />
-                <input className={styles.metaInput} value={tags} onChange={(e) => setTags(e.target.value)} onKeyDown={onKey} placeholder="Tags hint, comma-separated" disabled={readOnly} />
-              </div>
+              <MetaFields
+                category={category}
+                onCategoryChange={setCategory}
+                tags={tags}
+                onTagsChange={setTags}
+                disabled={readOnly}
+                compact
+              />
               <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder="Context — why this link matters…" disabled={readOnly} />
             </div>
           )}
@@ -334,16 +343,21 @@ export default function CaptureBox({
               disabled={readOnly}
             />
           </div>
-          <LiveEditor
-            ref={editorRef}
-            className="capture-editor"
-            placeholder="Start writing… ## heading  **bold**  *italic*  - list  > quote"
-            disabled={readOnly}
-          />
-          <div className={styles.metaRow}>
-            <input className={styles.metaInput} value={category} onChange={(e) => setCategory(e.target.value)} onKeyDown={onKey} placeholder="Category" disabled={readOnly} />
-            <input className={styles.metaInput} value={tags} onChange={(e) => setTags(e.target.value)} onKeyDown={onKey} placeholder="Tags, comma-separated" disabled={readOnly} />
+          <div className={styles.captureEditor}>
+            <NoteEditor
+              ref={editorRef}
+              placeholder="Start writing… use the toolbar for formatting, drag images to upload."
+              disabled={readOnly}
+            />
           </div>
+          <MetaFields
+            category={category}
+            onCategoryChange={setCategory}
+            tags={tags}
+            onTagsChange={setTags}
+            disabled={readOnly}
+            compact
+          />
           <label className={styles.polishToggle}>
             <input type="checkbox" checked={aiPolish} onChange={(e) => setAiPolish(e.target.checked)} disabled={readOnly} />
             <span className={styles.polishLabel}>

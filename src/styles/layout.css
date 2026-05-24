@@ -99,33 +99,6 @@ main { background: var(--surface); }
   gap: 4px;
   margin-bottom: 14px;
 }
-.app.dense .edit-card {
-  padding: 14px 16px;
-}
-.app.dense .edit-card input,
-.app.dense .edit-card textarea {
-  font-size: 13.5px;
-  padding: 7px 9px;
-}
-.app.dense .markdown-editor { gap: 10px; }
-.app.dense .live-md-editor {
-  max-height: 410px;
-  min-height: 260px;
-  padding: 7px 9px;
-}
-.app.dense .md-line {
-  font-size: 13.5px;
-  min-height: 1.35em;
-  padding: 1px 2px;
-}
-.app.dense .md-h1 { font-size: 21px; }
-.app.dense .md-h2 { font-size: 17px; }
-.app.dense .md-h3,
-.app.dense .md-code { font-size: 10.5px; }
-.app.dense .md-quote {
-  margin: 4px 0;
-  padding-left: 7px;
-}
 .app.dense .activity {
   padding: 14px;
 }
@@ -245,8 +218,6 @@ main { background: var(--surface); }
   .note-detail h1 {
     font-size: 27px;
   }
-  .edit-grid {
-    grid-template-columns: 1fr;
-  }
 }
+
 

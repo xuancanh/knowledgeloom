@@ -47,30 +47,6 @@
   --shadow: 0 1px 0 rgba(30, 35, 28, 0.04), 0 6px 18px -12px rgba(30, 35, 28, 0.22);
 }
 
-/* White-theme capture box overrides */
-[data-theme="white"] [class*="primaryZone"] {
-  background: #f2efe8 !important;
-  border-color: #c5c0b5 !important;
-}
-[data-theme="white"] [class*="primaryZone"]:focus-within {
-  border-color: var(--accent) !important;
-}
-[data-theme="white"] [class*="moreBody"],
-[data-theme="white"] [class*="guidanceInputWrap"] {
-  background: #f2efe8 !important;
-  border-color: #c5c0b5 !important;
-}
-[data-theme="white"] [class*="metaInput"],
-[data-theme="white"] [class*="seedArea"] {
-  background: #faf8f3 !important;
-  border-color: #c5c0b5 !important;
-  color: #171714 !important;
-}
-[data-theme="white"] [class*="metaInput"]:focus,
-[data-theme="white"] [class*="seedArea"]:focus {
-  border-color: var(--rule-2) !important;
-}
-
 [data-theme="dark"] {
   --paper: #181410;
   --paper-2: #201a14;
