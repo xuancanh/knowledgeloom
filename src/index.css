@@ -2,11 +2,12 @@
 @import './styles/rail.css';
 @import './styles/utility-bar.css';
 @import './styles/activity.css';
-@import './styles/capture.css';
 @import './styles/notes.css';
-@import './styles/note-detail.css';
 @import './styles/context-panel.css';
 @import './styles/search.css';
 @import './styles/flashcards.css';
 @import './styles/common.css';
 @import './styles/layout.css';
+@import './styles/editor.css';
+@import './styles/meta-fields.css';
+@import './styles/note-detail.css';

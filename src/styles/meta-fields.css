@@ -1,0 +1,130 @@
+/* ═══════════════════════════════════════════════════════════════
+   MetaFields — category + tag chip row
+   ═══════════════════════════════════════════════════════════════ */
+
+.meta-fields {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  background: var(--paper);
+  overflow: hidden;
+  min-height: 38px;
+  transition: border-color 140ms;
+}
+.meta-fields:focus-within {
+  border-color: var(--rule-2);
+}
+
+/* ── Category side ── */
+.mf-category {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 220px;
+  border-right: 1px solid var(--rule);
+}
+
+.mf-field-icon {
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0.6;
+  user-select: none;
+}
+
+.mf-cat-input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  width: 150px;
+  min-width: 80px;
+}
+.mf-cat-input::placeholder { color: var(--muted); }
+.mf-cat-input:disabled { color: var(--muted); cursor: default; }
+
+/* ── Divider ── */
+.mf-divider { display: none; }
+
+/* ── Tags side ── */
+.mf-tag-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 6px 12px;
+  flex: 1;
+  min-width: 0;
+  cursor: text;
+}
+
+.mf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--rule));
+  border-radius: 3px;
+  padding: 2px 6px 2px 7px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.mf-chip-remove {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 1px;
+  transition: color 100ms;
+  cursor: pointer;
+}
+.mf-chip-remove:hover { color: var(--rust); }
+
+.mf-tag-input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  min-width: 80px;
+  flex: 1;
+}
+.mf-tag-input::placeholder { color: var(--muted); }
+
+/* ── Compact variant (capture box) ── */
+.meta-fields--compact {
+  min-height: 34px;
+  border-radius: 5px;
+}
+.meta-fields--compact .mf-category {
+  padding: 4px 10px;
+  max-width: 180px;
+}
+.meta-fields--compact .mf-tag-wrap {
+  padding: 4px 10px;
+}
+.meta-fields--compact .mf-chip {
+  font-size: 11px;
+}
+.meta-fields--compact .mf-cat-input,
+.meta-fields--compact .mf-tag-input {
+  font-size: 12px;
+}
