@@ -88,6 +88,10 @@
   transition: border-color 150ms, box-shadow 150ms;
   cursor: text;
 }
+:global([data-theme="white"]) .primaryZone {
+  background: #f2efe8;
+  border-color: #c5c0b5;
+}
 .primaryZone:focus-within {
   border-color: var(--rule-2);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--rule-2) 14%, transparent);
@@ -330,6 +334,11 @@
 .moreToggle:hover { color: var(--muted); }
 .moreOpen { color: var(--muted); }
 .moreArrow { font-size: 8px; }
+.moreRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .guidancePreview {
   font-family: "Source Serif 4", serif;
   font-size: 12px;
@@ -441,11 +450,20 @@
   .footer { padding: 9px 14px 11px; }
 }
 
-/* ── Write-mode live editor focus ring color ── */
-/* .live-md-editor is a global class, so we target it through :global */
-.mode-write :global(.live-md-editor):focus-within {
+/* ── Write-mode WYSIWYG editor ── */
+.captureEditor {
+  margin-bottom: 10px;
+}
+.captureEditor :global(.note-editor) {
+  border-color: var(--rule-2);
+  border-radius: 6px;
+}
+.captureEditor :global(.note-editor):focus-within {
   border-color: var(--moss);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--moss) 14%, transparent);
+}
+.captureEditor :global(.ne-content) {
+  min-height: 160px;
 }
 
 /* ── Dense mode ── */
