@@ -57,12 +57,9 @@ export default function NoteDetail({
     const v = localStorage.getItem('kl:read-theme');
     return v === 'dark' || v === 'sepia' ? v : 'light';
   });
-  const [readFontSize, setReadFontSize] = useState<'s' | 'm' | 'l'>(() => {
-    const v = localStorage.getItem('kl:read-size');
-    return v === 's' || v === 'l' ? v : 'm';
-  });
-  const [readFontType, setReadFontType] = useState<'serif' | 'sans'>(() => {
-    return localStorage.getItem('kl:read-font') === 'sans' ? 'sans' : 'serif';
+  const [readWidth, setReadWidth] = useState<'narrow' | 'medium' | 'wide'>(() => {
+    const v = localStorage.getItem('kl:read-width');
+    return v === 'narrow' || v === 'wide' ? v : 'medium';
   });
   const [progress, setProgress] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -84,15 +81,13 @@ export default function NoteDetail({
   useEffect(() => {
     document.body.classList.toggle('reading', reading);
     document.body.dataset.readTheme = reading ? readTheme : '';
-    document.body.dataset.readSize = reading ? readFontSize : '';
-    document.body.dataset.readFont = reading ? readFontType : '';
+    document.body.dataset.readWidth = reading ? readWidth : '';
     return () => {
       document.body.classList.remove('reading');
       document.body.dataset.readTheme = '';
-      document.body.dataset.readSize = '';
-      document.body.dataset.readFont = '';
+      document.body.dataset.readWidth = '';
     };
-  }, [reading, readTheme, readFontSize, readFontType]);
+  }, [reading, readTheme, readWidth]);
 
   useEffect(() => {
     if (!reading) return;
@@ -106,8 +101,7 @@ export default function NoteDetail({
   }, [reading]);
 
   const setReadThemeAndSave = useCallback((t: typeof readTheme) => { setReadTheme(t); localStorage.setItem('kl:read-theme', t); }, []);
-  const setReadFontSizeAndSave = useCallback((s: typeof readFontSize) => { setReadFontSize(s); localStorage.setItem('kl:read-size', s); }, []);
-  const setReadFontTypeAndSave = useCallback((t: typeof readFontType) => { setReadFontType(t); localStorage.setItem('kl:read-font', t); }, []);
+  const setReadWidthState = useCallback((w: typeof readWidth) => { setReadWidth(w); localStorage.setItem('kl:read-width', w); }, []);
 
   /*
    * Opening the editor copies the latest note props and markdown body into
@@ -314,13 +308,9 @@ export default function NoteDetail({
         <>
           <div className="read-toolbar">
             <span className="read-toolbar-group">
-              <button onClick={() => setReadFontSizeAndSave('s')} className={readFontSize === 's' ? 'active' : ''}>A</button>
-              <button onClick={() => setReadFontSizeAndSave('m')} className={readFontSize === 'm' ? 'active' : ''} style={{ fontSize: '1.15em' }}>A</button>
-              <button onClick={() => setReadFontSizeAndSave('l')} className={readFontSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
-            </span>
-            <span className="read-toolbar-group">
-              <button onClick={() => setReadFontTypeAndSave('serif')} className={readFontType === 'serif' ? 'active' : ''}>Serif</button>
-              <button onClick={() => setReadFontTypeAndSave('sans')} className={readFontType === 'sans' ? 'active' : ''}>Sans</button>
+              <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>Narrow</button>
+              <button onClick={() => setReadWidthState('medium')} className={readWidth === 'medium' ? 'active' : ''}>Medium</button>
+              <button onClick={() => setReadWidthState('wide')} className={readWidth === 'wide' ? 'active' : ''}>Wide</button>
             </span>
             <span className="read-toolbar-group">
               <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Light</button>
