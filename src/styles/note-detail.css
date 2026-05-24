@@ -545,25 +545,33 @@ body.reading[data-read-theme="light"] {
 
 /* ── Reading font sizes ── */
 body.reading .note-detail .note-body { font-size: 1.05rem; line-height: 1.8; }
+body.reading .note-detail .note-body p { font-size: 1em; line-height: 1.8; margin-bottom: 1em; }
+body.reading .note-detail .note-body h3 { font-size: 0.85em; }
+body.reading .note-detail .note-body blockquote { font-size: 0.95em; }
 body.reading .note-detail .lede { font-size: 1rem; }
 
-body.reading[data-read-size="s"] .note-detail .note-body { font-size: 0.88rem; line-height: 1.7; }
+body.reading[data-read-size="s"] .note-detail .note-body { font-size: 0.88rem; }
+body.reading[data-read-size="s"] .note-detail .note-body p { font-size: 1em; }
 body.reading[data-read-size="s"] .note-detail .lede { font-size: 0.85rem; }
 body.reading[data-read-size="s"] .note-detail h1 { font-size: 1.8rem; }
 
-body.reading[data-read-size="l"] .note-detail .note-body { font-size: 1.25rem; line-height: 1.9; }
+body.reading[data-read-size="l"] .note-detail .note-body { font-size: 1.25rem; }
+body.reading[data-read-size="l"] .note-detail .note-body p { font-size: 1em; }
 body.reading[data-read-size="l"] .note-detail .lede { font-size: 1.15rem; }
 body.reading[data-read-size="l"] .note-detail h1 { font-size: 2.6rem; }
 
 /* ── Reading font type ── */
 body.reading[data-read-font="sans"] .note-detail,
 body.reading[data-read-font="sans"] .note-detail .note-body,
+body.reading[data-read-font="sans"] .note-detail .note-body p,
 body.reading[data-read-font="sans"] .note-detail .lede,
 body.reading[data-read-font="sans"] .note-detail h1,
-body.reading[data-read-font="sans"] .note-detail h3,
-body.reading[data-read-font="sans"] .note-detail p,
 body.reading[data-read-font="sans"] .note-detail blockquote {
   font-family: Arial, Roboto, Helvetica, sans-serif !important;
+}
+
+body.reading[data-read-font="sans"] .note-detail .note-body h3 {
+  font-family: "JetBrains Mono", ui-monospace, monospace !important;
 }
 
 body.reading .read-toolbar,
