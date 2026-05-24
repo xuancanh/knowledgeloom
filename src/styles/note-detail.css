@@ -448,3 +448,73 @@
   padding-top: 6px;
 }
 
+/* ════════════════════════════ Reading mode ════════════════════════ */
+body.reading .rail,
+body.reading .utility,
+body.reading .context,
+body.reading .rail-backdrop { display: none !important; }
+
+body.reading .app {
+  display: block;
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+body.reading main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 60px 28px 80px;
+  background: transparent;
+}
+
+body.reading .note-detail .note-body {
+  font-size: 1.15rem;
+  line-height: 1.8;
+}
+
+body.reading .note-detail h1 {
+  font-size: 2.2rem;
+  margin-bottom: 12px;
+}
+
+body.reading .note-detail .lede {
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+body.reading .note-detail .crumbs,
+body.reading .note-detail .h-meta,
+body.reading .note-detail .tags,
+body.reading .note-detail .source-toggle,
+body.reading .note-detail .reminder-section { display: none; }
+
+body.reading .edit-inline,
+body.reading .delete-inline { display: none; }
+
+body.reading .read-inline {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 50;
+}
+
+/* ── Read button in header ── */
+.read-inline {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 140ms, border-color 140ms, background 140ms;
+}
+.read-inline:hover {
+  color: var(--accent-2);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
