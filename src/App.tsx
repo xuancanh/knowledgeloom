@@ -81,8 +81,8 @@ export default function App() {
               <span className="util-label">{fontStyleLabels[fontStyle].label}</span>
             </button>
             <button onClick={() => setCompactMode((v) => !v)} title={compactMode ? 'Comfort' : 'Compact'}>
-              <span className="glyph">{compactMode ? '□' : '▤'}</span>
-              <span className="util-label">{compactMode ? 'Comfort' : 'Compact'}</span>
+              <span className="glyph">{compactMode ? '▤' : '□'}</span>
+              <span className="util-label">{compactMode ? 'Compact' : 'Comfort'}</span>
             </button>
             <button onClick={goHome} title="Desk">
               <span className="glyph">✦</span>

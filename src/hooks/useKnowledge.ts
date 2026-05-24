@@ -34,14 +34,14 @@ const preferenceKeys = {
 };
 
 export const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
-  light: { icon: '◐', next: 'white', label: 'White' },
-  white: { icon: '☾', next: 'dark', label: 'Dark' },
-  dark: { icon: '☀', next: 'light', label: 'Light' },
+  light: { icon: '☀', next: 'white', label: 'Light' },
+  white: { icon: '◐', next: 'dark', label: 'White' },
+  dark: { icon: '☾', next: 'light', label: 'Dark' },
 };
 
 export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle; label: string }> = {
-  serif: { icon: '𝐀', next: 'sans', label: 'Sans' },
-  sans: { icon: 'A', next: 'serif', label: 'Serif' },
+  serif: { icon: '𝐀', next: 'sans', label: 'Serif' },
+  sans: { icon: 'A', next: 'serif', label: 'Sans' },
 };
 
 function loadTheme(): Theme {
