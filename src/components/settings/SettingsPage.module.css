@@ -146,6 +146,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.rowColorDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 .rowActions {
   display: flex;
   gap: 6px;
@@ -240,6 +246,26 @@
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
+.colorSwatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.colorSwatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--swatch-color);
+  border: 2px solid transparent;
+  outline: 2px solid transparent;
+  transition: outline-color 100ms, transform 100ms;
+}
+.colorSwatch:hover { transform: scale(1.15); }
+.colorSwatchActive {
+  outline-color: var(--swatch-color);
+  outline-offset: 2px;
+}
+
 .editorActions {
   display: flex;
   gap: 8px;

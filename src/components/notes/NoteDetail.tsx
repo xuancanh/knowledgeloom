@@ -200,9 +200,9 @@ export default function NoteDetail({
         <div className="h-meta">
           <span>{formatCreated(note.createdAt)}</span>
           <span>· {outgoing.length}↗ {backlinks.length}↘</span>
-          <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? '✕ Exit' : 'Reading mode'}</button>
-          <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? 'Cancel' : 'Edit'}</button>
-          <button className="delete-inline" onClick={onDelete} disabled={readOnly}>Delete</button>
+          <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? '✕ Exit' : '⊡ Read'}</button>
+          <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? '✕ Cancel' : '✎ Edit'}</button>
+          <button className="delete-inline" onClick={onDelete} disabled={readOnly}>✕ Delete</button>
         </div>
         {readOnly && <div className="read-only-banner">Read-only mode: editing, deletion, and Codex jobs are disabled in this deployment.</div>}
         {!editing && (

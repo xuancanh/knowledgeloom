@@ -192,9 +192,11 @@ export default function CaptureBox({
                         key={tpl.id}
                         type="button"
                         className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                        style={guidance === tpl.text && tpl.color ? { color: `var(--${tpl.color})`, borderColor: `var(--${tpl.color})`, background: `color-mix(in srgb, var(--${tpl.color}) 8%, var(--surface))` } : undefined}
                         onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
                         disabled={readOnly}
                       >
+                        {tpl.color && <span className={styles.chipDot} style={{ background: `var(--${tpl.color})` }} />}
                         {tpl.label}
                       </button>
                     ))}
@@ -286,9 +288,11 @@ export default function CaptureBox({
                         key={tpl.id}
                         type="button"
                         className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                        style={guidance === tpl.text && tpl.color ? { color: `var(--${tpl.color})`, borderColor: `var(--${tpl.color})`, background: `color-mix(in srgb, var(--${tpl.color}) 8%, var(--surface))` } : undefined}
                         onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
                         disabled={readOnly}
                       >
+                        {tpl.color && <span className={styles.chipDot} style={{ background: `var(--${tpl.color})` }} />}
                         {tpl.label}
                       </button>
                     ))}

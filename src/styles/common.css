@@ -101,10 +101,11 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--rust);
-  border: 1px solid var(--rule);
+  border: 1px solid color-mix(in srgb, var(--rust) 40%, var(--rule));
   border-radius: 3px;
-  padding: 2px 7px;
+  padding: 3px 9px;
   font-weight: 600;
+  transition: border-color 120ms, background 120ms;
 }
 .edit-inline {
   font-family: Inter, system-ui, sans-serif;
@@ -112,19 +113,19 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--accent);
-  border: 1px solid var(--rule);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--rule));
   border-radius: 3px;
-  padding: 2px 7px;
+  padding: 3px 9px;
   font-weight: 600;
+  transition: border-color 120ms, background 120ms;
 }
 .edit-inline:hover {
   border-color: var(--accent);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
 }
 .delete-inline:hover {
   border-color: var(--rust);
-  color: var(--rust);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--rust) 7%, var(--surface));
 }
 .edit-inline:disabled,
 .delete-inline:disabled,

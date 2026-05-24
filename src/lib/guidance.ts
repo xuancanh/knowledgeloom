@@ -7,6 +7,8 @@ export type GuidanceTemplate = {
   label: string;
   text: string;
   mode: GuidanceMode;
+  /** CSS variable name suffix: 'moss' | 'indigo' | 'ochre' | 'teal' | 'rust' | '' (accent) */
+  color?: string;
   builtIn?: boolean;
 };
 

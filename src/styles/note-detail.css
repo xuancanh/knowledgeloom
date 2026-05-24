@@ -661,7 +661,7 @@ body.reading .note-detail .h-meta .read-inline {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--muted);
   border: 1px solid var(--rule);
   border-radius: 4px;
   padding: 4px 10px;
@@ -669,9 +669,9 @@ body.reading .note-detail .h-meta .read-inline {
   transition: color 140ms, border-color 140ms, background 140ms;
 }
 .read-inline:hover {
-  color: var(--accent-2);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  color: var(--ink-2);
+  border-color: var(--rule-2);
+  background: color-mix(in srgb, var(--ink) 4%, var(--surface));
 }
 .read-toolbar {
   position: fixed;
