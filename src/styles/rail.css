@@ -237,6 +237,7 @@
   padding: 7px 8px;
   border-radius: 4px;
   font-size: 14.5px;
+  font-weight: 500;
   color: var(--ink-2);
   cursor: pointer;
   width: 100%;
@@ -264,6 +265,7 @@
   margin-left: auto;
   font-family: "JetBrains Mono", monospace;
   font-size: 12px;
+  font-weight: 500;
   color: var(--muted);
 }
 .nav-item .dot {
