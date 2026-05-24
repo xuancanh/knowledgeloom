@@ -161,6 +161,7 @@ export default function CaptureBox({
               autoFocus={!readOnly}
             />
           </div>
+          <div className={styles.moreRow}>
           <button
             type="button"
             className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
@@ -168,10 +169,11 @@ export default function CaptureBox({
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
-            </button>
+          </button>
             {!showMore && guidance && (
               <span className={styles.guidancePreview}>Writing instruction: {guidanceLabel}</span>
             )}
+          </div>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.guidance}>
@@ -249,6 +251,7 @@ export default function CaptureBox({
             />
           </div>
           </div>
+          <div className={styles.moreRow}>
           <button
             type="button"
             className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
@@ -256,10 +259,11 @@ export default function CaptureBox({
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
             {showMore ? 'Fewer options' : 'More options'}
-            </button>
+          </button>
             {!showMore && guidance && (
               <span className={styles.guidancePreview}>Writing instruction: {guidanceLabel}</span>
             )}
+          </div>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.guidance}>
