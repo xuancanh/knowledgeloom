@@ -266,7 +266,7 @@
   position: absolute;
   left: -12px;
   top: 50%;
-  width: 10px;
+  width: 12px;
   height: 1.5px;
   background: var(--rule);
 }
