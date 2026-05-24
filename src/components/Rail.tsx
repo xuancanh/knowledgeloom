@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { categoryLabel, type CategoryTreeNode, type UiCategory } from '../lib/view';
 
-/** Maximum tags shown before the "+N more" overflow indicator. */
-const TAG_INITIAL_LIMIT = 18;
+const CAT_INITIAL_LIMIT = 5;
+const TAG_INITIAL_LIMIT = 5;
 
 function renderCategoryNode(
   node: CategoryTreeNode,
@@ -50,6 +51,8 @@ export default function Rail({
   openCategory,
   openTag,
   closeRail,
+  onViewAllCategories,
+  onViewAllTags,
 }: {
   categories: UiCategory[];
   categoryTree: CategoryTreeNode[];
@@ -69,6 +72,8 @@ export default function Rail({
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
   closeRail: () => void;
+  onViewAllCategories: () => void;
+  onViewAllTags: () => void;
 }) {
   const location = useLocation();
   const path = location.pathname;
@@ -84,6 +89,9 @@ export default function Rail({
     ? decodeURIComponent(path.slice('/tags/'.length))
     : null;
 
+  const [catExpanded, setCatExpanded] = useState(false);
+  const [tagExpanded, setTagExpanded] = useState(false);
+
   const filteredCategories = (() => {
     const q = catSearch.trim().toLowerCase();
     if (!q) return null;
@@ -93,8 +101,15 @@ export default function Rail({
   const filteredTags = tagSearch
     ? tagCounts.filter(([tag]) => tag.toLowerCase().includes(tagSearch.trim().toLowerCase()))
     : tagCounts;
-  const visibleTags = tagSearch ? filteredTags : filteredTags.slice(0, TAG_INITIAL_LIMIT);
+  const visibleTags = tagSearch ? filteredTags : filteredTags.slice(0, tagExpanded ? undefined : TAG_INITIAL_LIMIT);
   const hiddenTagCount = tagSearch ? 0 : Math.max(0, tagCounts.length - TAG_INITIAL_LIMIT);
+
+  const visibleCategoryTree = catSearch || catExpanded
+    ? categoryTree
+    : categoryTree.slice(0, CAT_INITIAL_LIMIT);
+  const hiddenCatCount = catSearch
+    ? 0
+    : Math.max(0, categoryTree.length - CAT_INITIAL_LIMIT);
 
   return (
     <aside className={`rail${railOpen ? ' rail-open' : ''}`}>
@@ -133,10 +148,11 @@ export default function Rail({
           </button>
         </div>
 
-        <div className="rail-section-head">
+        <button className="rail-section-head" onClick={() => { onViewAllCategories(); closeRail(); }}>
           <span className="rail-section-label">Categories</span>
           <span className="rail-section-count">{categories.length}</span>
-        </div>
+          <span className="rail-section-arrow">→</span>
+        </button>
         <div className="rail-filter-wrap">
           <span className="rail-filter-icon">⌕</span>
           <input
@@ -176,13 +192,24 @@ export default function Rail({
             <div className="rail-empty">No categories match</div>
           )
         ) : (
-          categoryTree.map((node) => renderCategoryNode(node, activeCategoryId, openCategory, closeRail))
+          <>
+            {visibleCategoryTree.map((node) => renderCategoryNode(node, activeCategoryId, openCategory, closeRail))}
+            {hiddenCatCount > 0 && !catExpanded && (
+              <button className="nav-item rail-expand" onClick={() => setCatExpanded(true)}>
+                +{hiddenCatCount} more
+              </button>
+            )}
+            {catExpanded && !catSearch && (
+              <button className="nav-item rail-expand" onClick={() => setCatExpanded(false)}>Show less</button>
+            )}
+          </>
         )}
 
-        <div className="rail-section-head">
+        <button className="rail-section-head" onClick={() => { onViewAllTags(); closeRail(); }}>
           <span className="rail-section-label">Tags</span>
           <span className="rail-section-count">{tagCounts.length}</span>
-        </div>
+          <span className="rail-section-arrow">→</span>
+        </button>
         <div className="rail-filter-wrap">
           <span className="rail-filter-icon">⌕</span>
           <input
@@ -212,8 +239,13 @@ export default function Rail({
             </button>
           ))
         )}
-        {hiddenTagCount > 0 && (
-          <div className="rail-more">+{hiddenTagCount} more — search to filter</div>
+        {hiddenTagCount > 0 && !tagExpanded && (
+          <button className="nav-item rail-expand" onClick={() => setTagExpanded(true)}>
+            +{hiddenTagCount} more
+          </button>
+        )}
+        {tagExpanded && !tagSearch && (
+          <button className="nav-item rail-expand" onClick={() => setTagExpanded(false)}>Show less</button>
         )}
       </nav>
     </aside>

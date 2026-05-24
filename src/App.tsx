@@ -8,6 +8,8 @@ import SettingsPage from './components/settings/SettingsPage';
 import { NoteRoute } from './components/routes/NoteRoute';
 import { CategoryRoute } from './components/routes/CategoryRoute';
 import { TagRoute } from './components/routes/TagRoute';
+import { AllCategoriesRoute } from './components/routes/AllCategoriesRoute';
+import { AllTagsRoute } from './components/routes/AllTagsRoute';
 import { FlashcardsRoute } from './components/routes/FlashcardsRoute';
 import ContextPanel from './components/ContextPanel';
 
@@ -26,7 +28,7 @@ export default function App() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, handleDelete, handleSaveNote,
+    openActivity, openSettings, openFlashcards, openAllCategories, openAllTags, handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
     handleDeleteReminder,
   } = useKnowledge();
@@ -53,6 +55,8 @@ export default function App() {
         openCategory={openCategory}
         openTag={openTag}
         closeRail={() => setRailOpen(false)}
+        onViewAllCategories={openAllCategories}
+        onViewAllTags={openAllTags}
       />
 
       {railOpen && <div className="rail-backdrop" onClick={() => setRailOpen(false)} />}
@@ -127,28 +131,38 @@ export default function App() {
                 onDeleteReminder={handleDeleteReminder}
               />
             } />
-            <Route path="/categories/*" element={
-              <CategoryRoute
-                notes={state.notes}
-                categories={categories}
-                categoryById={categoryById}
-                flashcards={state.flashcards || []}
-                onOpen={openNote}
-                onOpenTag={openTag}
-                onOpenCategory={openCategory}
-                onOpenFlashcards={(cat) => openFlashcards('category', cat)}
-              />
-            } />
-            <Route path="/tags/:tag" element={
-              <TagRoute
-                notes={state.notes}
-                categories={categories}
-                flashcards={state.flashcards || []}
-                onOpen={openNote}
-                onOpenTag={openTag}
-                onOpenFlashcards={(t) => openFlashcards('tag', t)}
-              />
-            } />
+            <Route path="/categories">
+              <Route index element={
+                <AllCategoriesRoute categories={categories} onOpenCategory={openCategory} />
+              } />
+              <Route path="*" element={
+                <CategoryRoute
+                  notes={state.notes}
+                  categories={categories}
+                  categoryById={categoryById}
+                  flashcards={state.flashcards || []}
+                  onOpen={openNote}
+                  onOpenTag={openTag}
+                  onOpenCategory={openCategory}
+                  onOpenFlashcards={(cat) => openFlashcards('category', cat)}
+                />
+              } />
+            </Route>
+            <Route path="/tags">
+              <Route index element={
+                <AllTagsRoute tagCounts={tagCounts} onOpenTag={openTag} />
+              } />
+              <Route path=":tag" element={
+                <TagRoute
+                  notes={state.notes}
+                  categories={categories}
+                  flashcards={state.flashcards || []}
+                  onOpen={openNote}
+                  onOpenTag={openTag}
+                  onOpenFlashcards={(t) => openFlashcards('tag', t)}
+                />
+              } />
+            </Route>
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
             } />
