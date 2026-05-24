@@ -26,10 +26,10 @@
 }
 
 [data-theme="white"] {
-  --paper: #f8f8f4;
-  --paper-2: #eeeeea;
+  --paper: #f0f0ec;
+  --paper-2: #e8e8e4;
   --surface: #ffffff;
-  --surface-2: #f3f3ef;
+  --surface-2: #f5f5f1;
   --ink: #171714;
   --ink-2: #2d2e29;
   --muted: #5c6258;
