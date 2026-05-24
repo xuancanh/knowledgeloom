@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CategoryTreeNode, UiCategory } from '../../lib/view';
+
+type ViewMode = 'tree' | 'columns';
 
 function getColorVar(color: string): string {
   const map: Record<string, string> = {
@@ -9,6 +11,8 @@ function getColorVar(color: string): string {
   };
   return map[color] || 'var(--accent)';
 }
+
+// ── Tree view ──────────────────────────────────────────────────────────────────
 
 function TreeNode({ node, depth, onOpenCategory }: {
   node: CategoryTreeNode;
@@ -50,6 +54,68 @@ function TreeNode({ node, depth, onOpenCategory }: {
   );
 }
 
+// ── Column view ────────────────────────────────────────────────────────────────
+
+function ColumnsView({ categoryTree, onOpenCategory }: {
+  categoryTree: CategoryTreeNode[];
+  onOpenCategory: (id: string) => void;
+}) {
+  // selectedPath[i] = the node.id selected in column i
+  const [selectedPath, setSelectedPath] = useState<string[]>([]);
+
+  const columns = useMemo(() => {
+    const cols: CategoryTreeNode[][] = [categoryTree];
+    for (let i = 0; i < selectedPath.length; i++) {
+      const selectedId = selectedPath[i];
+      const node = cols[i].find((n) => n.id === selectedId);
+      if (node && node.children.length > 0) {
+        cols.push(node.children);
+      } else {
+        break;
+      }
+    }
+    return cols;
+  }, [categoryTree, selectedPath]);
+
+  function handleClick(colIndex: number, node: CategoryTreeNode) {
+    // Update selected path up to this column
+    setSelectedPath((prev) => [...prev.slice(0, colIndex), node.id]);
+    // If leaf, navigate
+    if (node.children.length === 0) {
+      onOpenCategory(node.id);
+    }
+  }
+
+  return (
+    <div className="cat-columns">
+      {columns.map((col, ci) => (
+        <div key={ci} className="cat-col">
+          {col.map((node) => {
+            const color = getColorVar(node.color);
+            const isSelected = selectedPath[ci] === node.id;
+            return (
+              <button
+                key={node.id}
+                className={`cat-col-row${isSelected ? ' selected' : ''}`}
+                onClick={() => handleClick(ci, node)}
+              >
+                <span className="cat-col-dot" style={{ background: color }} />
+                <span className="cat-col-name">{node.label}</span>
+                <span className="cat-col-right">
+                  <span className="cat-col-count">{node.count}</span>
+                  {node.children.length > 0 && <span className="cat-col-arrow">▸</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export function AllCategoriesRoute({
   categories,
   categoryTree,
@@ -59,6 +125,8 @@ export function AllCategoriesRoute({
   categoryTree: CategoryTreeNode[];
   onOpenCategory: (id: string) => void;
 }) {
+  const [viewMode, setViewMode] = useState<ViewMode>('tree');
+
   return (
     <div className="cat-page">
       <div className="crumbs">
@@ -66,15 +134,29 @@ export function AllCategoriesRoute({
       </div>
 
       <div className="cat-page-head">
-        <h1>Categories</h1>
-        <p>{categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} · {categoryTree.length} root folder{categoryTree.length !== 1 ? 's' : ''}</p>
+        <div>
+          <h1>Categories</h1>
+          <p>{categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} · {categoryTree.length} root folder{categoryTree.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="cat-view-toggle">
+          <button className={viewMode === 'tree' ? 'active' : ''} onClick={() => setViewMode('tree')} title="Tree view">
+            ▸ Tree
+          </button>
+          <button className={viewMode === 'columns' ? 'active' : ''} onClick={() => setViewMode('columns')} title="Columns view">
+            ⊟ Columns
+          </button>
+        </div>
       </div>
 
-      <div className="cat-tree">
-        {categoryTree.map((node) => (
-          <TreeNode key={node.id} node={node} depth={0} onOpenCategory={onOpenCategory} />
-        ))}
-      </div>
+      {viewMode === 'tree' ? (
+        <div className="cat-tree">
+          {categoryTree.map((node) => (
+            <TreeNode key={node.id} node={node} depth={0} onOpenCategory={onOpenCategory} />
+          ))}
+        </div>
+      ) : (
+        <ColumnsView categoryTree={categoryTree} onOpenCategory={onOpenCategory} />
+      )}
     </div>
   );
 }
