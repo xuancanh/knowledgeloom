@@ -21,7 +21,7 @@ function CategoryNode({
 
   return (
     <div key={node.id} className="category-tree-node">
-      <div className={`cat-row depth-${Math.min(node.depth, 4)}${activeCategoryId === node.id ? ' active' : ''}`}>
+      <div className="cat-row">
         {hasKids ? (
           <button className="cat-toggle" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
             <span className={`cat-arrow ${expanded ? 'expanded' : ''}`}>▸</span>
