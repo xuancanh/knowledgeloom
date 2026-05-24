@@ -34,7 +34,7 @@ const preferenceKeys = {
 };
 
 export const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
-  light: { icon: '☀', next: 'white', label: 'Light' },
+  light: { icon: '☀', next: 'white', label: 'Warm' },
   white: { icon: '◐', next: 'dark', label: 'White' },
   dark: { icon: '☾', next: 'midnight', label: 'Dark' },
   midnight: { icon: '◑', next: 'light', label: 'Night' },
