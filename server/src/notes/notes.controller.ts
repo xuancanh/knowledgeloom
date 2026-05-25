@@ -67,10 +67,11 @@ export class NotesController {
   async regenerate(
     @CurrentUser() userId: string,
     @Param('id') id: string,
-    @Body() body: { target?: string },
+    @Body() body: { target?: string; size?: string },
   ) {
     const target = body?.target === 'quiz' ? 'quiz' : body?.target === 'flashcards' ? 'flashcards' : 'all';
-    const job = await this.notesService.enqueueRegenerate(userId, id, target);
+    const size = body?.size === 'medium' ? 'medium' : body?.size === 'large' ? 'large' : 'small';
+    const job = await this.notesService.enqueueRegenerate(userId, id, target, size);
     return { job };
   }
 }

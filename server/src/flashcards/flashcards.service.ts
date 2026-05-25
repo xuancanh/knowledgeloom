@@ -6,7 +6,13 @@ import { FlashcardCacheRepository } from './flashcard-cache.repository';
 import { FlashcardReviewsRepository, type FlashcardReview } from './flashcard-reviews.repository';
 import { UserFlashcardsRepository, type UserFlashcardRow } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
-import type { KnowledgeNote, NoteSource, Flashcard } from '../types';
+import type { GenSize, KnowledgeNote, NoteSource, Flashcard } from '../types';
+
+const FC_SIZE_RANGE: Record<GenSize, { min: number; max: number; cap: number }> = {
+  small:  { min: 5,  max: 10, cap: 10 },
+  medium: { min: 10, max: 20, cap: 20 },
+  large:  { min: 20, max: 40, cap: 40 },
+};
 
 export interface ReviewOutcome {
   easeFactor: string;
@@ -72,7 +78,7 @@ export class FlashcardsService {
     };
   }
 
-  async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true } = {}): Promise<Flashcard[]> {
+  async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<Flashcard[]> {
     const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;
 
@@ -103,9 +109,9 @@ export class FlashcardsService {
       await Promise.all(
         uncached.slice(i, i + BATCH).map(async ({ note, markdown }) => {
           try {
-            const prompt = this.buildPrompt(note, markdown);
+            const prompt = this.buildPrompt(note, markdown, size);
             const output = await this.ai.complete(prompt, { outputFormat: 'json' });
-            const cards = this.normalize(note, this.parseJson(output));
+            const cards = this.normalize(note, this.parseJson(output), size);
             nextNotes[note.id] = { hash: this.noteHash(note, markdown), cards, generatedAt: new Date().toISOString() };
           } catch (err) {
             // Keep existing cache entry on AI failure rather than losing cards
@@ -173,7 +179,7 @@ export class FlashcardsService {
     return parsed.flashcards;
   }
 
-  private normalize(note: KnowledgeNote, rawCards: any[]): Flashcard[] {
+  private normalize(note: KnowledgeNote, rawCards: any[], size: GenSize = 'small'): Flashcard[] {
     const generic = new Set(['what i learned', 'key details', 'lesson', 'summary', 'key idea']);
     const allowedKinds = new Set(['concept', 'question', 'lesson', 'tradeoff', 'pattern']);
     return rawCards
@@ -185,7 +191,7 @@ export class FlashcardsService {
         return { prompt, lesson, kind };
       })
       .filter((card) => card.prompt.length >= 8 && card.lesson.length >= 30 && !generic.has(card.prompt.toLowerCase()))
-      .slice(0, 8)
+      .slice(0, FC_SIZE_RANGE[size].cap)
       .map((card): Flashcard => ({
         id: `${note.id}-${randomUUID()}`,
         noteId: note.id,
@@ -198,12 +204,13 @@ export class FlashcardsService {
       }));
   }
 
-  private buildPrompt(note: KnowledgeNote, markdown: string): string {
+  private buildPrompt(note: KnowledgeNote, markdown: string, size: GenSize = 'small'): string {
+    const { min, max } = FC_SIZE_RANGE[size];
     return `Create high-signal flashcards from this knowledge note.
 
 Rules:
 - Return only valid JSON. No markdown fence and no commentary.
-- Create 4 to 8 flashcards.
+- Create ${min} to ${max} flashcards.
 - Each flashcard must be a snippet or micro lesson from the note, not a generic section heading.
 - The "prompt" must be specific to the card's idea. Never use generic titles like "What I learned", "Key details", "Lesson", or "Summary".
 - The "lesson" should be 1 to 3 concise sentences, grounded only in the note.

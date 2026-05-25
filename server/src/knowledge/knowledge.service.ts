@@ -156,7 +156,7 @@ export class KnowledgeService {
    * Bypasses the hash cache so the AI is called regardless of whether the
    * note has changed since the last generation.
    */
-  async regenerateForNote(userId: string, noteId: string, target: 'flashcards' | 'quiz' | 'all'): Promise<void> {
+  async regenerateForNote(userId: string, noteId: string, target: 'flashcards' | 'quiz' | 'all', size: import('../types').GenSize = 'small'): Promise<void> {
     const allSources = await this.noteRepo.readAllSources(userId);
     const source = allSources.find((s) => s.note.id === noteId);
     if (!source) {
@@ -166,10 +166,10 @@ export class KnowledgeService {
     }
     const sources = [source];
     if (target === 'flashcards' || target === 'all') {
-      await this.flashcardsService.sync(userId, sources, { force: true });
+      await this.flashcardsService.sync(userId, sources, { force: true, size });
     }
     if (target === 'quiz' || target === 'all') {
-      await this.quizService.sync(userId, sources, { force: true });
+      await this.quizService.sync(userId, sources, { force: true, size });
     }
   }
 

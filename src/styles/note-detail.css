@@ -874,6 +874,36 @@ body.reading .note-detail .h-meta .read-inline {
 .regen-drop button:last-child { border-bottom: 0; }
 .regen-drop button:hover { background: var(--surface-2); }
 
+.regen-size-row {
+  display: flex;
+  border-bottom: 1px solid var(--rule);
+  padding: 6px 8px;
+  gap: 4px;
+}
+.regen-size-row button {
+  flex: 1;
+  border: 1px solid var(--rule) !important;
+  border-radius: 4px !important;
+  padding: 4px 0 !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  text-align: center !important;
+  color: var(--muted) !important;
+  transition: color 100ms, border-color 100ms, background 100ms !important;
+}
+.regen-size-row button.active {
+  color: var(--accent) !important;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--rule)) !important;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface)) !important;
+}
+.regen-size-row button:hover:not(.active) {
+  color: var(--ink-2) !important;
+  border-color: var(--rule-2) !important;
+  background: var(--surface-2) !important;
+}
+
 .read-toolbar {
   position: fixed;
   bottom: 0;

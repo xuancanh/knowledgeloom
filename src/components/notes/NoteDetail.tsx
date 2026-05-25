@@ -69,6 +69,10 @@ export default function NoteDetail({
   const savedTheme = useRef<string | null>(null);
   const [regenState, setRegenState] = useState<'idle' | 'loading' | 'queued'>('idle');
   const [regenDropOpen, setRegenDropOpen] = useState(false);
+  const [genSize, setGenSize] = useState<'small' | 'medium' | 'large'>(() => {
+    const v = localStorage.getItem('kl:gen-size');
+    return v === 'medium' || v === 'large' ? v : 'small';
+  });
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [category, setCategory] = useState(note.category);
@@ -196,11 +200,16 @@ export default function NoteDetail({
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [regenDropOpen]);
 
+  function setGenSizeAndSave(s: 'small' | 'medium' | 'large') {
+    setGenSize(s);
+    localStorage.setItem('kl:gen-size', s);
+  }
+
   async function handleRegenerate(target: 'flashcards' | 'quiz' | 'all') {
     setRegenDropOpen(false);
     setRegenState('loading');
     try {
-      await regenerateNote(note.id, target);
+      await regenerateNote(note.id, target, genSize);
       setRegenState('queued');
       window.setTimeout(() => setRegenState('idle'), 4000);
     } catch {
@@ -234,6 +243,11 @@ export default function NoteDetail({
               </button>
               {regenDropOpen && (
                 <div className="regen-drop">
+                  <div className="regen-size-row">
+                    <button className={genSize === 'small' ? 'active' : ''} onClick={() => setGenSizeAndSave('small')}>S</button>
+                    <button className={genSize === 'medium' ? 'active' : ''} onClick={() => setGenSizeAndSave('medium')}>M</button>
+                    <button className={genSize === 'large' ? 'active' : ''} onClick={() => setGenSizeAndSave('large')}>L</button>
+                  </div>
                   <button onClick={() => handleRegenerate('flashcards')}>↺ Flashcards</button>
                   <button onClick={() => handleRegenerate('quiz')}>↺ Quiz</button>
                   <button onClick={() => handleRegenerate('all')}>↺ Both</button>

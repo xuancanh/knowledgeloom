@@ -155,7 +155,7 @@ export class NotesService {
     return this.codexService.assistEdit(id, draft, instruction);
   }
 
-  async enqueueRegenerate(userId: string, id: string, target: 'flashcards' | 'quiz' | 'all'): Promise<any> {
+  async enqueueRegenerate(userId: string, id: string, target: 'flashcards' | 'quiz' | 'all', size: 'small' | 'medium' | 'large' = 'small'): Promise<any> {
     this.assertWritable();
     const safeId = basename(id);
     const file = await this.noteRepo.findById(userId, safeId);
@@ -166,9 +166,10 @@ export class NotesService {
     const targetLabel = target === 'all' ? 'flashcards + quiz' : target;
     return this.jobsService.enqueue(userId, {
       mode: 'regen',
-      topic: `Regenerate ${targetLabel}: ${note.title}`,
+      topic: `Regenerate ${targetLabel} (${size}): ${note.title}`,
       noteId: safeId,
       regenTarget: target,
+      regenSize: size,
     });
   }
 

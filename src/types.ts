@@ -72,6 +72,8 @@ export type Flashcard = {
   };
 };
 
+export type GenSize = 'small' | 'medium' | 'large';
+
 export type CreateMode = 'write' | 'polish' | 'research' | 'link' | 'regen';
 
 export type CreateNoteRequest = {
