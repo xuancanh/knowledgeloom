@@ -1,66 +1,65 @@
 /* ═══════════════════════════════════════════════════════════════
-   MetaFields — category + tag chip row
+   MetaFields — vertical: category row / tag row
    ═══════════════════════════════════════════════════════════════ */
 
 .meta-fields {
-  display: flex;
-  align-items: stretch;
   border: 1px solid var(--rule);
   border-radius: 7px;
   background: var(--paper);
-  overflow: hidden;
-  min-height: 38px;
   transition: border-color 140ms;
+  /* overflow: visible so dropdowns can escape the box */
 }
 .meta-fields:focus-within {
   border-color: var(--rule-2);
 }
 
-/* ── Category side ── */
-.mf-category {
+/* ── Shared row ── */
+.mf-row {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 12px;
-  flex: 0 0 auto;
+  gap: 8px;
+  padding: 8px 12px;
+  position: relative;   /* anchor for dropdown */
   min-width: 0;
-  max-width: 220px;
-  border-right: 1px solid var(--rule);
 }
 
-.mf-field-icon {
+.mf-category-row {
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ── Row icon ── */
+.mf-row-icon {
+  flex-shrink: 0;
   font-size: 13px;
   line-height: 1;
-  flex-shrink: 0;
-  opacity: 0.6;
+  color: var(--muted);
   user-select: none;
+  width: 16px;
+  text-align: center;
 }
 
+/* ── Category input ── */
 .mf-cat-input {
+  flex: 1;
+  min-width: 0;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--ink);
   font-family: Inter, system-ui, sans-serif;
-  font-size: 12.5px;
-  width: 150px;
-  min-width: 80px;
+  font-size: 13px;
 }
 .mf-cat-input::placeholder { color: var(--muted); }
 .mf-cat-input:disabled { color: var(--muted); cursor: default; }
 
-/* ── Divider ── */
-.mf-divider { display: none; }
-
-/* ── Tags side ── */
-.mf-tag-wrap {
-  display: flex;
+/* ── Tag row ── */
+.mf-tag-row {
   align-items: flex-start;
-  gap: 7px;
-  padding: 6px 12px;
-  flex: 1;
-  min-width: 0;
   cursor: text;
+}
+
+.mf-tag-row .mf-row-icon {
+  margin-top: 3px; /* align icon with the first line of chips */
 }
 
 .mf-chips {
@@ -82,7 +81,7 @@
   background: color-mix(in srgb, var(--accent) 10%, var(--paper));
   border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--rule));
   border-radius: 3px;
-  padding: 2px 6px 2px 7px;
+  padding: 2px 5px 2px 7px;
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -103,28 +102,53 @@
   background: transparent;
   color: var(--ink);
   font-family: Inter, system-ui, sans-serif;
-  font-size: 12.5px;
+  font-size: 13px;
   min-width: 80px;
   flex: 1;
 }
 .mf-tag-input::placeholder { color: var(--muted); }
 
+/* ── Dropdown ── */
+.mf-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border: 1px solid var(--rule-2);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent);
+  z-index: 60;
+  overflow: hidden;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.mf-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--ink-2);
+  transition: background 80ms, color 80ms;
+  cursor: pointer;
+  border-bottom: 1px solid var(--rule);
+}
+.mf-dropdown-item:last-child { border-bottom: 0; }
+.mf-dropdown-item:hover,
+.mf-dropdown-item:focus { background: var(--surface); color: var(--ink); outline: none; }
+.mf-dropdown-item--active { color: var(--accent); }
+
 /* ── Compact variant (capture box) ── */
-.meta-fields--compact {
-  min-height: 34px;
-  border-radius: 5px;
-}
-.meta-fields--compact .mf-category {
-  padding: 4px 10px;
-  max-width: 180px;
-}
-.meta-fields--compact .mf-tag-wrap {
-  padding: 4px 10px;
-}
-.meta-fields--compact .mf-chip {
-  font-size: 11px;
+.meta-fields--compact .mf-row {
+  padding: 6px 10px;
 }
 .meta-fields--compact .mf-cat-input,
 .meta-fields--compact .mf-tag-input {
   font-size: 12px;
+}
+.meta-fields--compact .mf-chip {
+  font-size: 11px;
 }
