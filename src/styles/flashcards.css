@@ -1655,6 +1655,49 @@ input[type="checkbox"]:checked + .fc-toggle-track::after {
   align-items: center;
 }
 
+/* ── Card preview modal ── */
+.fc-preview-modal {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  box-shadow: 0 16px 56px -12px rgba(0, 0, 0, 0.32);
+  width: min(660px, 94vw);
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  animation: fcDialogIn 200ms ease;
+}
+.fc-preview-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+  z-index: 1;
+}
+.fc-preview-close:hover { color: var(--ink); border-color: var(--rule-2); }
+.fc-preview-stage {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.fc-preview-stage .fc-scene { width: 100%; }
+.fc-preview-actions { display: flex; flex-direction: column; align-items: stretch; }
+.fc-preview-actions .fc-reveal-area { align-items: stretch; }
+.fc-preview-actions .fc-rating-area { align-items: stretch; }
+
 /* ── Delete confirmation ── */
 .fc-delete-prompt {
   font-size: 16px;
