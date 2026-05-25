@@ -13,6 +13,7 @@ import { TagRoute } from './components/routes/TagRoute';
 import { AllCategoriesRoute } from './components/routes/AllCategoriesRoute';
 import { AllTagsRoute } from './components/routes/AllTagsRoute';
 import { FlashcardsRoute } from './components/routes/FlashcardsRoute';
+import { QuizRoute } from './components/routes/QuizRoute';
 import { NewNoteRoute } from './components/routes/NewNoteRoute';
 import ContextPanel from './components/ContextPanel';
 import { ChatPanel } from './components/chat/ChatPanel';
@@ -45,7 +46,7 @@ function AuthenticatedApp() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, openAllCategories, openAllTags, handleDelete, handleSaveNote,
+    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
     handleDeleteReminder,
   } = useKnowledge();
@@ -57,6 +58,7 @@ function AuthenticatedApp() {
         categories={categories}
         categoryTree={categoryTree}
         flashcardCount={state.flashcards?.length || 0}
+        quizCount={state.quizQuestions?.length || 0}
         inFlightCount={inFlightCount}
         tagCounts={tagCounts}
         catSearch={catSearch}
@@ -68,6 +70,7 @@ function AuthenticatedApp() {
         onSearch={() => setSearchOpen(true)}
         onActivity={openActivity}
         onFlashcards={openFlashcards}
+        onQuiz={openQuiz}
         onSettings={openSettings}
         openCategory={openCategory}
         openTag={openTag}
@@ -154,6 +157,14 @@ function AuthenticatedApp() {
                 tagCounts={tagCounts}
                 onScopeChange={openFlashcards}
                 onOpenNote={openNote}
+              />
+            } />
+            <Route path="/quiz/*" element={
+              <QuizRoute
+                questions={state.quizQuestions || []}
+                categories={categories}
+                tagCounts={tagCounts}
+                onScopeChange={openQuiz}
               />
             } />
             <Route path="/notes/:id" element={

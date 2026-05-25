@@ -26,7 +26,7 @@ type Theme = 'light' | 'white' | 'dark' | 'midnight' | 'simplistic';
 type FontStyle = 'serif' | 'sans';
 type Toast = { id: string; kind: 'info' | 'success' | 'error'; message: string };
 
-const emptyState: KnowledgeState = { notes: [], categories: [], graph: [], flashcards: [] };
+const emptyState: KnowledgeState = { notes: [], categories: [], graph: [], flashcards: [], quizQuestions: [] };
 const preferenceKeys = {
   theme: 'knowledge-loom:theme',
   compactMode: 'knowledge-loom:compact-mode',
@@ -211,6 +211,15 @@ export function useKnowledge() {
     [navigate],
   );
 
+  const openQuiz = useCallback(
+    (scope: 'all' | 'category' | 'tag' = 'all', value?: string) => {
+      if (scope === 'category' && value) navigate(`/quiz?category=${encodeURIComponent(value)}`);
+      else if (scope === 'tag' && value) navigate(`/quiz?tag=${encodeURIComponent(value)}`);
+      else navigate('/quiz');
+    },
+    [navigate],
+  );
+
   const openAllCategories = useCallback(() => navigate('/categories'), [navigate]);
   const openAllTags = useCallback(() => navigate('/tags'), [navigate]);
 
@@ -300,6 +309,7 @@ export function useKnowledge() {
     openActivity,
     openSettings,
     openFlashcards,
+    openQuiz,
     openAllCategories,
     openAllTags,
     handleDelete,
