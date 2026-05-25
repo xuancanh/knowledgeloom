@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeNote } from '../types';
 import { categoryId, formatCreated, type UiCategory } from '../lib/view';
 
@@ -20,6 +21,7 @@ function NoteRow({
   onOpen: (id: string) => void;
   onOpenTag?: (tag: string) => void;
 }) {
+  const { t } = useTranslation();
   const catId = categoryId(note.category);
   const cat = categories.find((item) => item.id === catId);
   return (
@@ -27,7 +29,7 @@ function NoteRow({
       <div className="date mono">{formatCreated(note.createdAt).replace(/-/g, '.')}</div>
       <div className="body">
         <div className="title">{note.title}</div>
-        <div className="summary">{note.summary || 'No summary yet.'}</div>
+        <div className="summary">{note.summary || t('common.noSummary')}</div>
         {!!note.tags.length && onOpenTag && (
           <div className="row-tags">
             {note.tags.slice(0, 4).map((tag) => (
@@ -49,7 +51,7 @@ function NoteRow({
           <CategoryDot catId={catId} categories={categories} />
           {cat?.name || note.category}
         </span>
-        <span>{note.tags.length} tags · {note.links.length} links</span>
+        <span>{t('common.tagsLinksCount', { tags: note.tags.length, links: note.links.length })}</span>
       </div>
     </div>
   );
@@ -66,6 +68,7 @@ function NoteCard({
   onOpen: (id: string) => void;
   onOpenTag?: (tag: string) => void;
 }) {
+  const { t } = useTranslation();
   const catId = categoryId(note.category);
   const cat = categories.find((item) => item.id === catId);
   return (
@@ -92,7 +95,7 @@ function NoteCard({
         </div>
       )}
       <div className="nc-foot">
-        <span>{note.links.length} links</span>
+        <span>{note.links.length} {t('common.links')}</span>
       </div>
     </div>
   );

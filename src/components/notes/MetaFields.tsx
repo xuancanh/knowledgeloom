@@ -1,4 +1,5 @@
 import { useRef, useState, KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { UiCategory } from '../../lib/view';
 
 // ── Category input with searchable dropdown ────────────────────────────────
@@ -14,6 +15,7 @@ function CategoryInput({
   categories: UiCategory[];
   disabled: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -47,7 +49,7 @@ function CategoryInput({
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         onKeyDown={handleKey}
-        placeholder="Category / Subcategory"
+        placeholder={t('notes.categoryPlaceholder')}
         disabled={disabled}
         spellCheck={false}
         autoComplete="off"
@@ -83,6 +85,7 @@ function TagChipInput({
   disabled?: boolean;
   tagOptions?: string[];
 }) {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [suggestOpen, setSuggestOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +142,7 @@ function TagChipInput({
             onFocus={() => setSuggestOpen(true)}
             onBlur={() => setTimeout(() => { if (input.trim()) addTag(input); setSuggestOpen(false); }, 120)}
             onKeyDown={handleKey}
-            placeholder={tags.length === 0 ? 'Add tag…' : ''}
+            placeholder={tags.length === 0 ? t('notes.addTagPlaceholder') : ''}
             aria-label="New tag"
           />
         )}

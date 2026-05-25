@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeNote } from '../types';
 import { formatCreated } from '../lib/view';
 import MiniGraph from './MiniGraph';
@@ -17,16 +18,17 @@ export default function ContextPanel({
   notes: KnowledgeNote[];
   onOpen: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const backlinks = notes.filter((n) => n.links.includes(note.id));
 
   return (
     <aside className="context">
       <div className="ctx-block">
-        <h3>Connections</h3>
+        <h3>{t('notes.connections')}</h3>
         <MiniGraph note={note} notes={notes} onOpen={onOpen} />
       </div>
       <div className="ctx-block">
-        <h3>Links out · {note.links.length}</h3>
+        <h3>{t('notes.linksOutCount', { count: note.links.length })}</h3>
         <ul className="link-list">
           {note.links.map((id) => {
             const linked = notes.find((n) => n.id === id);
@@ -41,11 +43,11 @@ export default function ContextPanel({
               </li>
             );
           })}
-          {note.links.length === 0 && <li className="muted-row">None yet. Codex will add some after the next pass.</li>}
+          {note.links.length === 0 && <li className="muted-row">{t('notes.noLinksYet')}</li>}
         </ul>
       </div>
       <div className="ctx-block">
-        <h3>Backlinks · {backlinks.length}</h3>
+        <h3>{t('notes.backlinksCount', { count: backlinks.length })}</h3>
         <ul className="link-list">
           {backlinks.map((n) => (
             <li key={n.id} onClick={() => onOpen(n.id)}>
@@ -56,11 +58,11 @@ export default function ContextPanel({
               </div>
             </li>
           ))}
-          {backlinks.length === 0 && <li className="muted-row">Nothing links here yet.</li>}
+          {backlinks.length === 0 && <li className="muted-row">{t('notes.noBacklinksYet')}</li>}
         </ul>
       </div>
       <div className="ctx-block">
-        <h3>File</h3>
+        <h3>{t('notes.fileInfo')}</h3>
         <div className="fine">
           <div><b>{note.id}.md</b></div>
           <div style={{ marginTop: 4 }}>vault / {note.category}</div>

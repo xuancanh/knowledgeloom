@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Reminder } from '../../types';
 import { toLocalDateTimeInputValue } from '../../lib/format';
 
@@ -26,6 +27,7 @@ export function ReminderSection({
   onCompleteReminder: (id: string) => Promise<void>;
   onDeleteReminder: (id: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [remindAt, setRemindAt] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
@@ -49,7 +51,7 @@ export function ReminderSection({
     if (!remindAt) return;
     const selectedDate = new Date(remindAt);
     if (Number.isNaN(selectedDate.getTime())) {
-      setError('Choose a valid reminder date and time.');
+      setError(t('reminders.invalidDate'));
       return;
     }
     setSaving(true);
@@ -59,7 +61,7 @@ export function ReminderSection({
       setRemindAt('');
       setMessage('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to schedule reminder');
+      setError(err instanceof Error ? err.message : t('reminders.invalidDate'));
     } finally {
       setSaving(false);
     }
@@ -68,8 +70,8 @@ export function ReminderSection({
   return (
     <div className="reminder-card">
       <div className="section-label">
-        <h2>Reminder</h2>
-        <span className="meta">{reminders.length} active</span>
+        <h2>{t('reminders.title')}</h2>
+        <span className="meta">{t('reminders.active', { count: reminders.length })}</span>
       </div>
       <div className="reminder-form">
         <input
@@ -82,11 +84,11 @@ export function ReminderSection({
         <input
           value={message}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="Optional reminder note"
+          placeholder={t('reminders.optionalMessage')}
           disabled={readOnly}
         />
         <button onClick={schedule} disabled={readOnly || saving || !remindAt}>
-          {saving ? 'Saving...' : 'Schedule'}
+          {saving ? t('common.saving') : t('reminders.schedule')}
         </button>
       </div>
       {error && <div className="edit-error">{error}</div>}
@@ -96,15 +98,15 @@ export function ReminderSection({
           return (
             <div key={reminder.id} className={`reminder-row${due ? ' due' : ''}`}>
               <div className="reminder-main as-text">
-                <span>{due ? 'Due now' : new Date(reminder.remindAt).toLocaleString()}</span>
-                <b>{reminder.message || 'Review this article'}</b>
+                <span>{due ? t('reminders.dueNow') : new Date(reminder.remindAt).toLocaleString()}</span>
+                <b>{reminder.message || t('reminders.defaultMessage')}</b>
               </div>
-              <button className="reminder-done" onClick={() => onCompleteReminder(reminder.id)} disabled={readOnly}>Done</button>
-              <button className="reminder-delete" onClick={() => onDeleteReminder(reminder.id)} disabled={readOnly}>Delete</button>
+              <button className="reminder-done" onClick={() => onCompleteReminder(reminder.id)} disabled={readOnly}>{t('common.done')}</button>
+              <button className="reminder-delete" onClick={() => onDeleteReminder(reminder.id)} disabled={readOnly}>{t('common.delete')}</button>
             </div>
           );
         })}
-        {!reminders.length && <div className="fine">No reminders for this article yet.</div>}
+        {!reminders.length && <div className="fine">{t('reminders.noReminders')}</div>}
       </div>
     </div>
   );

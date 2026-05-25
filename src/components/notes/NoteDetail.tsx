@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { assistDraft, regenerateNote, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
@@ -49,6 +50,7 @@ export default function NoteDetail({
 }) {
   const editorRef = useRef<NoteEditorHandle>(null);
 
+  const { t } = useTranslation();
   const [showSource, setShowSource] = useState(false);
   const [editing, setEditing] = useState(false);
   const [reading, setReading] = useState(false);
@@ -229,9 +231,9 @@ export default function NoteDetail({
         <div className="h-meta">
           <span>{formatCreated(note.createdAt)}</span>
           <span>· {outgoing.length}↗ {backlinks.length}↘</span>
-          <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? '✕ Exit' : editing ? '⊙ Focus' : '⊡ Read'}</button>
-          <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? '✕ Cancel' : '✎ Edit'}</button>
-          <button className="delete-inline" onClick={onDelete} disabled={readOnly}>✕ Delete</button>
+          <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? t('notes.exitRead') : editing ? t('notes.focusMode') : t('notes.readMode')}</button>
+          <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? t('notes.cancelEdit') : t('notes.editNote')}</button>
+          <button className="delete-inline" onClick={onDelete} disabled={readOnly}>{t('notes.deleteNote')}</button>
           {!readOnly && (
             <span className="regen-wrap">
               <button
@@ -239,7 +241,7 @@ export default function NoteDetail({
                 onClick={() => setRegenDropOpen((v) => !v)}
                 disabled={regenState === 'loading'}
               >
-                {regenState === 'loading' ? '…' : regenState === 'queued' ? '✓ Queued' : '↺ Regen'}
+                {regenState === 'loading' ? t('notes.regenLoading') : regenState === 'queued' ? t('notes.regenQueued') : t('notes.regen')}
               </button>
               {regenDropOpen && (
                 <div className="regen-drop">
@@ -248,28 +250,28 @@ export default function NoteDetail({
                     <button className={genSize === 'medium' ? 'active' : ''} onClick={() => setGenSizeAndSave('medium')}>M</button>
                     <button className={genSize === 'large' ? 'active' : ''} onClick={() => setGenSizeAndSave('large')}>L</button>
                   </div>
-                  <button onClick={() => handleRegenerate('flashcards')}>↺ Flashcards</button>
-                  <button onClick={() => handleRegenerate('quiz')}>↺ Quiz</button>
-                  <button onClick={() => handleRegenerate('all')}>↺ Both</button>
+                  <button onClick={() => handleRegenerate('flashcards')}>{t('notes.regenFlashcards')}</button>
+                  <button onClick={() => handleRegenerate('quiz')}>{t('notes.regenQuiz')}</button>
+                  <button onClick={() => handleRegenerate('all')}>{t('notes.regenBoth')}</button>
                 </div>
               )}
             </span>
           )}
         </div>
-        {readOnly && <div className="read-only-banner">Read-only mode: editing, deletion, and Codex jobs are disabled in this deployment.</div>}
+        {readOnly && <div className="read-only-banner">{t('notes.readOnlyBanner')}</div>}
         {!editing && (
           <>
             <h1>{note.title}</h1>
-            <p className="lede">{note.summary || 'No summary yet.'}</p>
+            <p className="lede">{note.summary || t('common.noSummary')}</p>
             <div className="tags">
-              <span className="tags-label">{note.tags.length} tag{note.tags.length !== 1 ? 's' : ''}</span>
+              <span className="tags-label">{t('notes.tagCount', { count: note.tags.length })}</span>
               {note.tags.map((tag) => <button key={tag} className="tag" onClick={() => onOpenTag(tag)}>#{tag}</button>)}
             </div>
             {(note.sourceUrl || note.originalRequest) && (
               <div className="source-note">
                 {note.sourceUrl && (
                   <a href={note.sourceUrl} target="_blank" rel="noreferrer">
-                    Original link
+                    {t('notes.originalLink')}
                   </a>
                 )}
                 {note.originalRequest && <span>{note.originalRequest}</span>}
@@ -321,8 +323,8 @@ export default function NoteDetail({
 
           <div className="source-toggle">
             <div className="head" onClick={() => setShowSource((value) => !value)}>
-              <span>{showSource ? '▾' : '▸'} Source · {note.id}.md</span>
-              <span>{markdown.length} chars · markdown</span>
+              <span>{showSource ? t('notes.sourceToggle', { id: note.id }) : t('notes.sourceToggleClosed', { id: note.id })}</span>
+              <span>{t('notes.sourceStats', { size: markdown.length })}</span>
             </div>
             {showSource && <pre>{markdown}</pre>}
           </div>
@@ -342,7 +344,7 @@ export default function NoteDetail({
         <>
           <div className={`read-toolbar${toolbarOpen ? ' open' : ''}`}>
             <button className="read-toolbar-toggle" onClick={() => setToolbarOpen(!toolbarOpen)}>
-              {toolbarOpen ? '▾' : '▸'} Options
+              {toolbarOpen ? '▾' : '▸'} {t('notes.readingOptions')}
             </button>
             {toolbarOpen && (
               <>
@@ -352,19 +354,19 @@ export default function NoteDetail({
                   <button onClick={() => setReadSizeState('l')} className={readSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
                 </span>
                 <span className="read-toolbar-group">
-                  <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>Narrow</button>
-                  <button onClick={() => setReadWidthState('medium')} className={readWidth === 'medium' ? 'active' : ''}>Medium</button>
-                  <button onClick={() => setReadWidthState('wide')} className={readWidth === 'wide' ? 'active' : ''}>Wide</button>
+                  <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>{t('notes.widthNarrow')}</button>
+                  <button onClick={() => setReadWidthState('medium')} className={readWidth === 'medium' ? 'active' : ''}>{t('notes.widthMedium')}</button>
+                  <button onClick={() => setReadWidthState('wide')} className={readWidth === 'wide' ? 'active' : ''}>{t('notes.widthWide')}</button>
                 </span>
                 <span className="read-toolbar-group">
-                  <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>Warm</button>
-                  <button onClick={() => setReadThemeAndSave('white')} className={readTheme === 'white' ? 'active' : ''}>White</button>
-                  <button onClick={() => setReadThemeAndSave('dark')} className={readTheme === 'dark' ? 'active' : ''}>Dark</button>
-                  <button onClick={() => setReadThemeAndSave('midnight')} className={readTheme === 'midnight' ? 'active' : ''}>Night</button>
+                  <button onClick={() => setReadThemeAndSave('light')} className={readTheme === 'light' ? 'active' : ''}>{t('notes.themeWarm')}</button>
+                  <button onClick={() => setReadThemeAndSave('white')} className={readTheme === 'white' ? 'active' : ''}>{t('notes.themeWhite')}</button>
+                  <button onClick={() => setReadThemeAndSave('dark')} className={readTheme === 'dark' ? 'active' : ''}>{t('notes.themeDark')}</button>
+                  <button onClick={() => setReadThemeAndSave('midnight')} className={readTheme === 'midnight' ? 'active' : ''}>{t('notes.themeNight')}</button>
                 </span>
               </>
             )}
-            <button className="read-toolbar-exit" onClick={() => setReading(false)}>✕ Exit</button>
+            <button className="read-toolbar-exit" onClick={() => setReading(false)}>{t('notes.exitRead')}</button>
           </div>
           <div className="read-progress" style={{ width: `${progress}%` }} />
         </>
