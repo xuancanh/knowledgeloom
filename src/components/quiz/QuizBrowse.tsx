@@ -1,15 +1,8 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { QuizQuestion, QuizQuestionType } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import { QUIZ_TYPE_LABELS, QUIZ_TYPE_COLORS } from './constants';
-
-function nextReviewLabel(nextReviewAt: string | null | undefined): string {
-  if (!nextReviewAt) return 'New';
-  const diff = Date.parse(nextReviewAt) - Date.now();
-  if (diff <= 0) return 'Due now';
-  const days = Math.ceil(diff / 86_400_000);
-  return days === 1 ? 'Tomorrow' : `${days}d`;
-}
 
 function MultiSelectDropdown({
   label,
@@ -91,8 +84,17 @@ export default function QuizBrowse({
   onStudy: () => void;
   onHide: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [confirmHide, setConfirmHide] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  function nextReviewLabel(nextReviewAt: string | null | undefined): string {
+    if (!nextReviewAt) return t('quiz.new');
+    const diff = Date.parse(nextReviewAt) - Date.now();
+    if (diff <= 0) return t('quiz.dueNow');
+    const days = Math.ceil(diff / 86_400_000);
+    return days === 1 ? t('quiz.tomorrow') : t('quiz.daysAhead', { count: days });
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -123,9 +125,9 @@ export default function QuizBrowse({
     <div className="qz-browse">
       <div className="qz-browse-head">
         <div className="qz-browse-title-row">
-          <h1 className="qz-browse-title">Quiz</h1>
+          <h1 className="qz-browse-title">{t('quiz.title')}</h1>
           <button className="qz-study-btn" onClick={onStudy} disabled={filtered.length === 0}>
-            {dueCount > 0 ? `Study ${dueCount} due` : 'Study all'}
+            {dueCount > 0 ? t('quiz.studyDue', { count: dueCount }) : t('quiz.studyAll')}
           </button>
         </div>
 
@@ -155,7 +157,7 @@ export default function QuizBrowse({
               className="qz-search"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search questions…"
+              placeholder={t('search.placeholder').split('...')[0] + '…'}
               spellCheck={false}
             />
             {search && (
@@ -183,23 +185,23 @@ export default function QuizBrowse({
             ))}
             {(activeCategories.length + activeTags.length) > 1 && (
               <button className="fc-filter-clear" onClick={() => { onCategoriesChange([]); onTagsChange([]); }}>
-                Clear all
+                {t('common.clearAll')}
               </button>
             )}
           </div>
         )}
 
         <div className="qz-browse-meta">
-          <span>{filtered.length} question{filtered.length !== 1 ? 's' : ''}</span>
-          {dueCount > 0 && <span className="qz-due-badge">{dueCount} due</span>}
+          <span>{t('quiz.questionCount', { count: filtered.length })}</span>
+          {dueCount > 0 && <span className="qz-due-badge">{t('quiz.dueBadge', { count: dueCount })}</span>}
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="empty">
           {questions.length === 0
-            ? 'No quiz questions yet. Create or update a note to generate questions.'
-            : 'No questions match your filters.'}
+            ? t('quiz.noQuestionsYet')
+            : t('quiz.noQuestionsFilter')}
         </div>
       ) : (
         <div className="qz-list">
@@ -234,11 +236,11 @@ export default function QuizBrowse({
                     <span className={`qz-review-label${isDue ? ' due' : ''}`}>{label}</span>
                     {confirmHide === q.id ? (
                       <span className="qz-confirm-hide">
-                        <button className="qz-confirm-yes" onClick={() => { onHide(q.id); setConfirmHide(null); }}>Hide</button>
-                        <button className="qz-confirm-no" onClick={() => setConfirmHide(null)}>Cancel</button>
+                        <button className="qz-confirm-yes" onClick={() => { onHide(q.id); setConfirmHide(null); }}>{t('quiz.hide')}</button>
+                        <button className="qz-confirm-no" onClick={() => setConfirmHide(null)}>{t('common.cancel')}</button>
                       </span>
                     ) : (
-                      <button className="qz-hide-btn" onClick={() => setConfirmHide(q.id)} title="Hide question">✕</button>
+                      <button className="qz-hide-btn" onClick={() => setConfirmHide(q.id)} title={t('quiz.hideQuestion')}>✕</button>
                     )}
                   </div>
                 </div>
@@ -255,7 +257,7 @@ export default function QuizBrowse({
                       </div>
                     ) : (
                       <div className="qz-row-answer">
-                        <span className="qz-row-answer-label">Answer</span>
+                        <span className="qz-row-answer-label">{t('quiz.answer')}</span>
                         {q.answer}
                       </div>
                     )}
