@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Flashcard, KnowledgeNote } from '../../types';
 import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../../lib/view';
 import NoteList, { type ViewMode } from '../NoteList';
+import { NEW_NOTE_DRAFT_KEY } from '../routes/NewNoteRoute';
 import styles from './CategoryIndex.module.css';
 
 const COLOR_VAR: Record<string, string> = {
@@ -34,6 +36,7 @@ export default function CategoryIndex({
   onOpenCategory: (id: string) => void;
   onOpenFlashcards: (category: string) => void;
 }) {
+  const navigate = useNavigate();
   const [sort, setSort] = useState<SortKey>('recent');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
@@ -98,6 +101,11 @@ export default function CategoryIndex({
     setTagFilter((prev) => (prev === tag ? null : tag));
   }
 
+  function newNoteInCategory() {
+    sessionStorage.setItem(NEW_NOTE_DRAFT_KEY, JSON.stringify({ category: category.id }));
+    navigate('/new');
+  }
+
   return (
     <div className={styles.page}>
       {/* Breadcrumb */}
@@ -133,6 +141,7 @@ export default function CategoryIndex({
             )}
             {totalLinks > 0 && <span className={styles.chip}>{totalLinks} links</span>}
           </div>
+          <button className={styles.newNoteBtn} onClick={newNoteInCategory}>+ New note</button>
         </div>
         {category.summary && category.summary !== 'No summary yet.' && (
           <p className={styles.headSummary}>{category.summary}</p>
