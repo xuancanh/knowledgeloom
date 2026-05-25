@@ -121,6 +121,7 @@ export default function QuizPage({
       onToggleType={toggleType}
       onStudy={() => setStudying(true)}
       onHide={handleHide}
+      onRate={handleRate}
     />
   );
 }
