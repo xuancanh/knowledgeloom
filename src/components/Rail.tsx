@@ -62,6 +62,7 @@ export default function Rail({
   categories,
   categoryTree,
   flashcardCount,
+  quizCount,
   inFlightCount,
   catSearch,
   tagSearch,
@@ -73,6 +74,7 @@ export default function Rail({
   onSearch,
   onActivity,
   onFlashcards,
+  onQuiz,
   onSettings,
   openCategory,
   openTag,
@@ -83,6 +85,7 @@ export default function Rail({
   categories: UiCategory[];
   categoryTree: CategoryTreeNode[];
   flashcardCount: number;
+  quizCount: number;
   inFlightCount: number;
   catSearch: string;
   tagSearch: string;
@@ -94,6 +97,7 @@ export default function Rail({
   onSearch: () => void;
   onActivity: () => void;
   onFlashcards: () => void;
+  onQuiz: () => void;
   onSettings: () => void;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
@@ -107,6 +111,7 @@ export default function Rail({
   const isHome = path === '/';
   const isActivity = path === '/activity';
   const isFlashcards = path.startsWith('/flashcards');
+  const isQuiz = path.startsWith('/quiz');
   const isSettings = path === '/settings';
   const activeCategoryId = path.startsWith('/categories/')
     ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
@@ -168,6 +173,10 @@ export default function Rail({
           <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> Flashcards
             <span className="count">{flashcardCount}</span>
+          </button>
+          <button className={`nav-item${isQuiz ? ' active' : ''}`} onClick={() => { onQuiz(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>?</span> Quiz
+            <span className="count">{quizCount}</span>
           </button>
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> Settings
