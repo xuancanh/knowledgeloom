@@ -11,7 +11,7 @@
  *
  * All routes require authentication. Write routes also require writable mode.
  */
-import { Controller, Get, Put, Patch, Delete, Post, Param, Body, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Delete, Post, Param, Body, HttpCode, UseGuards, BadRequestException } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { SupabaseAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -59,5 +59,18 @@ export class NotesController {
     const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
     if (!prompt) throw new BadRequestException('prompt is required');
     return this.notesService.assistEdit(id, body?.draft || {}, prompt);
+  }
+
+  @Post(':id/regenerate')
+  @HttpCode(200)
+  @UseGuards(WritableGuard)
+  async regenerate(
+    @CurrentUser() userId: string,
+    @Param('id') id: string,
+    @Body() body: { target?: string },
+  ) {
+    const target = body?.target === 'quiz' ? 'quiz' : body?.target === 'flashcards' ? 'flashcards' : 'all';
+    await this.notesService.regenerate(userId, id, target);
+    return { regenerated: id, target };
   }
 }

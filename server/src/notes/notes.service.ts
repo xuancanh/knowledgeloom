@@ -153,6 +153,11 @@ export class NotesService {
     return this.codexService.assistEdit(id, draft, instruction);
   }
 
+  async regenerate(userId: string, id: string, target: 'flashcards' | 'quiz' | 'all'): Promise<void> {
+    this.assertWritable();
+    await this.knowledgeService.regenerateForNote(userId, basename(id), target);
+  }
+
   private assertWritable(): void {
     if (this.readOnly) throw new ForbiddenException('service is running in read-only mode');
   }
