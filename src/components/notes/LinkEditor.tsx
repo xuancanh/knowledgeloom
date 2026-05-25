@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeNote } from '../../types';
 
 export function LinkEditor({
@@ -12,6 +13,7 @@ export function LinkEditor({
   links: string[];
   onToggleLink: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
 
   const candidates = useMemo(() => notes.filter((n) => n.id !== noteId), [noteId, notes]);
@@ -40,7 +42,7 @@ export function LinkEditor({
           className="link-search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search notes to link…"
+          placeholder={t('notes.searchToLink')}
         />
         {links.length > 0 && <span className="link-count">{links.length}</span>}
       </div>
@@ -48,7 +50,7 @@ export function LinkEditor({
       {selectedNotes.length > 0 && (
         <div className="selected-links">
           {selectedNotes.map((n) => (
-            <button key={n.id} className="selected-link-chip" onClick={() => onToggleLink(n.id)} title="Remove link">
+            <button key={n.id} className="selected-link-chip" onClick={() => onToggleLink(n.id)} title={t('notes.removeLink')}>
               {n.title}
               <span className="selected-link-remove">×</span>
             </button>
@@ -57,10 +59,10 @@ export function LinkEditor({
       )}
 
       {candidates.length === 0 && (
-        <p className="link-empty">No other notes to link yet.</p>
+        <p className="link-empty">{t('notes.noNotesToLink')}</p>
       )}
       {candidates.length > 0 && visibleCandidates.length === 0 && (
-        <p className="link-empty">{query.trim() ? 'No notes match.' : 'Search to find notes to link.'}</p>
+        <p className="link-empty">{query.trim() ? t('notes.noNotesMatch') : t('notes.searchToFindNotes')}</p>
       )}
 
       {visibleCandidates.map((n) => (

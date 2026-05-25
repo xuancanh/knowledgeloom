@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import type { CreateNoteRequest } from '../../types';
 import { templatesForMode, type GuidanceTemplate } from '../../lib/guidance';
@@ -28,6 +29,7 @@ export default function CaptureBox({
   readOnly: boolean;
   templates: GuidanceTemplate[];
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const editorRef = useRef<NoteEditorHandle>(null);
 
@@ -70,7 +72,7 @@ export default function CaptureBox({
     : [];
 
   const guidanceLabel = guidance
-    ? modeTemplates.find((t) => t.text === guidance)?.label ?? truncate(guidance, 50)
+    ? modeTemplates.find((tpl) => tpl.text === guidance)?.label ?? truncate(guidance, 50)
     : '';
 
   const primaryRef = useRef<HTMLInputElement>(null);
@@ -177,10 +179,10 @@ export default function CaptureBox({
   );
 
   const submitLabel = mode === 'link'
-    ? 'Generate from link'
+    ? t('capture.submitLink')
     : mode === 'research'
-    ? 'Research with Codex'
-    : 'Save note';
+    ? t('capture.submitResearch')
+    : t('capture.submitWrite');
 
 
 
@@ -192,7 +194,7 @@ export default function CaptureBox({
       <div className={styles.header}>
         <span className={styles.prompt}>
           <span className={styles.promptStar}>✦</span>
-          {readOnly ? 'Read-only archive' : 'What did you learn?'}
+          {readOnly ? t('capture.readOnlyBanner') : t('capture.promptQuestion')}
         </span>
         <div className={styles.modeSwitcher}>
           {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
@@ -203,7 +205,7 @@ export default function CaptureBox({
               onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
               disabled={readOnly}
             >
-              {m === 'research' ? '⌕ Research' : m === 'link' ? '↗ Link' : '✎ Write'}
+              {m === 'research' ? t('capture.btnResearch') : m === 'link' ? t('capture.btnLink') : t('capture.btnWrite')}
             </button>
           ))}
         </div>
@@ -219,7 +221,7 @@ export default function CaptureBox({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={onKey}
-              placeholder="What do you want to learn? e.g. CRDT merge semantics"
+              placeholder={t('capture.researchPlaceholder')}
               disabled={readOnly}
               autoComplete="off"
               spellCheck={false}
@@ -233,20 +235,20 @@ export default function CaptureBox({
             onClick={() => setShowMore((v) => !v)}
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-            {showMore ? 'Fewer options' : 'More options'}
+            {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
           </button>
             {!showMore && guidance && (
-              <span className={styles.guidancePreview}>Writing instruction: {guidanceLabel}</span>
+              <span className={styles.guidancePreview}>{t('capture.writingInstructionPreview', { label: guidanceLabel })}</span>
             )}
           </div>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.guidance}>
                 <div className={styles.guidanceTop}>
-                  <span className={styles.guidanceLabel}>Writing instructions</span>
+                  <span className={styles.guidanceLabel}>{t('capture.writingInstructions')}</span>
                   <div className={styles.guidanceLine} />
                   <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-                    Manage
+                    {t('common.manage')}
                   </button>
                 </div>
                 {modeTemplates.length > 0 && (
@@ -273,18 +275,18 @@ export default function CaptureBox({
                     value={guidance}
                     onChange={(e) => setGuidance(e.target.value)}
                     onKeyDown={onKey}
-                    placeholder="Custom instructions — depth, format, audience, code style…"
+                    placeholder={t('capture.customInstructionsResearch')}
                     disabled={readOnly}
                   />
                 </div>
               </div>
-              <label className={styles.fieldLabel}>What you already know</label>
+              <label className={styles.fieldLabel}>{t('capture.whatYouKnow')}</label>
               <textarea
                 className={styles.seedArea}
                 value={seed}
                 onChange={(e) => setSeed(e.target.value)}
                 onKeyDown={onKey}
-                placeholder="Paste a quote, rough bullets, or notes you've already collected…"
+                placeholder={t('capture.seedPlaceholder')}
                 rows={3}
                 disabled={readOnly}
               />
@@ -296,7 +298,7 @@ export default function CaptureBox({
                 disabled={readOnly}
                 compact
               />
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder="Context — why you're learning this, where you found it…" disabled={readOnly} />
+              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={t('capture.contextResearch')} disabled={readOnly} />
             </div>
           )}
         </div>
@@ -314,7 +316,7 @@ export default function CaptureBox({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={onKey}
-              placeholder="https://example.com/article"
+              placeholder={t('capture.urlPlaceholder')}
               disabled={readOnly}
               autoComplete="off"
               spellCheck={false}
@@ -329,20 +331,20 @@ export default function CaptureBox({
             onClick={() => setShowMore((v) => !v)}
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-            {showMore ? 'Fewer options' : 'More options'}
+            {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
           </button>
             {!showMore && guidance && (
-              <span className={styles.guidancePreview}>Writing instruction: {guidanceLabel}</span>
+              <span className={styles.guidancePreview}>{t('capture.writingInstructionPreview', { label: guidanceLabel })}</span>
             )}
           </div>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.guidance}>
                 <div className={styles.guidanceTop}>
-                  <span className={styles.guidanceLabel}>Writing instructions</span>
+                  <span className={styles.guidanceLabel}>{t('capture.writingInstructions')}</span>
                   <div className={styles.guidanceLine} />
                   <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-                    Manage
+                    {t('common.manage')}
                   </button>
                 </div>
                 {modeTemplates.length > 0 && (
@@ -369,18 +371,18 @@ export default function CaptureBox({
                     value={guidance}
                     onChange={(e) => setGuidance(e.target.value)}
                     onKeyDown={onKey}
-                    placeholder="Custom instructions — focus area, audience, format…"
+                    placeholder={t('capture.customInstructionsLink')}
                     disabled={readOnly}
                   />
                 </div>
               </div>
-              <label className={styles.fieldLabel}>What to focus on</label>
+              <label className={styles.fieldLabel}>{t('capture.whatToFocus')}</label>
               <textarea
                 className={styles.seedArea}
                 value={seed}
                 onChange={(e) => setSeed(e.target.value)}
                 onKeyDown={onKey}
-                placeholder="Specific sections, aspects, or angle to extract from this page…"
+                placeholder={t('capture.focusPlaceholder')}
                 rows={2}
                 disabled={readOnly}
               />
@@ -392,7 +394,7 @@ export default function CaptureBox({
                 disabled={readOnly}
                 compact
               />
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder="Context — why this link matters…" disabled={readOnly} />
+              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={t('capture.contextLink')} disabled={readOnly} />
             </div>
           )}
         </div>
@@ -407,14 +409,14 @@ export default function CaptureBox({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={onKey}
-              placeholder="Note title"
+              placeholder={t('capture.noteTitlePlaceholder')}
               disabled={readOnly}
             />
           </div>
           <div className={styles.captureEditor}>
             <NoteEditor
               ref={editorRef}
-              placeholder="Start writing… use the toolbar for formatting, drag images to upload."
+              placeholder={t('capture.writePlaceholder')}
               disabled={readOnly}
             />
           </div>
@@ -433,7 +435,7 @@ export default function CaptureBox({
               onClick={() => { setAiAssistOpen(true); setAiError(''); }}
               disabled={readOnly}
             >
-              ✦ AI Assist
+              {t('capture.aiAssist')}
             </button>
             <button
               type="button"
@@ -441,7 +443,7 @@ export default function CaptureBox({
               onClick={openFullEditor}
               disabled={readOnly}
             >
-              ⊕ Full editor
+              {t('capture.fullEditor')}
             </button>
           </div>
           <button
@@ -450,15 +452,15 @@ export default function CaptureBox({
             onClick={() => setShowMore((v) => !v)}
           >
             <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-            {showMore ? 'Fewer options' : 'More options'}
+            {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
           </button>
           {showMore && (
             <div className={styles.moreBody}>
               <div className={styles.metaRow}>
-                <input className={styles.metaInput} value={summary} onChange={(e) => setSummary(e.target.value)} onKeyDown={onKey} placeholder="One-line summary" disabled={readOnly} />
-                <input className={styles.metaInput} value={links} onChange={(e) => setLinks(e.target.value)} onKeyDown={onKey} placeholder="Linked note ids, comma-separated" disabled={readOnly} />
+                <input className={styles.metaInput} value={summary} onChange={(e) => setSummary(e.target.value)} onKeyDown={onKey} placeholder={t('capture.summaryPlaceholder')} disabled={readOnly} />
+                <input className={styles.metaInput} value={links} onChange={(e) => setLinks(e.target.value)} onKeyDown={onKey} placeholder={t('capture.linkedNotesPlaceholder')} disabled={readOnly} />
               </div>
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder="Context — notes for future reference…" disabled={readOnly} />
+              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={t('capture.contextWrite')} disabled={readOnly} />
             </div>
           )}
         </div>
@@ -468,11 +470,11 @@ export default function CaptureBox({
       <div className={styles.footer}>
         <span className={styles.hint}>
           {readOnly
-            ? 'Cloud deployment is browsing-only.'
-            : <><kbd>/</kbd> focus · <kbd>⌘↵</kbd> submit</>}
+            ? t('capture.readOnlyHint')
+            : <><kbd>/</kbd> {t('capture.keyboardHint')}</>}
         </span>
         <button className={styles.submit} onClick={submit} disabled={!canSubmit}>
-          {submitLabel} →
+          {submitLabel}
         </button>
       </div>
 
@@ -481,24 +483,24 @@ export default function CaptureBox({
         <div className={styles.aiAssistOverlay} onClick={(e) => { if (e.target === e.currentTarget) setAiAssistOpen(false); }}>
           <div className={styles.aiAssistModal}>
             <div className={styles.aiAssistHead}>
-              <span className={styles.aiAssistTitle}>✦ AI Assist</span>
+              <span className={styles.aiAssistTitle}>{t('capture.aiAssistTitle')}</span>
               <button className={styles.aiAssistClose} onClick={() => setAiAssistOpen(false)}>✕</button>
             </div>
-            <p className={styles.aiAssistDesc}>Describe what you want to change about this note — tone, structure, expansion, simplification, or anything else.</p>
+            <p className={styles.aiAssistDesc}>{t('capture.aiAssistDesc')}</p>
             <textarea
               className={styles.aiAssistInput}
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="e.g. Make it more concise, add a section on trade-offs, rewrite in bullet points…"
+              placeholder={t('capture.aiAssistPlaceholder')}
               rows={4}
               autoFocus
               onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runAiAssist(); } }}
             />
             {aiError && <p className={styles.aiAssistError}>{aiError}</p>}
             <div className={styles.aiAssistActions}>
-              <button className={styles.aiAssistCancel} onClick={() => setAiAssistOpen(false)} disabled={aiRunning}>Cancel</button>
+              <button className={styles.aiAssistCancel} onClick={() => setAiAssistOpen(false)} disabled={aiRunning}>{t('common.cancel')}</button>
               <button className={styles.aiAssistApply} onClick={runAiAssist} disabled={aiRunning || !aiPrompt.trim()}>
-                {aiRunning ? 'Working…' : 'Apply →'}
+                {aiRunning ? t('capture.aiWorking') : t('capture.aiApply')}
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { NoteUpdate } from '../../api';
 
 /**
@@ -21,6 +22,7 @@ export function AiAssistPanel({
   applyUpdate: (update: NoteUpdate) => void;
   onSwitchTab: () => void;
 }) {
+  const { t } = useTranslation();
   const [prompt, setPrompt] = useState('');
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
@@ -36,10 +38,10 @@ export function AiAssistPanel({
       const update = await onAssist(trimmed, getDraft());
       applyUpdate(update);
       setPrompt('');
-      setSuccess('AI draft applied. Review the changes, then save the note.');
+      setSuccess(t('notes.aiApplied'));
       onSwitchTab();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to run AI edit');
+      setError(err instanceof Error ? err.message : t('notes.runningCodex'));
     } finally {
       setRunning(false);
     }
@@ -47,23 +49,23 @@ export function AiAssistPanel({
 
   return (
     <div className="ai-edit-panel" role="tabpanel">
-      <p>Ask Codex to revise the current draft. It updates the editable fields only; Save still controls when the note is written.</p>
+      <p>{t('notes.aiAssistDesc')}</p>
       <label>
-        <span>Instruction</span>
+        <span>{t('notes.aiAssistTitle')}</span>
         <textarea
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
-          placeholder="Tighten the note, add clearer headings, preserve all facts, and suggest better tags."
+          placeholder={t('notes.aiAssistPlaceholder')}
           rows={8}
         />
       </label>
       {error && <div className="edit-error">{error}</div>}
       <button className="ai-run" onClick={run} disabled={running || !prompt.trim()}>
-        {running ? 'Running Codex...' : 'Apply AI draft'}
+        {running ? t('notes.runningCodex') : t('notes.applyAi')}
       </button>
       {success && <div className="edit-success">{success}</div>}
       <div className="ai-draft-note">
-        Current draft target: <b>{title || 'Untitled note'}</b>
+        {t('notes.workingOn', { title: title || t('notes.noteTitlePlaceholder') })}
       </div>
     </div>
   );

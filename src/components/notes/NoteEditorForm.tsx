@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { NoteUpdate } from '../../api';
 import type { KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
@@ -41,10 +42,11 @@ export function NoteEditorForm({
   noteId, title, summary, category, tags, links, initialBody,
   notes, categories, editorRef,
   readOnly = false, saving = false, canSave = true,
-  saveLabel = 'Save note', aiSuccess, saveError,
+  saveLabel, aiSuccess, saveError,
   onTitleChange, onSummaryChange, onCategoryChange, onTagsChange, onToggleLink,
   getDraft, onAiAssist, onAiApplied, onCancel, onSave,
 }: NoteEditorFormProps) {
+  const { t } = useTranslation();
   const tagOptions = useMemo(() => {
     const set = new Set<string>();
     notes.forEach((n) => n.tags.forEach((t) => set.add(t)));
@@ -83,7 +85,7 @@ export function NoteEditorForm({
         className="edit-title"
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
-        placeholder="Note title"
+        placeholder={t('notes.noteTitlePlaceholder')}
         disabled={readOnly}
         autoFocus
       />
@@ -93,7 +95,7 @@ export function NoteEditorForm({
         value={summary}
         onChange={(e) => onSummaryChange(e.target.value)}
         rows={2}
-        placeholder="One-line summary…"
+        placeholder={t('notes.summaryPlaceholder')}
         disabled={readOnly}
       />
 
@@ -101,14 +103,14 @@ export function NoteEditorForm({
         <NoteEditor
           ref={editorRef}
           initialValue={initialBody}
-          placeholder="Start writing… Drag or paste images to upload. Use the toolbar for formatting."
+          placeholder={t('notes.editorPlaceholder')}
           disabled={readOnly}
         />
       </div>
 
       <div className="edit-footer-meta">
         <div className="edit-footer-section">
-          <div className="edit-section-label">Links to other notes</div>
+          <div className="edit-section-label">{t('notes.linksToNotes')}</div>
           <LinkEditor
             notes={notes}
             noteId={noteId}
@@ -117,7 +119,7 @@ export function NoteEditorForm({
           />
         </div>
         <div className="edit-footer-section">
-          <div className="edit-section-label">Category &amp; tags</div>
+          <div className="edit-section-label">{t('notes.categoryAndTags')}</div>
           <MetaFields
             category={category}
             onCategoryChange={onCategoryChange}
@@ -140,17 +142,17 @@ export function NoteEditorForm({
             onClick={() => setAiOpen(true)}
             disabled={readOnly || saving}
           >
-            ✦ AI assist
+            {t('notes.aiAssist')}
           </button>
         )}
         <span className="edit-actions-gap" />
-        <button onClick={onCancel} disabled={saving}>Cancel</button>
+        <button onClick={onCancel} disabled={saving}>{t('common.cancel')}</button>
         <button
           className="save-note"
           onClick={onSave}
           disabled={!canSave || saving}
         >
-          {saving ? 'Saving…' : saveLabel}
+          {saving ? t('notes.savingNote') : (saveLabel ?? t('notes.saveNote'))}
         </button>
       </div>
 
@@ -158,35 +160,33 @@ export function NoteEditorForm({
         <div className="ai-modal-backdrop" onClick={() => !aiRunning && setAiOpen(false)}>
           <div className="ai-modal" onClick={(e) => e.stopPropagation()}>
             <div className="ai-modal-head">
-              <span className="ai-modal-title">✦ AI Assist</span>
-              <button className="ai-modal-close" onClick={() => setAiOpen(false)} disabled={aiRunning} aria-label="Close">✕</button>
+              <span className="ai-modal-title">{t('notes.aiAssistTitle')}</span>
+              <button className="ai-modal-close" onClick={() => setAiOpen(false)} disabled={aiRunning} aria-label={t('common.close')}>✕</button>
             </div>
-            <p className="ai-modal-desc">
-              Describe what Codex should do with the current draft. Title, summary, tags, and body will all be updated — Save still controls when changes are persisted.
-            </p>
+            <p className="ai-modal-desc">{t('notes.aiAssistDesc')}</p>
             <textarea
               className="ai-modal-input"
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
               onKeyDown={handleAiKeyDown}
-              placeholder="Tighten the structure, add clearer headings, preserve all facts, and suggest better tags."
+              placeholder={t('notes.aiAssistPlaceholder')}
               rows={6}
               autoFocus
               disabled={aiRunning}
             />
             <div className="ai-modal-target">
-              Working on: <b>{title || 'Untitled note'}</b>
-              <span className="ai-modal-hint">⌘↵ to run</span>
+              {t('notes.workingOn', { title: title || t('notes.noteTitlePlaceholder') })}
+              <span className="ai-modal-hint">{t('notes.runHint')}</span>
             </div>
             {aiError && <div className="edit-error">{aiError}</div>}
             <div className="ai-modal-actions">
-              <button className="ai-modal-cancel" onClick={() => setAiOpen(false)} disabled={aiRunning}>Cancel</button>
+              <button className="ai-modal-cancel" onClick={() => setAiOpen(false)} disabled={aiRunning}>{t('common.cancel')}</button>
               <button
                 className="ai-modal-run"
                 onClick={runAi}
                 disabled={aiRunning || !aiPrompt.trim()}
               >
-                {aiRunning ? 'Running Codex…' : '✦ Apply AI draft'}
+                {aiRunning ? t('notes.runningCodex') : t('notes.applyAi')}
               </button>
             </div>
           </div>
