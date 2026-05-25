@@ -93,7 +93,7 @@ export interface KnowledgeState {
 }
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'error';
-export type JobMode = 'research' | 'link' | 'polish' | 'write';
+export type JobMode = 'research' | 'link' | 'polish' | 'write' | 'regen';
 
 export interface Job {
   id: string;
@@ -116,6 +116,9 @@ export interface Job {
   finishedAt: string | null;
   nextRunAt: string | null;
   error: string | null;
+  // regen-mode fields
+  noteId?: string;
+  regenTarget?: 'flashcards' | 'quiz' | 'all';
 }
 
 export interface Reminder {

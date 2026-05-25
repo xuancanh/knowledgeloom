@@ -70,7 +70,7 @@ export class NotesController {
     @Body() body: { target?: string },
   ) {
     const target = body?.target === 'quiz' ? 'quiz' : body?.target === 'flashcards' ? 'flashcards' : 'all';
-    await this.notesService.regenerate(userId, id, target);
-    return { regenerated: id, target };
+    const job = await this.notesService.enqueueRegenerate(userId, id, target);
+    return { job };
   }
 }

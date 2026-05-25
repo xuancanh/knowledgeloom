@@ -18,6 +18,7 @@ import { KnowledgeService } from '../knowledge/knowledge.service';
 import { RemindersService } from '../reminders/reminders.service';
 import { SearchService } from '../search/search.service';
 import { CodexService } from '../codex/codex.service';
+import { JobsService } from '../jobs/jobs.service';
 import {
   parseNote,
   composeMarkdown,
@@ -37,6 +38,7 @@ export class NotesService {
     private readonly remindersService: RemindersService,
     private readonly searchService: SearchService,
     private readonly codexService: CodexService,
+    private readonly jobsService: JobsService,
     private readonly config: ConfigService,
   ) {
     this.readOnly = config.get<boolean>('readOnly');
@@ -153,9 +155,21 @@ export class NotesService {
     return this.codexService.assistEdit(id, draft, instruction);
   }
 
-  async regenerate(userId: string, id: string, target: 'flashcards' | 'quiz' | 'all'): Promise<void> {
+  async enqueueRegenerate(userId: string, id: string, target: 'flashcards' | 'quiz' | 'all'): Promise<any> {
     this.assertWritable();
-    await this.knowledgeService.regenerateForNote(userId, basename(id), target);
+    const safeId = basename(id);
+    const file = await this.noteRepo.findById(userId, safeId);
+    if (!file) throw new NotFoundException('note not found');
+    const markdown = await this.noteRepo.readMarkdown(userId, safeId);
+    const { parseNote } = await import('../common/note-parser.util');
+    const note = parseNote(file, markdown);
+    const targetLabel = target === 'all' ? 'flashcards + quiz' : target;
+    return this.jobsService.enqueue(userId, {
+      mode: 'regen',
+      topic: `Regenerate ${targetLabel}: ${note.title}`,
+      noteId: safeId,
+      regenTarget: target,
+    });
   }
 
   private assertWritable(): void {

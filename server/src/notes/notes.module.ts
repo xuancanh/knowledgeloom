@@ -19,9 +19,10 @@ import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { RemindersModule } from '../reminders/reminders.module';
 import { SearchModule } from '../search/search.module';
 import { CodexModule } from '../codex/codex.module';
+import { JobsModule } from '../jobs/jobs.module';
 
 @Module({
-  imports: [NotesFileModule, KnowledgeModule, RemindersModule, SearchModule, CodexModule],
+  imports: [NotesFileModule, KnowledgeModule, RemindersModule, SearchModule, CodexModule, JobsModule],
   controllers: [NotesController],
   providers: [NotesService],
   exports: [NotesService],
