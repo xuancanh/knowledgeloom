@@ -320,12 +320,34 @@
 
 /* Meta section at the bottom */
 .edit-footer-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   padding-top: 16px;
   border-top: 1px dashed var(--rule);
   margin-bottom: 20px;
+}
+@media (max-width: 600px) {
+  .edit-footer-meta { grid-template-columns: 1fr; }
+}
+.edit-footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.edit-section-label {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+/* In the meta section the link-editor loses its standalone margin */
+.edit-footer-section .link-editor {
+  margin-bottom: 0;
+  max-height: 180px;
 }
 
 /* Action bar */
@@ -372,6 +394,129 @@
   border-color: var(--accent-2);
   color: #faf3e2;
 }
+
+/* ════════════════════════════ AI Assist Modal ══════════════════════════ */
+
+.ai-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--paper) 60%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.ai-modal {
+  background: var(--paper);
+  border: 1px solid var(--rule-2);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--ink) 16%, transparent);
+  width: 100%;
+  max-width: 520px;
+  padding: 22px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ai-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-modal-title {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.ai-modal-close {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 120ms, border-color 120ms;
+}
+.ai-modal-close:hover:not(:disabled) { color: var(--ink); border-color: var(--rule-2); }
+.ai-modal-desc {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+.ai-modal-input {
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 14.5px;
+  line-height: 1.55;
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 110px;
+  outline: none;
+  transition: border-color 140ms;
+}
+.ai-modal-input:focus { border-color: var(--accent); }
+.ai-modal-input::placeholder { color: var(--muted-2); font-style: italic; }
+.ai-modal-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.ai-modal-target b { color: var(--ink-2); font-weight: 500; }
+.ai-modal-hint {
+  color: var(--muted-2);
+  font-size: 10.5px;
+}
+.ai-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ai-modal-cancel {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 7px 14px;
+  transition: color 120ms, border-color 120ms;
+}
+.ai-modal-cancel:hover:not(:disabled) { color: var(--ink-2); border-color: var(--rule-2); }
+.ai-modal-run {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: #faf3e2;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  padding: 7px 18px;
+  transition: opacity 120ms;
+}
+.ai-modal-run:disabled { opacity: 0.4; cursor: not-allowed; }
+.ai-modal-run:hover:not(:disabled) { opacity: 0.88; }
 
 .edit-success {
   font-size: 13px;

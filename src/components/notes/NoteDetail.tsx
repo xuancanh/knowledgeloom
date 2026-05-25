@@ -7,12 +7,10 @@ import {
   stripFrontmatter,
   type UiCategory,
 } from '../../lib/view';
-import NoteEditor, { type NoteEditorHandle } from './NoteEditor';
+import { type NoteEditorHandle } from './NoteEditor';
 import NoteViewer from './NoteViewer';
-import MetaFields from './MetaFields';
-import { AiAssistPanel } from './AiAssistPanel';
+import { NoteEditorForm } from './NoteEditorForm';
 import { ReminderSection } from './ReminderSection';
-import { LinkEditor } from './LinkEditor';
 
 /**
  * Note reader and editor. Edits are saved back to the markdown source file,
@@ -76,7 +74,6 @@ export default function NoteDetail({
   const [tags, setTags] = useState<string[]>(note.tags);
   const [links, setLinks] = useState<string[]>(note.links);
   const [saveError, setSaveError] = useState('');
-  const [editTab, setEditTab] = useState<'manual' | 'ai'>('manual');
   const [aiSuccess, setAiSuccess] = useState('');
 
   const catId = categoryId(note.category);
@@ -146,7 +143,6 @@ export default function NoteDetail({
     setLinks(note.links);
     setSaveError('');
     setAiSuccess('');
-    setEditTab('manual');
     setEditing(true);
   }
 
@@ -228,73 +224,33 @@ export default function NoteDetail({
       </div>
 
       {editing ? (
-        <div className="note-edit-view">
-          {editTab === 'manual' ? (
-            <>
-              <input
-                className="edit-title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Note title"
-                disabled={readOnly}
-              />
-              <textarea
-                className="edit-summary"
-                value={summary}
-                onChange={(event) => setSummary(event.target.value)}
-                rows={2}
-                placeholder="One-line summary…"
-                disabled={readOnly}
-              />
-              <div className="edit-body">
-                <NoteEditor
-                  ref={editorRef}
-                  initialValue={stripFrontmatter(markdown)}
-                  placeholder="Start writing… Drag or paste images to upload. Use the toolbar for formatting."
-                  disabled={readOnly}
-                />
-              </div>
-              <div className="edit-footer-meta">
-                <LinkEditor
-                  notes={notes}
-                  noteId={note.id}
-                  links={links}
-                  onToggleLink={toggleLink}
-                />
-                <MetaFields
-                  category={category}
-                  onCategoryChange={setCategory}
-                  tags={tags}
-                  onTagsChange={setTags}
-                  categories={categories}
-                  disabled={readOnly}
-                />
-              </div>
-            </>
-          ) : (
-            <AiAssistPanel
-              title={title}
-              onAssist={(prompt) => onAssist(note.id, prompt, currentDraft())}
-              getDraft={currentDraft}
-              applyUpdate={applyAiUpdate}
-              onSwitchTab={() => setEditTab('manual')}
-            />
-          )}
-          {aiSuccess && <div className="edit-success">{aiSuccess}</div>}
-          {saveError && <div className="edit-error">{saveError}</div>}
-          <div className="edit-actions">
-            <button
-              className={`ai-tab-btn${editTab === 'ai' ? ' active' : ''}`}
-              onClick={() => setEditTab(editTab === 'ai' ? 'manual' : 'ai')}
-              disabled={saving}
-            >
-              {editTab === 'ai' ? '← Back to edit' : '✦ AI assist'}
-            </button>
-            <span className="edit-actions-gap" />
-            <button onClick={() => setEditing(false)} disabled={saving}>Cancel</button>
-            <button className="save-note" onClick={saveEdit} disabled={saving || !title.trim()}>{saving ? 'Saving…' : 'Save note'}</button>
-          </div>
-        </div>
+        <NoteEditorForm
+          noteId={note.id}
+          title={title}
+          summary={summary}
+          category={category}
+          tags={tags}
+          links={links}
+          initialBody={stripFrontmatter(markdown)}
+          notes={notes}
+          categories={categories}
+          editorRef={editorRef}
+          readOnly={readOnly}
+          saving={saving}
+          canSave={!!title.trim()}
+          aiSuccess={aiSuccess}
+          saveError={saveError}
+          onTitleChange={setTitle}
+          onSummaryChange={setSummary}
+          onCategoryChange={setCategory}
+          onTagsChange={setTags}
+          onToggleLink={toggleLink}
+          getDraft={currentDraft}
+          onAiAssist={(prompt, draft) => onAssist(note.id, prompt, draft)}
+          onAiApplied={applyAiUpdate}
+          onCancel={() => setEditing(false)}
+          onSave={saveEdit}
+        />
       ) : (
         <>
           <div className="note-body">
