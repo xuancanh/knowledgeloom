@@ -120,6 +120,7 @@ export interface Job {
   // regen-mode fields
   noteId?: string;
   regenTarget?: 'flashcards' | 'quiz' | 'all';
+  regenSize?: GenSize;
 }
 
 export interface Reminder {

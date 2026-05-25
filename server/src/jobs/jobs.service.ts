@@ -88,6 +88,10 @@ export class JobsService implements OnModuleInit {
       finishedAt: null,
       nextRunAt: now,
       error: null,
+      // regen-mode fields — must be preserved so the job processor can read them
+      noteId: payload.noteId || undefined,
+      regenTarget: payload.regenTarget || undefined,
+      regenSize: payload.regenSize || undefined,
     };
 
     await this.repo.save(job);
