@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { assistDraft, type NoteUpdate } from '../../api';
+import { assistDraft, regenerateNote, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
   categoryId,
@@ -67,6 +67,8 @@ export default function NoteDetail({
   const [toolbarOpen, setToolbarOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const savedTheme = useRef<string | null>(null);
+  const [regenState, setRegenState] = useState<'idle' | 'loading' | 'done'>('idle');
+  const [regenDropOpen, setRegenDropOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [category, setCategory] = useState(note.category);
@@ -184,6 +186,28 @@ export default function NoteDetail({
     setAiSuccess('AI draft applied. Review the changes, then save the note.');
   }
 
+  useEffect(() => {
+    if (!regenDropOpen) return;
+    function onDocClick(e: MouseEvent) {
+      const wrap = document.querySelector('.regen-wrap');
+      if (wrap && !wrap.contains(e.target as Node)) setRegenDropOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [regenDropOpen]);
+
+  async function handleRegenerate(target: 'flashcards' | 'quiz' | 'all') {
+    setRegenDropOpen(false);
+    setRegenState('loading');
+    try {
+      await regenerateNote(note.id, target);
+      setRegenState('done');
+      window.setTimeout(() => setRegenState('idle'), 3000);
+    } catch {
+      setRegenState('idle');
+    }
+  }
+
   return (
     <div className="note-detail">
       <div className="crumbs">
@@ -199,6 +223,24 @@ export default function NoteDetail({
           <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? '✕ Exit' : editing ? '⊙ Focus' : '⊡ Read'}</button>
           <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? '✕ Cancel' : '✎ Edit'}</button>
           <button className="delete-inline" onClick={onDelete} disabled={readOnly}>✕ Delete</button>
+          {!readOnly && (
+            <span className="regen-wrap">
+              <button
+                className={`regen-trigger${regenDropOpen ? ' open' : ''}`}
+                onClick={() => setRegenDropOpen((v) => !v)}
+                disabled={regenState === 'loading'}
+              >
+                {regenState === 'loading' ? '…' : regenState === 'done' ? '✓ Done' : '↺ Regen'}
+              </button>
+              {regenDropOpen && (
+                <div className="regen-drop">
+                  <button onClick={() => handleRegenerate('flashcards')}>↺ Flashcards</button>
+                  <button onClick={() => handleRegenerate('quiz')}>↺ Quiz</button>
+                  <button onClick={() => handleRegenerate('all')}>↺ Both</button>
+                </div>
+              )}
+            </span>
+          )}
         </div>
         {readOnly && <div className="read-only-banner">Read-only mode: editing, deletion, and Codex jobs are disabled in this deployment.</div>}
         {!editing && (
