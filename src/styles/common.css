@@ -474,3 +474,31 @@
   flex-shrink: 0;
 }
 
+
+/* ——— Language switcher (settings page) ——— */
+.lang-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+.lang-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--rule-2);
+  border-radius: 20px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s, background 0.1s;
+}
+.lang-btn:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.lang-btn.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+  color: var(--accent);
+  font-weight: 500;
+}

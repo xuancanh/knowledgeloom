@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { searchKnowledge } from '../api';
 import type { KnowledgeNote } from '../types';
 import { categoryId, formatCreated, highlightText, noteSearchText, type UiCategory } from '../lib/view';
@@ -20,6 +21,7 @@ export default function SearchOverlay({
   categories: UiCategory[];
   onOpen: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [idx, setIdx] = useState(0);
   const [hits, setHits] = useState<KnowledgeNote[]>([]);
@@ -118,14 +120,14 @@ export default function SearchOverlay({
               setQuery(event.target.value);
               setIdx(0);
             }}
-            placeholder="Search across title, summary, tags, body, category..."
+            placeholder={t('search.placeholder')}
           />
           <span className="esc">esc</span>
         </div>
         <div className="search-results">
-          {hits.length === 0 && <div className="search-empty">No matches. Try a tag or phrase.</div>}
+          {hits.length === 0 && <div className="search-empty">{t('search.noMatches')}</div>}
           <div>
-            <div className="search-grp">{query.trim() ? 'Matches' : 'Recent'} · {hits.length}</div>
+            <div className="search-grp">{query.trim() ? t('search.matches') : t('search.recent')} · {hits.length}</div>
             {hits.map((note, hitIndex) => {
               const cat = categories.find((item) => item.id === categoryId(note.category));
               return (
@@ -149,9 +151,9 @@ export default function SearchOverlay({
           </div>
         </div>
         <div className="search-foot">
-          <span><kbd>↑↓</kbd> navigate</span>
-          <span><kbd>↵</kbd> open</span>
-          <span><kbd>esc</kbd> close</span>
+          <span><kbd>↑↓</kbd> {t('search.navigate')}</span>
+          <span><kbd>↵</kbd> {t('search.open')}</span>
+          <span><kbd>esc</kbd> {t('search.close')}</span>
           <span style={{ marginLeft: 'auto' }}>{engine} · {hits.length} hits</span>
         </div>
       </div>

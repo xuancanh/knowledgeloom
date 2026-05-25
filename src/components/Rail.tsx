@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { categoryLabel, type CategoryTreeNode, type UiCategory } from '../lib/view';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const CAT_INITIAL_LIMIT = 5;
 const TAG_INITIAL_LIMIT = 5;
@@ -105,6 +107,7 @@ export default function Rail({
   onViewAllCategories: () => void;
   onViewAllTags: () => void;
 }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const path = location.pathname;
 
@@ -149,42 +152,42 @@ export default function Rail({
           <span className="mark" />
           <span className="name">Knowledge <em>Loom</em></span>
         </div>
-        <div className="rail-sub">a desk for things you just learned</div>
-        <button className="rail-close" onClick={closeRail} aria-label="Close menu">✕</button>
+        <div className="rail-sub">{t('nav.tagline')}</div>
+        <button className="rail-close" onClick={closeRail} aria-label={t('nav.closeMenu')}>✕</button>
       </div>
 
       <nav className="rail-nav">
         <div className="rail-nav-group">
           <button className={`nav-item${isHome ? ' active' : ''}`} onClick={() => { onHome(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>✦</span> Capture
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>✦</span> {t('nav.capture')}
             <span className="kbd">/</span>
           </button>
           <button className="nav-item" onClick={() => { onSearch(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⌕</span> Search
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⌕</span> {t('nav.search')}
             <span className="kbd">⌘K</span>
           </button>
           <button
             className={`nav-item activity-nav${isActivity ? ' active' : ''}${inFlightCount ? ' researching' : ''}`}
             onClick={() => { onActivity(); closeRail(); }}
           >
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Activity
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> {t('nav.activity')}
             <span className="count">{inFlightCount}</span>
           </button>
           <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> Flashcards
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> {t('nav.flashcards')}
             <span className="count">{flashcardCount}</span>
           </button>
           <button className={`nav-item${isQuiz ? ' active' : ''}`} onClick={() => { onQuiz(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>?</span> Quiz
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>?</span> {t('nav.quiz')}
             <span className="count">{quizCount}</span>
           </button>
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> Settings
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> {t('nav.settings')}
           </button>
         </div>
 
         <button className="rail-section-head" onClick={() => { onViewAllCategories(); closeRail(); }}>
-          <span className="rail-section-label">Categories</span>
+          <span className="rail-section-label">{t('nav.categories')}</span>
           <span className="rail-section-count">{categories.length}</span>
           <span className="rail-section-arrow">→</span>
         </button>
@@ -192,13 +195,13 @@ export default function Rail({
           <span className="rail-filter-icon">⌕</span>
           <input
             className="rail-filter"
-            placeholder="Filter categories…"
+            placeholder={t('nav.filterCategories')}
             value={catSearch}
             onChange={(e) => onCatSearchChange(e.target.value)}
             spellCheck={false}
           />
           {catSearch && (
-            <button className="rail-filter-clear" onClick={() => onCatSearchChange('')} aria-label="Clear">✕</button>
+            <button className="rail-filter-clear" onClick={() => onCatSearchChange('')} aria-label={t('common.clear')}>✕</button>
           )}
         </div>
 
@@ -224,24 +227,24 @@ export default function Rail({
               );
             })
           ) : (
-            <div className="rail-empty">No categories match</div>
+            <div className="rail-empty">{t('nav.noCategoriesMatch')}</div>
           )
         ) : (
           <>
             {visibleCategoryTree.map((node) => (<CategoryNode key={node.id} node={node} activeCategoryId={activeCategoryId} openCategory={openCategory} closeRail={closeRail} />))}
             {hiddenCatCount > 0 && !catExpanded && (
               <button className="nav-item rail-expand" onClick={() => setCatExpanded(true)}>
-                +{hiddenCatCount} more
+                {t('common.moreCount', { count: hiddenCatCount })}
               </button>
             )}
             {catExpanded && !catSearch && (
-              <button className="nav-item rail-expand" onClick={() => setCatExpanded(false)}>Show less</button>
+              <button className="nav-item rail-expand" onClick={() => setCatExpanded(false)}>{t('common.showLess')}</button>
             )}
           </>
         )}
 
         <button className="rail-section-head" onClick={() => { onViewAllTags(); closeRail(); }}>
-          <span className="rail-section-label">Tags</span>
+          <span className="rail-section-label">{t('nav.tags')}</span>
           <span className="rail-section-count">{tagCounts.length}</span>
           <span className="rail-section-arrow">→</span>
         </button>
@@ -249,18 +252,18 @@ export default function Rail({
           <span className="rail-filter-icon">⌕</span>
           <input
             className="rail-filter"
-            placeholder="Filter tags…"
+            placeholder={t('nav.filterTags')}
             value={tagSearch}
             onChange={(e) => onTagSearchChange(e.target.value)}
             spellCheck={false}
           />
           {tagSearch && (
-            <button className="rail-filter-clear" onClick={() => onTagSearchChange('')} aria-label="Clear">✕</button>
+            <button className="rail-filter-clear" onClick={() => onTagSearchChange('')} aria-label={t('common.clear')}>✕</button>
           )}
         </div>
 
         {filteredTags.length === 0 && tagSearch ? (
-          <div className="rail-empty">No tags match</div>
+          <div className="rail-empty">{t('nav.noTagsMatch')}</div>
         ) : (
           visibleTags.map(([tag, count]) => (
             <button
@@ -276,12 +279,16 @@ export default function Rail({
         )}
         {hiddenTagCount > 0 && !tagExpanded && (
           <button className="nav-item rail-expand" onClick={() => setTagExpanded(true)}>
-            +{hiddenTagCount} more
+            {t('common.moreCount', { count: hiddenTagCount })}
           </button>
         )}
         {tagExpanded && !tagSearch && (
-          <button className="nav-item rail-expand" onClick={() => setTagExpanded(false)}>Show less</button>
+          <button className="nav-item rail-expand" onClick={() => setTagExpanded(false)}>{t('common.showLess')}</button>
         )}
+
+        <div className="rail-lang-wrap">
+          <LanguageSwitcher compact />
+        </div>
       </nav>
     </aside>
   );
