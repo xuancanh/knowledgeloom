@@ -21,11 +21,34 @@ export type KnowledgeCategory = {
   notes: Array<{ id: string; title: string; summary: string }>;
 };
 
+export type QuizQuestionType = 'fill-blank' | 'multiple-choice' | 'short-answer';
+
+export type QuizQuestion = {
+  id: string;
+  noteId: string;
+  noteTitle: string;
+  category: string;
+  tags: string[];
+  type: QuizQuestionType;
+  question: string;
+  answer: string;
+  choices?: string[];
+  correctIndex?: number;
+  explanation?: string;
+  reviewData?: {
+    nextReviewAt: string | null;
+    lastReviewAt: string | null;
+    lastRating: 'correct' | 'wrong' | null;
+    streak: number;
+  };
+};
+
 export type KnowledgeState = {
   notes: KnowledgeNote[];
   categories: KnowledgeCategory[];
   graph: Array<{ source: string; targets: string[] }>;
   flashcards?: Flashcard[];
+  quizQuestions?: QuizQuestion[];
   updatedAt?: string;
 };
 
