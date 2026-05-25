@@ -32,10 +32,10 @@ export class JobsProcessor extends WorkerHost {
       let result: any;
 
       if (codexJob.mode === 'regen') {
-        const userId = (codexJob as any).userId || 'local';
-        const noteId = (codexJob as any).noteId;
-        const target: 'flashcards' | 'quiz' | 'all' = (codexJob as any).regenTarget || 'all';
-        const size = (codexJob as any).regenSize || 'small';
+        const userId = codexJob.userId || 'local';
+        const noteId = codexJob.noteId;
+        const target: 'flashcards' | 'quiz' | 'all' = codexJob.regenTarget || 'all';
+        const size = codexJob.regenSize || 'small';
         await this.knowledgeService.regenerateForNote(userId, noteId, target, size);
         await this.knowledgeService.rebuildIndexes(userId);
         result = {};
