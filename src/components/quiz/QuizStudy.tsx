@@ -1,16 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { QuizQuestion } from '../../types';
 import { QUIZ_TYPE_LABELS, QUIZ_TYPE_COLORS } from './constants';
 
 type Rating = 'correct' | 'wrong';
-
-function nextReviewLabel(nextReviewAt: string | null | undefined): string {
-  if (!nextReviewAt) return '';
-  const diff = Date.parse(nextReviewAt) - Date.now();
-  if (diff <= 0) return 'Due now';
-  const days = Math.ceil(diff / 86_400_000);
-  return days === 1 ? 'Next: tomorrow' : `Next: ${days}d`;
-}
 
 // ── Fill-blank question ─────────────────────────────────────────────────────
 
@@ -20,6 +13,7 @@ function FillBlank({ question, revealed, userInput, onInput }: {
   userInput: string;
   onInput: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   const parts = question.question.split('___');
   const isCorrect = revealed && userInput.trim().toLowerCase() === question.answer.trim().toLowerCase();
 
@@ -34,7 +28,7 @@ function FillBlank({ question, revealed, userInput, onInput }: {
             className="qz-blank-input"
             value={userInput}
             onChange={(e) => onInput(e.target.value)}
-            placeholder="type answer…"
+            placeholder={t('quiz.typeAnswer')}
             autoFocus
             spellCheck={false}
           />
@@ -43,7 +37,7 @@ function FillBlank({ question, revealed, userInput, onInput }: {
       </p>
       {revealed && userInput.trim() && (
         <p className={`qz-your-answer ${isCorrect ? 'correct' : 'wrong'}`}>
-          Your answer: <em>{userInput.trim()}</em>
+          {t('quiz.yourAnswer')}: <em>{userInput.trim()}</em>
         </p>
       )}
     </div>
@@ -97,6 +91,7 @@ function ShortAnswer({ question, revealed, userInput, onInput }: {
   userInput: string;
   onInput: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="qz-short">
       <p className="qz-short-question">{question.question}</p>
@@ -105,7 +100,7 @@ function ShortAnswer({ question, revealed, userInput, onInput }: {
           className="qz-short-input"
           value={userInput}
           onChange={(e) => onInput(e.target.value)}
-          placeholder="Write your answer…"
+          placeholder={t('quiz.typeAnswer')}
           rows={4}
           autoFocus
         />
@@ -113,17 +108,17 @@ function ShortAnswer({ question, revealed, userInput, onInput }: {
         <div className="qz-short-answers">
           {userInput.trim() && (
             <div className="qz-short-yours">
-              <span className="qz-short-label">Your answer</span>
+              <span className="qz-short-label">{t('quiz.yourAnswer')}</span>
               <p>{userInput.trim()}</p>
             </div>
           )}
           <div className="qz-short-ref">
-            <span className="qz-short-label">Reference answer</span>
+            <span className="qz-short-label">{t('quiz.referenceAnswer')}</span>
             <p>{question.answer}</p>
           </div>
           {question.explanation && (
             <div className="qz-short-expl">
-              <span className="qz-short-label">Key point</span>
+              <span className="qz-short-label">{t('quiz.keyPoint')}</span>
               <p>{question.explanation}</p>
             </div>
           )}
@@ -144,8 +139,17 @@ export default function QuizStudy({
   onRate: (question: QuizQuestion, rating: Rating) => void;
   onExit: () => void;
 }) {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+
+  function nextReviewLabel(nextReviewAt: string | null | undefined): string {
+    if (!nextReviewAt) return '';
+    const diff = Date.parse(nextReviewAt) - Date.now();
+    if (diff <= 0) return t('quiz.dueNow');
+    const days = Math.ceil(diff / 86_400_000);
+    return days === 1 ? t('quiz.tomorrow') : t('quiz.daysAhead', { count: days });
+  }
   const [userInput, setUserInput] = useState('');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
@@ -223,15 +227,15 @@ export default function QuizStudy({
     return (
       <div className="qz-done">
         <div className="qz-done-icon">✓</div>
-        <h2 className="qz-done-title">Session complete</h2>
-        <p className="qz-done-score">{correct} / {total} correct</p>
+        <h2 className="qz-done-title">{t('quiz.sessionComplete')}</h2>
+        <p className="qz-done-score">{t('quiz.scoreCorrect', { correct, total })}</p>
         <div className="qz-done-bar-wrap">
           <div className="qz-done-bar" style={{ width: `${Math.round((correct / total) * 100)}%` }} />
         </div>
         <p className="qz-done-sub">
-          {correct === total ? 'Perfect score! 🎉' : `${total - correct} question${total - correct !== 1 ? 's' : ''} queued for review.`}
+          {correct === total ? t('quiz.perfectScore') : t('quiz.questionsForReview', { count: total - correct })}
         </p>
-        <button className="qz-done-exit" onClick={onExit}>Back to quiz deck</button>
+        <button className="qz-done-exit" onClick={onExit}>{t('quiz.backDeck2')}</button>
       </div>
     );
   }
@@ -250,7 +254,7 @@ export default function QuizStudy({
     <div className="qz-study">
       {/* Progress bar */}
       <div className="qz-study-bar">
-        <button className="fc-back-btn" onClick={onExit}>← Deck</button>
+        <button className="fc-back-btn" onClick={onExit}>{t('quiz.backDeck')}</button>
         <div className="qz-bar-center">
           <div className="qz-bar-track">
             <div className="qz-bar-fill" style={{ width: `${progress}%` }} />
@@ -312,13 +316,13 @@ export default function QuizStudy({
 
             {revealed && question.type !== 'multiple-choice' && question.explanation && (
               <div className="qz-explanation">
-                <span className="qz-expl-label">Key point</span>
+                <span className="qz-expl-label">{t('quiz.keyPoint')}</span>
                 <p>{question.explanation}</p>
               </div>
             )}
             {revealed && question.type === 'multiple-choice' && question.explanation && (
               <div className="qz-explanation">
-                <span className="qz-expl-label">Explanation</span>
+                <span className="qz-expl-label">{t('quiz.explanation')}</span>
                 <p>{question.explanation}</p>
               </div>
             )}
@@ -331,26 +335,26 @@ export default function QuizStudy({
                 onClick={reveal}
                 disabled={!canReveal}
               >
-                {isAutoRevealed ? 'Select an answer' : 'Reveal answer'}
+                {isAutoRevealed ? t('quiz.selectAnswer') : t('quiz.revealAnswer')}
                 {!isAutoRevealed && <span className="qz-hint">Space</span>}
               </button>
             ) : (
               <div className="qz-rate-row">
                 {question.type === 'short-answer' ? (
-                  <span className="qz-rate-prompt">How did you do?</span>
+                  <span className="qz-rate-prompt">{t('quiz.howDidYouDo')}</span>
                 ) : (
                   <span className="qz-rate-prompt">
                     {question.type === 'fill-blank'
-                      ? (userInput.trim().toLowerCase() === question.answer.trim().toLowerCase() ? '✓ Correct!' : '✗ Incorrect')
-                      : (selectedIndex === question.correctIndex ? '✓ Correct!' : '✗ Incorrect')}
+                      ? (userInput.trim().toLowerCase() === question.answer.trim().toLowerCase() ? t('quiz.correct') : t('quiz.incorrect'))
+                      : (selectedIndex === question.correctIndex ? t('quiz.correct') : t('quiz.incorrect'))}
                   </span>
                 )}
                 <button className="qz-wrong-btn" onClick={() => rate('wrong')}>
-                  ✗ Wrong
+                  {t('quiz.markWrong')}
                   <span className="qz-hint">←</span>
                 </button>
                 <button className="qz-correct-btn" onClick={() => rate('correct')}>
-                  ✓ Correct
+                  {t('quiz.markCorrect')}
                   <span className="qz-hint">→</span>
                 </button>
               </div>
