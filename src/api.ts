@@ -106,6 +106,24 @@ export async function reviewFlashcard(id: string, payload: { rating: 'again' | '
   return response.json();
 }
 
+export async function reviewQuiz(id: string, payload: { rating: 'correct' | 'wrong'; noteId: string; currentStreak?: number }): Promise<{ review: any }> {
+  const response = await apiFetch(`/api/quiz/${encodeURIComponent(id)}/review`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error(`Failed to submit quiz review: ${response.status}`);
+  return response.json();
+}
+
+export async function hideQuiz(id: string): Promise<void> {
+  const response = await apiFetch(`/api/quiz/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(`Failed to hide quiz question: ${response.status}`);
+}
+
+export async function restoreQuiz(id: string): Promise<void> {
+  const response = await apiFetch(`/api/quiz/${encodeURIComponent(id)}/restore`, { method: 'POST' });
+  if (!response.ok) throw new Error(`Failed to restore quiz question: ${response.status}`);
+}
+
 export type NoteUpdate = {
   title: string;
   category: string;
