@@ -94,6 +94,7 @@ export interface KnowledgeState {
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'error';
 export type JobMode = 'research' | 'link' | 'polish' | 'write' | 'regen';
+export type GenSize = 'small' | 'medium' | 'large';
 
 export interface Job {
   id: string;

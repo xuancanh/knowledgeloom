@@ -5,7 +5,13 @@ import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { QuizCacheRepository } from './quiz-cache.repository';
 import { QuizReviewsRepository, type QuizReview } from './quiz-reviews.repository';
 import { QuizHiddenRepository } from './quiz-hidden.repository';
-import type { KnowledgeNote, NoteSource, QuizQuestion } from '../types';
+import type { GenSize, KnowledgeNote, NoteSource, QuizQuestion } from '../types';
+
+const SIZE_RANGE: Record<GenSize, { min: number; max: number; cap: number }> = {
+  small:  { min: 5,  max: 10, cap: 10 },
+  medium: { min: 10, max: 20, cap: 20 },
+  large:  { min: 20, max: 40, cap: 40 },
+};
 
 @Injectable()
 export class QuizService {
@@ -36,7 +42,7 @@ export class QuizService {
     return { nextReviewAt: next.toISOString(), streak: newStreak };
   }
 
-  async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true } = {}): Promise<QuizQuestion[]> {
+  async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<QuizQuestion[]> {
     const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;
 
@@ -67,9 +73,9 @@ export class QuizService {
       await Promise.all(
         uncached.slice(i, i + BATCH).map(async ({ note, markdown }) => {
           try {
-            const prompt = this.buildPrompt(note, markdown);
+            const prompt = this.buildPrompt(note, markdown, size);
             const output = await this.ai.complete(prompt, { outputFormat: 'json' });
-            const questions = this.normalize(note, this.parseJson(output));
+            const questions = this.normalize(note, this.parseJson(output), size);
             nextNotes[note.id] = { hash: this.noteHash(note, markdown), questions, generatedAt: new Date().toISOString() };
           } catch (err) {
             if (cache[note.id]) nextNotes[note.id] = cache[note.id];
@@ -110,7 +116,7 @@ export class QuizService {
     return parsed.questions;
   }
 
-  private normalize(note: KnowledgeNote, rawQuestions: any[]): QuizQuestion[] {
+  private normalize(note: KnowledgeNote, rawQuestions: any[], size: GenSize = 'small'): QuizQuestion[] {
     const validTypes = new Set(['fill-blank', 'multiple-choice', 'short-answer']);
     const results: QuizQuestion[] = [];
 
@@ -148,15 +154,16 @@ export class QuizService {
       }
     }
 
-    return results.slice(0, 6);
+    return results.slice(0, SIZE_RANGE[size].cap);
   }
 
-  private buildPrompt(note: KnowledgeNote, markdown: string): string {
+  private buildPrompt(note: KnowledgeNote, markdown: string, size: GenSize = 'small'): string {
+    const { min, max } = SIZE_RANGE[size];
     return `Generate quiz questions from this knowledge note to test comprehension and recall.
 
 Rules:
 - Return only valid JSON. No markdown fences, no commentary.
-- Generate 3 to 6 questions mixing all three types.
+- Generate ${min} to ${max} questions mixing all three types.
 - For "fill-blank": write a sentence from the note with one key term replaced by ___ (exactly three underscores). The "answer" is the missing term.
 - For "multiple-choice": write a clear question and provide exactly 4 choices as an array. "correctIndex" is the 0-based index of the correct choice. Include a brief "explanation" for why the answer is correct.
 - For "short-answer": write an open-ended question that requires synthesis or explanation. "answer" is a complete reference answer (at least 30 words). Include a brief "explanation" summarising the key point.

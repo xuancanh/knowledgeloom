@@ -35,7 +35,8 @@ export class JobsProcessor extends WorkerHost {
         const userId = (codexJob as any).userId || 'local';
         const noteId = (codexJob as any).noteId;
         const target: 'flashcards' | 'quiz' | 'all' = (codexJob as any).regenTarget || 'all';
-        await this.knowledgeService.regenerateForNote(userId, noteId, target);
+        const size = (codexJob as any).regenSize || 'small';
+        await this.knowledgeService.regenerateForNote(userId, noteId, target, size);
         await this.knowledgeService.rebuildIndexes(userId);
         result = {};
       } else {

@@ -92,11 +92,7 @@ export default function QuizBrowse({
   onHide: (id: string) => void;
 }) {
   const [confirmHide, setConfirmHide] = useState<string | null>(null);
-
-  const dueCount = useMemo(() => questions.filter((q) => {
-    const n = q.reviewData?.nextReviewAt;
-    return !n || Date.parse(n) <= Date.now();
-  }).length, [questions]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -108,6 +104,11 @@ export default function QuizBrowse({
       return (qn.question + ' ' + qn.answer + ' ' + qn.noteTitle).toLowerCase().includes(q);
     });
   }, [questions, activeCategories, activeTags, activeTypes, search]);
+
+  const dueCount = useMemo(() => filtered.filter((q) => {
+    const n = q.reviewData?.nextReviewAt;
+    return !n || Date.parse(n) <= Date.now();
+  }).length, [filtered]);
 
   const catOptions = useMemo(
     () => categories.map((c) => ({ id: c.name, label: c.name, count: questions.filter((q) => q.category === c.name).length })),
@@ -206,34 +207,63 @@ export default function QuizBrowse({
             const typeColor = QUIZ_TYPE_COLORS[q.type];
             const label = nextReviewLabel(q.reviewData?.nextReviewAt);
             const isDue = !q.reviewData?.nextReviewAt || Date.parse(q.reviewData.nextReviewAt) <= Date.now();
+            const isExpanded = expandedId === q.id;
             return (
-              <div key={q.id} className="qz-row">
-                <div className="qz-row-type" style={{ color: typeColor }}>
-                  <span className="qz-dot" style={{ background: typeColor }} />
-                  <span>{QUIZ_TYPE_LABELS[q.type]}</span>
-                </div>
-                <div className="qz-row-body">
-                  <div className="qz-row-question">
-                    {q.type === 'fill-blank'
-                      ? q.question.replace('___', '▢')
-                      : q.question}
+              <div
+                key={q.id}
+                className={`qz-row${isExpanded ? ' expanded' : ''}`}
+                onClick={() => setExpandedId(isExpanded ? null : q.id)}
+              >
+                <div className="qz-row-main">
+                  <div className="qz-row-type" style={{ color: typeColor }}>
+                    <span className="qz-dot" style={{ background: typeColor }} />
+                    <span>{QUIZ_TYPE_LABELS[q.type]}</span>
                   </div>
-                  <div className="qz-row-meta">
-                    <span className="qz-row-note">{q.noteTitle}</span>
-                    {q.category && <span className="qz-row-cat">{q.category}</span>}
+                  <div className="qz-row-body">
+                    <div className="qz-row-question">
+                      {q.type === 'fill-blank'
+                        ? q.question.replace('___', '▢')
+                        : q.question}
+                    </div>
+                    <div className="qz-row-meta">
+                      <span className="qz-row-note">{q.noteTitle}</span>
+                      {q.category && <span className="qz-row-cat">{q.category}</span>}
+                    </div>
+                  </div>
+                  <div className="qz-row-right" onClick={(e) => e.stopPropagation()}>
+                    <span className={`qz-review-label${isDue ? ' due' : ''}`}>{label}</span>
+                    {confirmHide === q.id ? (
+                      <span className="qz-confirm-hide">
+                        <button className="qz-confirm-yes" onClick={() => { onHide(q.id); setConfirmHide(null); }}>Hide</button>
+                        <button className="qz-confirm-no" onClick={() => setConfirmHide(null)}>Cancel</button>
+                      </span>
+                    ) : (
+                      <button className="qz-hide-btn" onClick={() => setConfirmHide(q.id)} title="Hide question">✕</button>
+                    )}
                   </div>
                 </div>
-                <div className="qz-row-right">
-                  <span className={`qz-review-label${isDue ? ' due' : ''}`}>{label}</span>
-                  {confirmHide === q.id ? (
-                    <span className="qz-confirm-hide">
-                      <button className="qz-confirm-yes" onClick={() => { onHide(q.id); setConfirmHide(null); }}>Hide</button>
-                      <button className="qz-confirm-no" onClick={() => setConfirmHide(null)}>Cancel</button>
-                    </span>
-                  ) : (
-                    <button className="qz-hide-btn" onClick={() => setConfirmHide(q.id)} title="Hide question">✕</button>
-                  )}
-                </div>
+                {isExpanded && (
+                  <div className="qz-row-expand">
+                    {q.type === 'multiple-choice' && q.choices ? (
+                      <div className="qz-row-choices">
+                        {q.choices.map((c, i) => (
+                          <div key={i} className={`qz-row-choice${i === q.correctIndex ? ' correct' : ''}`}>
+                            <span className="qz-row-choice-letter">{String.fromCharCode(65 + i)}</span>
+                            {c}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="qz-row-answer">
+                        <span className="qz-row-answer-label">Answer</span>
+                        {q.answer}
+                      </div>
+                    )}
+                    {q.explanation && (
+                      <div className="qz-row-expl">{q.explanation}</div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
