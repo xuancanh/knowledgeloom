@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { CreateNoteRequest } from '../../types';
-import NoteEditor, { type NoteEditorHandle } from '../notes/NoteEditor';
-import MetaFields from '../notes/MetaFields';
+import type { CreateNoteRequest, KnowledgeNote } from '../../types';
+import { assistDraft, type NoteUpdate } from '../../api';
+import type { UiCategory } from '../../lib/view';
+import { NoteEditorForm, type NoteEditorHandle } from '../notes/NoteEditorForm';
 import styles from './NewNoteRoute.module.css';
 
 export const NEW_NOTE_DRAFT_KEY = 'kl:new-note-draft';
@@ -18,9 +19,13 @@ function popDraft(): Draft {
 }
 
 export function NewNoteRoute({
+  notes,
+  categories,
   onSubmit,
   readOnly,
 }: {
+  notes: KnowledgeNote[];
+  categories: UiCategory[];
   onSubmit: (payload: CreateNoteRequest) => void;
   readOnly: boolean;
 }) {
@@ -29,14 +34,34 @@ export function NewNoteRoute({
 
   const [draft] = useState<Draft>(popDraft);
   const [title, setTitle] = useState(draft.title ?? '');
+  const [summary, setSummary] = useState(draft.summary ?? '');
   const [category, setCategory] = useState(draft.category ?? '');
   const [tags, setTags] = useState<string[]>(draft.tags ?? []);
-  const [summary, setSummary] = useState(draft.summary ?? '');
+  const [links, setLinks] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [aiSuccess, setAiSuccess] = useState('');
 
-  const canSubmit = !readOnly && title.trim().length > 0;
+  function currentDraft(): NoteUpdate {
+    return { title, category, summary, tags, links, body: editorRef.current?.getValue() ?? '' };
+  }
+
+  function applyAiUpdate(update: NoteUpdate) {
+    setTitle(update.title);
+    setCategory(update.category);
+    setSummary(update.summary);
+    setTags(update.tags);
+    setLinks(update.links);
+    editorRef.current?.setValue(update.body);
+    setAiSuccess('AI draft applied — review and save when ready.');
+  }
+
+  function toggleLink(id: string) {
+    setLinks((prev) => prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]);
+  }
 
   function save() {
-    if (!canSubmit) return;
+    if (readOnly || !title.trim()) return;
+    setSaving(true);
     onSubmit({
       mode: 'write',
       title: title.trim(),
@@ -44,65 +69,52 @@ export function NewNoteRoute({
       category: category.trim(),
       summary: summary.trim(),
       tags,
+      links,
     });
   }
 
   return (
     <div className={styles.page}>
       <div className="crumbs">
-        <button onClick={() => navigate('/')}>Desk</button>
+        <button onClick={() => navigate('/home')}>Desk</button>
         <span className="sep">/</span>
+        {category && <><span>{category}</span><span className="sep">/</span></>}
         <span>New note</span>
       </div>
 
-      <input
-        className={styles.title}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Note title"
-        autoFocus
-        disabled={readOnly}
+      <NoteEditorForm
+        noteId=""
+        title={title}
+        summary={summary}
+        category={category}
+        tags={tags}
+        links={links}
+        initialBody={draft.body ?? ''}
+        notes={notes}
+        categories={categories}
+        editorRef={editorRef}
+        readOnly={readOnly}
+        saving={saving}
+        canSave={!readOnly && title.trim().length > 0}
+        saveLabel="Save note →"
+        aiSuccess={aiSuccess}
+        onTitleChange={setTitle}
+        onSummaryChange={setSummary}
+        onCategoryChange={setCategory}
+        onTagsChange={setTags}
+        onToggleLink={toggleLink}
+        getDraft={currentDraft}
+        onAiAssist={async (prompt, d) => {
+          const { update } = await assistDraft(
+            { title: d.title, body: d.body, category: d.category, summary: d.summary, tags: d.tags },
+            prompt,
+          );
+          return update;
+        }}
+        onAiApplied={applyAiUpdate}
+        onCancel={() => navigate(-1)}
+        onSave={save}
       />
-
-      <textarea
-        className={styles.summary}
-        value={summary}
-        onChange={(e) => setSummary(e.target.value)}
-        placeholder="One-line summary…"
-        rows={2}
-        disabled={readOnly}
-      />
-
-      <div className={styles.editor}>
-        <NoteEditor
-          ref={editorRef}
-          initialValue={draft.body ?? ''}
-          placeholder="Start writing… Drag or paste images to upload. Use the toolbar for formatting."
-          disabled={readOnly}
-        />
-      </div>
-
-      <div className={styles.meta}>
-        <MetaFields
-          category={category}
-          onCategoryChange={setCategory}
-          tags={tags}
-          onTagsChange={setTags}
-          disabled={readOnly}
-        />
-      </div>
-
-      <div className={styles.actions}>
-        <button className={styles.cancel} type="button" onClick={() => navigate(-1)}>Cancel</button>
-        <button
-          className={styles.save}
-          type="button"
-          onClick={save}
-          disabled={!canSubmit}
-        >
-          Save note →
-        </button>
-      </div>
     </div>
   );
 }
