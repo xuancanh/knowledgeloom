@@ -168,14 +168,6 @@
   min-height: 320px;
   padding: 28px;
 }
-.review-card {
-  justify-content: flex-start;
-  min-height: 430px;
-  transition: border-color 160ms ease, transform 160ms ease;
-}
-.review-card.revealed {
-  border-color: var(--rule-2);
-}
 .flashcard-topline,
 .flashcard-source,
 .flashcard-nav {
