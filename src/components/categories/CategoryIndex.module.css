@@ -72,6 +72,24 @@
 .chipAction:hover {
   background: color-mix(in srgb, var(--cat-color, var(--accent)) 14%, var(--surface));
 }
+.newNoteBtn {
+  margin-left: auto;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cat-color, var(--accent));
+  border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent)) 40%, var(--rule));
+  border-radius: 4px;
+  padding: 4px 12px;
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 6%, var(--surface));
+  transition: background 130ms, border-color 130ms;
+  white-space: nowrap;
+}
+.newNoteBtn:hover {
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 13%, var(--surface));
+}
 .headSummary {
   font-size: 13px;
   color: var(--muted);
