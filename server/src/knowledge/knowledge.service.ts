@@ -22,6 +22,7 @@ import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { NoteFileRepository } from '../notes/note-file.repository';
 import { FlashcardsService } from '../flashcards/flashcards.service';
+import { QuizService } from '../quiz/quiz.service';
 import { SearchService } from '../search/search.service';
 import { slugify, parseNote, noteRelativePath } from '../common/note-parser.util';
 import type { KnowledgeNote, NoteSource, CategoryEntry, KnowledgeState } from '../types';
@@ -34,6 +35,7 @@ export class KnowledgeService {
   constructor(
     private readonly noteRepo: NoteFileRepository,
     private readonly flashcardsService: FlashcardsService,
+    private readonly quizService: QuizService,
     private readonly searchService: SearchService,
     private readonly config: ConfigService,
   ) {
@@ -89,7 +91,23 @@ export class KnowledgeService {
         },
       };
     });
-    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, updatedAt: new Date().toISOString() };
+
+    const { allQuestions, reviews: quizReviews } = await this.quizService.loadEnrichedData(userId, noteSources);
+    const enrichedQuizQuestions = allQuestions.map((q) => {
+      const review = quizReviews.get(q.id);
+      if (!review) return q;
+      return {
+        ...q,
+        reviewData: {
+          nextReviewAt: review.nextReviewAt,
+          lastReviewAt: review.lastReviewAt,
+          lastRating: review.lastRating,
+          streak: review.streak,
+        },
+      };
+    });
+
+    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, quizQuestions: enrichedQuizQuestions, updatedAt: new Date().toISOString() };
 
     if (!this.readOnly) {
       await this.noteRepo.writeIndexJson(userId, state);

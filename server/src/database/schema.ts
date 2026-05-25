@@ -134,3 +134,59 @@ export const pgFlashcardCache = pgTable('flashcard_cache', {
 }, (t) => ({
   pk: pgPrimaryKey({ columns: [t.userId, t.noteId] }),
 }));
+
+// --- Quiz tables (SQLite) ---
+
+export const sqliteQuizCache = sqliteTable('quiz_cache', {
+  userId: sqliteText('userId').notNull().default(''),
+  noteId: sqliteText('noteId').notNull(),
+  hash: sqliteText('hash').notNull(),
+  questions: sqliteText('questions').notNull(),
+  generatedAt: sqliteText('generatedAt').notNull(),
+}, (t) => ({
+  pk: sqlitePrimaryKey({ columns: [t.userId, t.noteId] }),
+}));
+
+export const sqliteQuizReviews = sqliteTable('quiz_reviews', {
+  questionId: sqliteText('questionId').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
+  noteId: sqliteText('noteId').notNull(),
+  nextReviewAt: sqliteText('nextReviewAt'),
+  lastReviewAt: sqliteText('lastReviewAt'),
+  lastRating: sqliteText('lastRating'),
+  streak: sqliteInteger('streak').notNull().default(0),
+});
+
+export const sqliteQuizHidden = sqliteTable('quiz_hidden', {
+  questionId: sqliteText('questionId').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
+  createdAt: sqliteText('createdAt').notNull(),
+});
+
+// --- Quiz tables (PostgreSQL) ---
+
+export const pgQuizCache = pgTable('quiz_cache', {
+  userId: pgText('userId').notNull().default(''),
+  noteId: pgText('noteId').notNull(),
+  hash: pgText('hash').notNull(),
+  questions: pgText('questions').notNull(),
+  generatedAt: pgText('generatedAt').notNull(),
+}, (t) => ({
+  pk: pgPrimaryKey({ columns: [t.userId, t.noteId] }),
+}));
+
+export const pgQuizReviews = pgTable('quiz_reviews', {
+  questionId: pgText('questionId').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
+  noteId: pgText('noteId').notNull(),
+  nextReviewAt: pgText('nextReviewAt'),
+  lastReviewAt: pgText('lastReviewAt'),
+  lastRating: pgText('lastRating'),
+  streak: pgInteger('streak').notNull().default(0),
+});
+
+export const pgQuizHidden = pgTable('quiz_hidden', {
+  questionId: pgText('questionId').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
+  createdAt: pgText('createdAt').notNull(),
+});
