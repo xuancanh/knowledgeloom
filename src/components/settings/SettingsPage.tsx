@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   addTemplate,
   deleteTemplate,
@@ -7,22 +8,18 @@ import {
   type GuidanceMode,
   type GuidanceTemplate,
 } from '../../lib/guidance';
+import LanguageSwitcher from '../LanguageSwitcher';
 import styles from './SettingsPage.module.css';
 
-const MODE_LABELS: Record<GuidanceMode, string> = {
-  research: 'Research',
-  link: 'From Link',
-  both: 'Both',
-};
+function useModeLabels(): Record<GuidanceMode, string> {
+  const { t } = useTranslation();
+  return {
+    research: t('settings.modeResearch'),
+    link: t('settings.modeLink'),
+    both: t('settings.modeBoth'),
+  };
+}
 
-const TEMPLATE_COLORS: { name: string; label: string; cssVar: string }[] = [
-  { name: '', label: 'Default', cssVar: 'var(--accent)' },
-  { name: 'moss', label: 'Green', cssVar: 'var(--moss)' },
-  { name: 'indigo', label: 'Blue', cssVar: 'var(--indigo)' },
-  { name: 'teal', label: 'Teal', cssVar: 'var(--teal)' },
-  { name: 'ochre', label: 'Amber', cssVar: 'var(--ochre)' },
-  { name: 'rust', label: 'Red', cssVar: 'var(--rust)' },
-];
 
 function modeCls(mode: GuidanceMode) {
   if (mode === 'research') return styles.modeResearch;
@@ -46,20 +43,22 @@ function TemplateRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
+  const modeLabels = useModeLabels();
   return (
     <div className={styles.row}>
       <div className={styles.rowBody}>
         <div className={styles.rowHeader}>
           <span className={styles.rowColorDot} style={{ background: colorVar(template.color) }} />
           <span className={styles.rowLabel}>{template.label}</span>
-          <span className={`${styles.rowMode} ${modeCls(template.mode)}`}>{MODE_LABELS[template.mode]}</span>
-          {template.builtIn && <span className={styles.rowBuiltIn}>built-in</span>}
+          <span className={`${styles.rowMode} ${modeCls(template.mode)}`}>{modeLabels[template.mode]}</span>
+          {template.builtIn && <span className={styles.rowBuiltIn}>{t('settings.builtIn')}</span>}
         </div>
         <div className={styles.rowText}>{template.text}</div>
       </div>
       <div className={styles.rowActions}>
-        <button className={styles.rowBtn} onClick={onEdit}>Edit</button>
-        <button className={`${styles.rowBtn} ${styles.rowBtnDelete}`} onClick={onDelete}>Delete</button>
+        <button className={styles.rowBtn} onClick={onEdit}>{t('common.edit')}</button>
+        <button className={`${styles.rowBtn} ${styles.rowBtnDelete}`} onClick={onDelete}>{t('common.delete')}</button>
       </div>
     </div>
   );
@@ -78,22 +77,32 @@ function TemplateEditor({
   onSave: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
+  const modeLabels = useModeLabels();
+  const templateColors: { name: string; label: string; cssVar: string }[] = [
+    { name: '', label: t('settings.colorDefault'), cssVar: 'var(--accent)' },
+    { name: 'moss', label: t('settings.colorGreen'), cssVar: 'var(--moss)' },
+    { name: 'indigo', label: t('settings.colorBlue'), cssVar: 'var(--indigo)' },
+    { name: 'teal', label: t('settings.colorTeal'), cssVar: 'var(--teal)' },
+    { name: 'ochre', label: t('settings.colorAmber'), cssVar: 'var(--ochre)' },
+    { name: 'rust', label: t('settings.colorRed'), cssVar: 'var(--rust)' },
+  ];
   const valid = value.label.trim().length > 0 && value.text.trim().length > 0;
   return (
     <div className={styles.editor}>
       <div className={styles.editorRow}>
         <div className={styles.editorField}>
-          <label className={styles.editorLabel}>Label</label>
+          <label className={styles.editorLabel}>{t('settings.labelField')}</label>
           <input
             className={styles.editorInput}
             value={value.label}
             onChange={(e) => onChange({ label: e.target.value })}
-            placeholder="e.g. Deep reference"
+            placeholder={t('settings.labelPlaceholder')}
             autoFocus
           />
         </div>
         <div className={styles.editorField}>
-          <label className={styles.editorLabel}>Applies to</label>
+          <label className={styles.editorLabel}>{t('settings.appliesTo')}</label>
           <div className={styles.editorModeGroup}>
             {(['research', 'link', 'both'] as GuidanceMode[]).map((m) => (
               <button
@@ -102,26 +111,26 @@ function TemplateEditor({
                 className={`${styles.editorModeBtn}${value.mode === m ? ` ${styles.active}` : ''}`}
                 onClick={() => onChange({ mode: m })}
               >
-                {MODE_LABELS[m]}
+                {modeLabels[m]}
               </button>
             ))}
           </div>
         </div>
       </div>
       <div className={styles.editorField}>
-        <label className={styles.editorLabel}>Instructions text</label>
+        <label className={styles.editorLabel}>{t('settings.instructionsText')}</label>
         <textarea
           className={styles.editorTextarea}
           value={value.text}
           onChange={(e) => onChange({ text: e.target.value })}
-          placeholder="e.g. Write as an in-depth technical reference with implementation details and code examples."
+          placeholder={t('settings.instructionsPlaceholder')}
           rows={3}
         />
       </div>
       <div className={styles.editorField}>
-        <label className={styles.editorLabel}>Color</label>
+        <label className={styles.editorLabel}>{t('settings.color')}</label>
         <div className={styles.colorSwatches}>
-          {TEMPLATE_COLORS.map(({ name, label, cssVar }) => (
+          {templateColors.map(({ name, label, cssVar }) => (
             <button
               key={name}
               type="button"
@@ -135,8 +144,8 @@ function TemplateEditor({
         </div>
       </div>
       <div className={styles.editorActions}>
-        <button className={styles.editorCancel} onClick={onCancel}>Cancel</button>
-        <button className={styles.editorSave} onClick={onSave} disabled={!valid}>Save template</button>
+        <button className={styles.editorCancel} onClick={onCancel}>{t('common.cancel')}</button>
+        <button className={styles.editorSave} onClick={onSave} disabled={!valid}>{t('settings.saveTemplate')}</button>
       </div>
     </div>
   );
@@ -153,6 +162,7 @@ export default function SettingsPage({
   templates: GuidanceTemplate[];
   onTemplatesChange: (updated: GuidanceTemplate[]) => void;
 }) {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<FilterMode>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<{ label: string; text: string; mode: GuidanceMode; color?: string } | null>(null);
@@ -194,38 +204,46 @@ export default function SettingsPage({
   }
 
   function handleDelete(tpl: GuidanceTemplate) {
-    if (!window.confirm(`Delete "${tpl.label}"?`)) return;
+    if (!window.confirm(t('settings.deleteConfirm', { label: tpl.label }))) return;
     commit(deleteTemplate(templates, tpl.id));
   }
 
   const visible = filter === 'all'
     ? templates
-    : templates.filter((t) => t.mode === filter);
+    : templates.filter((tpl) => tpl.mode === filter);
 
   const filters: { key: FilterMode; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'research', label: 'Research' },
-    { key: 'link', label: 'From Link' },
-    { key: 'both', label: 'Both' },
+    { key: 'all', label: t('common.all') },
+    { key: 'research', label: t('settings.modeResearch') },
+    { key: 'link', label: t('settings.modeLink') },
+    { key: 'both', label: t('settings.modeBoth') },
   ];
 
   return (
     <div className={styles.page}>
-      <div className="crumbs"><span>Settings</span></div>
+      <div className="crumbs"><span>{t('settings.title')}</span></div>
 
       <div className={styles.head}>
-        <h1>Settings</h1>
+        <h1>{t('settings.title')}</h1>
       </div>
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <div>
-            <h2 className={styles.sectionTitle}>Guidance Templates</h2>
-            <p className={styles.sectionDesc}>
-              Quick-select writing instructions for Codex. Appear as chips in the Research and Generate from Link capture forms.
-            </p>
+            <h2 className={styles.sectionTitle}>{t('settings.language')}</h2>
+            <p className={styles.sectionDesc}>{t('settings.languageDesc')}</p>
           </div>
-          <button className={styles.addBtn} onClick={startNew}>+ Add template</button>
+        </div>
+        <LanguageSwitcher />
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>{t('settings.guidanceTemplates')}</h2>
+            <p className={styles.sectionDesc}>{t('settings.guidanceDesc')}</p>
+          </div>
+          <button className={styles.addBtn} onClick={startNew}>{t('settings.addTemplate')}</button>
         </div>
 
         <div className={styles.filterTabs}>
@@ -271,7 +289,9 @@ export default function SettingsPage({
 
           {visible.length === 0 && newDraft === null && (
             <div className={styles.empty}>
-              No templates{filter !== 'all' ? ` for ${filter} mode` : ''}. Click "+ Add template" to create one.
+              {filter !== 'all'
+                ? t('settings.noTemplatesFilter', { filter })
+                : t('settings.noTemplates')}
             </div>
           )}
         </div>

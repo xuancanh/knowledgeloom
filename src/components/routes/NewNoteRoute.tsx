@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { CreateNoteRequest, KnowledgeNote } from '../../types';
 import { assistDraft, type NoteUpdate } from '../../api';
 import type { UiCategory } from '../../lib/view';
@@ -29,6 +30,7 @@ export function NewNoteRoute({
   onSubmit: (payload: CreateNoteRequest) => void;
   readOnly: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const editorRef = useRef<NoteEditorHandle>(null);
 
@@ -52,7 +54,7 @@ export function NewNoteRoute({
     setTags(update.tags);
     setLinks(update.links);
     editorRef.current?.setValue(update.body);
-    setAiSuccess('AI draft applied — review and save when ready.');
+    setAiSuccess(t('notes.aiApplied'));
   }
 
   function toggleLink(id: string) {
@@ -76,10 +78,10 @@ export function NewNoteRoute({
   return (
     <div className={styles.page}>
       <div className="crumbs">
-        <button onClick={() => navigate('/home')}>Desk</button>
+        <button onClick={() => navigate('/home')}>{t('common.desk')}</button>
         <span className="sep">/</span>
         {category && <><span>{category}</span><span className="sep">/</span></>}
-        <span>New note</span>
+        <span>{t('categories.newNote')}</span>
       </div>
 
       <NoteEditorForm
@@ -96,7 +98,7 @@ export function NewNoteRoute({
         readOnly={readOnly}
         saving={saving}
         canSave={!readOnly && title.trim().length > 0}
-        saveLabel="Save note →"
+        saveLabel={t('notes.saveNote') + ' →'}
         aiSuccess={aiSuccess}
         onTitleChange={setTitle}
         onSummaryChange={setSummary}

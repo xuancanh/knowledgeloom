@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Flashcard, KnowledgeNote } from '../../types';
 import { categoryId, formatCreated, type UiCategory } from '../../lib/view';
 import NoteList, { type ViewMode } from '../NoteList';
@@ -38,6 +39,7 @@ export default function TagIndex({
   onOpenFlashcards: (tag: string) => void;
   onPage: (page: number) => void;
 }) {
+  const { t } = useTranslation();
   const [sort, setSort] = useState<SortKey>('recent');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
@@ -122,7 +124,7 @@ export default function TagIndex({
   return (
     <div className={styles.page}>
       <div className="crumbs">
-        <span>Tags</span>
+        <span>{t('tags.crumbHome')}</span>
         <span className="sep">/</span>
         <span>#{tag}</span>
       </div>
@@ -134,10 +136,10 @@ export default function TagIndex({
             <span className={styles.hash}>#</span>{tag}
           </h1>
           <div className={styles.headChips}>
-            <span className={styles.chip}>{taggedNotes.length} notes</span>
+            <span className={styles.chip}>{t('tags.notesCount', { count: taggedNotes.length })}</span>
             {relatedFlashcards.length > 0 && (
               <button className={`${styles.chip} ${styles.chipAction}`} onClick={() => onOpenFlashcards(tag)}>
-                {relatedFlashcards.length} flashcards ↗
+                {t('tags.flashcardsLink', { count: relatedFlashcards.length })}
               </button>
             )}
           </div>
@@ -147,7 +149,7 @@ export default function TagIndex({
       {/* Categories this tag appears in — always visible, doubles as filter */}
       {catCounts.length > 0 && (
         <div className={styles.metaSection}>
-          <span className={styles.metaLabel}>In</span>
+          <span className={styles.metaLabel}>{t('tags.inLabel')}</span>
           <div className={styles.metaItems}>
             {catCounts.map(([cid, count]) => {
               const cat = categories.find((c) => c.id === cid);
@@ -175,7 +177,7 @@ export default function TagIndex({
       {/* Related tags — always visible */}
       {coTags.length > 0 && (
         <div className={styles.metaSection}>
-          <span className={styles.metaLabel}>Related</span>
+          <span className={styles.metaLabel}>{t('tags.relatedLabel')}</span>
           <div className={styles.metaItems}>
             {coTags.map(([coTag, count]) => {
               const weight = count / maxCoCount;
@@ -200,7 +202,7 @@ export default function TagIndex({
       {/* Notes toolbar */}
       <div className={styles.sectionHead}>
         <h2 className={styles.notesLabel}>
-          Articles
+          {t('tags.articlesLabel')}
           <span className={styles.notesRange}>
             {filtered.length
               ? isFiltered
@@ -212,7 +214,7 @@ export default function TagIndex({
         <div className={styles.sortTabs}>
           {(['recent', 'oldest', 'links'] as SortKey[]).map((key) => (
             <button key={key} className={sort === key ? 'active' : ''} onClick={() => changeSort(key)}>
-              {key === 'recent' ? 'Recent' : key === 'oldest' ? 'Oldest' : 'Most linked'}
+              {key === 'recent' ? t('common.recent') : key === 'oldest' ? t('common.oldest') : t('common.mostLinked')}
             </button>
           ))}
         </div>
@@ -225,7 +227,7 @@ export default function TagIndex({
             className="notes-search"
             value={noteSearch}
             onChange={(e) => { setNoteSearch(e.target.value); onPage(1); }}
-            placeholder="Search notes…"
+            placeholder={t('tags.searchNotes')}
             spellCheck={false}
           />
           {noteSearch && (
@@ -249,8 +251,8 @@ export default function TagIndex({
       {filtered.length === 0 ? (
         <div className="empty">
           {isFiltered
-            ? <span>No notes match — <button onClick={() => { setNoteSearch(''); setCatFilter(null); }}>clear filters</button></span>
-            : 'No notes with this tag yet.'}
+            ? <span>{t('tags.noNotesMatch')}<button onClick={() => { setNoteSearch(''); setCatFilter(null); }}>{t('tags.clearFilters')}</button></span>
+            : t('tags.noNotesTag')}
         </div>
       ) : (
         <NoteList notes={visibleNotes} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} viewMode={viewMode} />
@@ -258,11 +260,11 @@ export default function TagIndex({
 
       {viewMode !== 'grid' && totalPages > 1 && (
         <div className="pagination">
-          <button onClick={() => changePage(safePage - 1)} disabled={safePage === 1}>Previous</button>
+          <button onClick={() => changePage(safePage - 1)} disabled={safePage === 1}>{t('common.previous')}</button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
             <button key={p} className={p === safePage ? 'active' : ''} onClick={() => changePage(p)}>{p}</button>
           ))}
-          <button onClick={() => changePage(safePage + 1)} disabled={safePage === totalPages}>Next</button>
+          <button onClick={() => changePage(safePage + 1)} disabled={safePage === totalPages}>{t('common.next')}</button>
         </div>
       )}
     </div>

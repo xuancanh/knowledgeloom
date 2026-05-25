@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { RagScope, KnowledgeNote, KnowledgeCategory } from '../../types';
 import { useRagChat } from '../../hooks/useRagChat';
 import styles from './ChatPanel.module.css';
@@ -53,11 +54,26 @@ function isSameScope(a: RagScope, b: RagScope): boolean {
 }
 
 export function ChatPanel({ notes, categories }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function getScopeLabel(scope: RagScope): string {
+    if (scope.type === 'all') return t('chat.allNotes');
+    if (scope.type === 'note') {
+      const note = notes.find((n) => n.id === scope.id);
+      return note ? note.title : t('chat.thisNote');
+    }
+    if (scope.type === 'category') {
+      const cat = categories.find((c) => c.slug === scope.path || c.name === scope.path);
+      return cat?.name || scope.path;
+    }
+    if (scope.type === 'tag') return `#${scope.tag}`;
+    return t('chat.allNotes');
+  }
 
   const { messages, streaming, sendMessage, abort, clearHistory } = useRagChat();
 
@@ -114,11 +130,11 @@ export function ChatPanel({ notes, categories }: Props) {
       <button
         className={`${styles.chatBtn}${open ? ` ${styles.open}` : ''}`}
         onClick={() => setOpen((v) => !v)}
-        title={open ? 'Close AI chat' : 'Ask AI about your notes'}
-        aria-label={open ? 'Close AI chat' : 'Ask AI'}
+        title={open ? t('chat.closeAria') : t('chat.openBtn')}
+        aria-label={open ? t('chat.closeAria') : t('chat.openBtn')}
       >
         <span className={styles.chatBtnDot} />
-        {open ? 'Close' : 'Ask AI'}
+        {open ? t('chat.closeBtn') : t('chat.openBtn')}
       </button>
 
       {open && <div className={styles.backdrop} onClick={() => setOpen(false)} />}
@@ -126,21 +142,21 @@ export function ChatPanel({ notes, categories }: Props) {
       <div
         className={`${styles.panel}${open ? ` ${styles.visible}` : ''}`}
         role="dialog"
-        aria-label="AI Chat"
+        aria-label={t('chat.titleAskAi')}
       >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLabel}>
             <span className={styles.headerDot} />
-            <h2 className={styles.headerTitle}>Ask AI</h2>
+            <h2 className={styles.headerTitle}>{t('chat.titleAskAi')}</h2>
           </div>
           <div className={styles.headerActions}>
             {messages.length > 0 && (
               <button className={styles.iconBtn} onClick={clearHistory}>
-                Clear
+                {t('chat.clearHistory')}
               </button>
             )}
-            <button className={styles.iconBtn} onClick={() => setOpen(false)} aria-label="Close">
+            <button className={styles.iconBtn} onClick={() => setOpen(false)} aria-label={t('chat.closeBtn')}>
               ✕
             </button>
           </div>
@@ -148,16 +164,16 @@ export function ChatPanel({ notes, categories }: Props) {
 
         {/* Scope selector */}
         <div className={styles.scopeBar}>
-          <span className={styles.scopeKey}>Scope</span>
+          <span className={styles.scopeKey}>{t('chat.scope')}</span>
           <div className={styles.scopeChips}>
             {scopeOptions.map((opt, i) => (
               <button
                 key={i}
                 className={`${styles.chip}${isSameScope(scope, opt) ? ` ${styles.chipActive}` : ''}`}
                 onClick={() => setScope(opt)}
-                title={scopeLabel(opt, notes, categories)}
+                title={getScopeLabel(opt)}
               >
-                {scopeLabel(opt, notes, categories)}
+                {getScopeLabel(opt)}
               </button>
             ))}
           </div>
@@ -168,10 +184,8 @@ export function ChatPanel({ notes, categories }: Props) {
           {messages.length === 0 ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>◎</div>
-              <p className={styles.emptyTitle}>Ask anything</p>
-              <p className={styles.emptyHint}>
-                Questions about a note, a category, or your whole knowledge base — scoped above.
-              </p>
+              <p className={styles.emptyTitle}>{t('chat.emptyTitle')}</p>
+              <p className={styles.emptyHint}>{t('chat.emptyHint')}</p>
             </div>
           ) : (
             messages.map((msg) => (
@@ -180,7 +194,7 @@ export function ChatPanel({ notes, categories }: Props) {
                 className={`${styles.msgRow} ${msg.role === 'user' ? styles.roleUser : styles.roleAssistant}`}
               >
                 <div className={styles.msgRole}>
-                  {msg.role === 'user' ? 'You' : 'AI'}
+                  {msg.role === 'user' ? t('chat.you') : t('chat.ai')}
                 </div>
                 <div className={styles.msgBubble}>
                   {msg.content}
@@ -200,7 +214,7 @@ export function ChatPanel({ notes, categories }: Props) {
             value={inputValue}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a question… Enter to send"
+            placeholder={t('chat.placeholder')}
             rows={1}
           />
           <button
@@ -208,7 +222,7 @@ export function ChatPanel({ notes, categories }: Props) {
             onClick={streaming ? abort : handleSend}
             disabled={!streaming && !inputValue.trim()}
           >
-            {streaming ? 'Stop' : 'Ask'}
+            {streaming ? t('chat.stop') : t('chat.ask')}
           </button>
         </div>
       </div>
