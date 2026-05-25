@@ -24,16 +24,16 @@ export default function App() {
 
   if (authLoading) return null;
 
-  if (!authenticated) {
-    return (
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="*" element={<LandingPage />} />
-      </Routes>
-    );
-  }
-
-  return <AuthenticatedApp />;
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={authenticated ? <Navigate to="/home" replace /> : <LoginPage />} />
+      {authenticated
+        ? <Route path="*" element={<AuthenticatedApp />} />
+        : <Route path="*" element={<Navigate to="/" replace />} />
+      }
+    </Routes>
+  );
 }
 
 function AuthenticatedApp() {
@@ -128,13 +128,15 @@ function AuthenticatedApp() {
 
         <div className="main">
           <Routes>
-            <Route path="/" element={
+            <Route path="/home" element={
               <Home
                 notes={state.notes}
                 categories={categories}
+                flashcards={state.flashcards || []}
                 reminders={reminders}
                 onOpen={openNote}
                 onOpenTag={openTag}
+                onOpenFlashcards={openFlashcards}
                 onCompleteReminder={handleCompleteReminder}
                 onSubmit={submitCapture}
                 readOnly={readOnly}
@@ -203,12 +205,18 @@ function AuthenticatedApp() {
               } />
             </Route>
             <Route path="/new" element={
-              <NewNoteRoute onSubmit={submitCapture} readOnly={readOnly} />
+              <NewNoteRoute
+                notes={state.notes}
+                categories={categories}
+                onSubmit={submitCapture}
+                readOnly={readOnly}
+              />
             } />
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
             } />
-            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/login" element={<Navigate to="/home" replace />} />
           </Routes>
         </div>
       </main>

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './LandingPage.module.css';
 
 const FEATURES = [
@@ -38,16 +39,20 @@ const FEATURES = [
 export function LandingPage() {
   const [draft, setDraft] = useState('');
   const navigate = useNavigate();
+  const { authenticated } = useAuth();
 
   const handleCapture = useCallback(() => {
+    if (authenticated) {
+      navigate('/home');
+      return;
+    }
     if (!draft.trim()) {
       navigate('/login');
       return;
     }
-    // Pre-fill capture and redirect to login/signup with draft preserved in session storage
     sessionStorage.setItem('kl:landing-draft', draft.trim());
     navigate('/login');
-  }, [draft, navigate]);
+  }, [draft, navigate, authenticated]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -65,8 +70,14 @@ export function LandingPage() {
           Knowledge Loom
         </span>
         <div className={styles.navActions}>
-          <Link to="/login" className={styles.navLink}>Sign in</Link>
-          <Link to="/login" className={styles.navCta}>Get started free</Link>
+          {authenticated ? (
+            <Link to="/home" className={styles.navCta}>Open Dashboard →</Link>
+          ) : (
+            <>
+              <Link to="/login" className={styles.navLink}>Sign in</Link>
+              <Link to="/login" className={styles.navCta}>Get started free</Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -168,8 +179,8 @@ export function LandingPage() {
         <p className={styles.ctaSub}>
           Free to use. Your data stays yours. Set up in under two minutes.
         </p>
-        <Link to="/login" className={styles.ctaBtn}>
-          Get started — it's free
+        <Link to={authenticated ? '/home' : '/login'} className={styles.ctaBtn}>
+          {authenticated ? 'Open Dashboard →' : "Get started — it's free"}
         </Link>
         <p className={styles.ctaNote}>No credit card required.</p>
       </section>
