@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CreateNoteRequest, Flashcard, KnowledgeNote, Reminder } from '../types';
 import { formatCreated, type UiCategory } from '../lib/view';
 import type { GuidanceTemplate } from '../lib/guidance';
@@ -30,6 +31,7 @@ export default function Home({
   readOnly: boolean;
   templates: GuidanceTemplate[];
 }) {
+  const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function Home({
 
   return (
     <div className="home">
-      <div className="crumbs"><span>Desk</span></div>
+      <div className="crumbs"><span>{t('home.crumb')}</span></div>
 
       <CaptureBox onSubmit={onSubmit} readOnly={readOnly} templates={templates} />
 
@@ -71,9 +73,9 @@ export default function Home({
       {hasReviewItems && (
         <>
           <div className="section-label">
-            <h2>Review queue</h2>
+            <h2>{t('home.reviewQueue')}</h2>
             <span className="meta">
-              {overdueReminders.length + dueFlashcards.length} item{overdueReminders.length + dueFlashcards.length !== 1 ? 's' : ''} due
+              {t('home.itemsDue', { count: overdueReminders.length + dueFlashcards.length })}
             </span>
           </div>
 
@@ -82,11 +84,11 @@ export default function Home({
               <div className="review-card flashcard-due">
                 <div className="review-card-icon">⟁</div>
                 <div className="review-card-body">
-                  <div className="review-card-title">Flashcards due</div>
-                  <div className="review-card-sub">{dueFlashcards.length} card{dueFlashcards.length !== 1 ? 's' : ''} ready for review</div>
+                  <div className="review-card-title">{t('home.flashcardsDue')}</div>
+                  <div className="review-card-sub">{t('home.flashcardsReady', { count: dueFlashcards.length })}</div>
                 </div>
                 <button className="review-card-cta" onClick={() => onOpenFlashcards('all')}>
-                  Review →
+                  {t('home.reviewCta')}
                 </button>
               </div>
             )}
@@ -99,12 +101,12 @@ export default function Home({
                   <div className="review-card-body">
                     <div className="review-card-title">{note?.title || reminder.noteId}</div>
                     <div className="review-card-sub">
-                      {reminder.message || 'Due now'}
+                      {reminder.message || t('reminders.dueNow')}
                     </div>
                   </div>
                   <div className="review-card-actions">
-                    {note && <button className="review-card-cta" onClick={() => onOpen(note.id)}>Open →</button>}
-                    <button className="review-card-done" onClick={() => onCompleteReminder(reminder.id)}>Done</button>
+                    {note && <button className="review-card-cta" onClick={() => onOpen(note.id)}>{t('home.openNote')}</button>}
+                    <button className="review-card-done" onClick={() => onCompleteReminder(reminder.id)}>{t('common.done')}</button>
                   </div>
                 </div>
               );
@@ -117,8 +119,8 @@ export default function Home({
       {upcomingReminders.length > 0 && (
         <>
           <div className="section-label">
-            <h2>Upcoming</h2>
-            <span className="meta">{dueReminders.length - overdueReminders.length} scheduled</span>
+            <h2>{t('home.upcoming')}</h2>
+            <span className="meta">{t('home.scheduledCount', { count: dueReminders.length - overdueReminders.length })}</span>
           </div>
           <div className="reminder-list">
             {upcomingReminders.map((reminder) => {
@@ -130,7 +132,7 @@ export default function Home({
                     <b>{note?.title || reminder.noteId}</b>
                     {reminder.message && <em>{reminder.message}</em>}
                   </button>
-                  <button className="reminder-done" onClick={() => onCompleteReminder(reminder.id)}>Done</button>
+                  <button className="reminder-done" onClick={() => onCompleteReminder(reminder.id)}>{t('common.done')}</button>
                 </div>
               );
             })}
@@ -142,27 +144,27 @@ export default function Home({
       <div className="home-stats">
         <div className="home-stat">
           <span className="home-stat-n">{notes.length}</span>
-          <span className="home-stat-l">notes</span>
+          <span className="home-stat-l">{t('home.statNotes')}</span>
         </div>
         <div className="home-stat-sep" />
         <div className="home-stat">
           <span className="home-stat-n">{categories.length}</span>
-          <span className="home-stat-l">categories</span>
+          <span className="home-stat-l">{t('home.statCategories')}</span>
         </div>
         <div className="home-stat-sep" />
         <div className="home-stat">
           <span className="home-stat-n">{flashcards.length}</span>
-          <span className="home-stat-l">flashcards</span>
+          <span className="home-stat-l">{t('home.statFlashcards')}</span>
         </div>
       </div>
 
       {/* Recent notes */}
       <div className="section-label">
-        <h2>Recently added</h2>
-        <span className="meta">{notes.length} total</span>
+        <h2>{t('home.recentlyAdded')}</h2>
+        <span className="meta">{t('home.totalNotes', { count: notes.length })}</span>
       </div>
       {recent.length === 0 ? (
-        <div className="empty">No notes yet. Capture something above.</div>
+        <div className="empty">{t('home.noNotes')}</div>
       ) : (
         <NoteList notes={recent} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} />
       )}
