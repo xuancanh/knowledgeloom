@@ -15,7 +15,7 @@
  * calls it at the end to settle the knowledge graph into a consistent state.
  * All methods require a userId and operate exclusively on that user's data.
  */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -31,6 +31,12 @@ import type { KnowledgeNote, NoteSource, CategoryEntry, KnowledgeState } from '.
 export class KnowledgeService {
   private readonly readOnly: boolean;
   private readonly usersDir: string;
+  private readonly logger = new Logger(KnowledgeService.name);
+
+  // Stale-while-revalidate: one background rebuild per user at a time, throttled.
+  private readonly backgroundRebuilds = new Map<string, Promise<KnowledgeState>>();
+  private readonly lastRebuildAt = new Map<string, number>();
+  private static readonly REBUILD_COOLDOWN_MS = 30_000;
 
   constructor(
     private readonly noteRepo: NoteFileRepository,
@@ -41,6 +47,32 @@ export class KnowledgeService {
   ) {
     this.readOnly = config.get<boolean>('readOnly');
     this.usersDir = config.get<string>('usersDir');
+  }
+
+  /**
+   * Fast read path for GET /api/knowledge. Returns the cached index.json
+   * immediately and triggers a background rebuild at most once per 30 seconds.
+   * On first startup (no index.json yet), waits for the initial rebuild.
+   */
+  async getState(userId: string): Promise<KnowledgeState> {
+    const cached = await this.noteRepo.readIndexJson(userId);
+
+    const lastAt = this.lastRebuildAt.get(userId) ?? 0;
+    const due = Date.now() - lastAt > KnowledgeService.REBUILD_COOLDOWN_MS;
+
+    if (due && !this.backgroundRebuilds.has(userId)) {
+      const p = this.rebuildIndexes(userId)
+        .then((s) => { this.lastRebuildAt.set(userId, Date.now()); return s; })
+        .catch((err: Error) => { this.logger.error(`Background rebuild failed: ${err.message}`); return cached!; })
+        .finally(() => { this.backgroundRebuilds.delete(userId); });
+      this.backgroundRebuilds.set(userId, p);
+    }
+
+    // If we have a cached snapshot, serve it immediately (background rebuild will update it).
+    if (cached) return cached;
+
+    // No cached state yet (first startup) — wait for the rebuild.
+    return this.backgroundRebuilds.get(userId)!;
   }
 
   /**
