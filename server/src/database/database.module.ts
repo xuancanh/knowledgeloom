@@ -26,7 +26,7 @@ import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
 import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
-import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE } from './database.constants';
+import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE } from './database.constants';
 
 export type DrizzleDb = any;
 
@@ -114,6 +114,33 @@ const hiddenFlashcardsTableProvider = {
   },
 };
 
+const quizCacheTableProvider = {
+  provide: QUIZ_CACHE_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgQuizCache : schema.sqliteQuizCache;
+  },
+};
+
+const quizReviewsTableProvider = {
+  provide: QUIZ_REVIEWS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgQuizReviews : schema.sqliteQuizReviews;
+  },
+};
+
+const quizHiddenTableProvider = {
+  provide: QUIZ_HIDDEN_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgQuizHidden : schema.sqliteQuizHidden;
+  },
+};
+
 @Global()
 @Module({
   providers: [
@@ -124,6 +151,9 @@ const hiddenFlashcardsTableProvider = {
     flashcardReviewsTableProvider,
     userFlashcardsTableProvider,
     hiddenFlashcardsTableProvider,
+    quizCacheTableProvider,
+    quizReviewsTableProvider,
+    quizHiddenTableProvider,
   ],
   exports: [
     DRIZZLE_DB,
@@ -133,6 +163,9 @@ const hiddenFlashcardsTableProvider = {
     FLASHCARD_REVIEWS_TABLE,
     USER_FLASHCARDS_TABLE,
     HIDDEN_FLASHCARDS_TABLE,
+    QUIZ_CACHE_TABLE,
+    QUIZ_REVIEWS_TABLE,
+    QUIZ_HIDDEN_TABLE,
   ],
 })
 export class DatabaseModule implements OnModuleInit {

@@ -41,6 +41,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { LearnModule } from './learn/learn.module';
 import { ImagesModule } from './images/images.module';
 import { RagModule } from './rag/rag.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { RagModule } from './rag/rag.module';
     LearnModule,
     ImagesModule,
     RagModule,
+    QuizModule,
   ],
 })
 export class AppModule {}

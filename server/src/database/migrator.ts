@@ -215,6 +215,42 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       }
     },
   },
+  {
+    id: '0003_quiz_tables',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS quiz_cache (
+          userId      TEXT NOT NULL DEFAULT '',
+          noteId      TEXT NOT NULL,
+          hash        TEXT NOT NULL,
+          questions   TEXT NOT NULL,
+          generatedAt TEXT NOT NULL,
+          PRIMARY KEY (userId, noteId)
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_cache_user_id ON quiz_cache(userId);
+
+        CREATE TABLE IF NOT EXISTS quiz_reviews (
+          questionId   TEXT PRIMARY KEY,
+          userId       TEXT NOT NULL DEFAULT '',
+          noteId       TEXT NOT NULL,
+          nextReviewAt TEXT,
+          lastReviewAt TEXT,
+          lastRating   TEXT,
+          streak       INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_reviews_user_id   ON quiz_reviews(userId);
+        CREATE INDEX IF NOT EXISTS idx_quiz_reviews_note_id   ON quiz_reviews(noteId);
+        CREATE INDEX IF NOT EXISTS idx_quiz_reviews_next      ON quiz_reviews(nextReviewAt);
+
+        CREATE TABLE IF NOT EXISTS quiz_hidden (
+          questionId TEXT PRIMARY KEY,
+          userId     TEXT NOT NULL DEFAULT '',
+          createdAt  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_hidden_user_id ON quiz_hidden(userId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -399,6 +435,51 @@ const PG_MIGRATIONS: PgMigration[] = [
         CREATE INDEX IF NOT EXISTS idx_flashcard_reviews_user_id ON flashcard_reviews("userId");
         CREATE INDEX IF NOT EXISTS idx_user_flashcards_user_id   ON user_flashcards("userId");
         CREATE INDEX IF NOT EXISTS idx_hidden_flashcards_user_id ON hidden_flashcards("userId");
+      `);
+    },
+  },
+  {
+    id: '0002_assign_local_userid_pg',
+    async run(pool) {
+      const TABLES = ['jobs', 'reminders', 'flashcard_cache', 'flashcard_reviews', 'user_flashcards', 'hidden_flashcards'];
+      for (const table of TABLES) {
+        await pool.query(`UPDATE ${table} SET "userId" = 'local' WHERE "userId" = ''`);
+      }
+    },
+  },
+  {
+    id: '0003_quiz_tables_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS quiz_cache (
+          "userId"      TEXT NOT NULL DEFAULT '',
+          "noteId"      TEXT NOT NULL,
+          hash          TEXT NOT NULL,
+          questions     TEXT NOT NULL,
+          "generatedAt" TEXT NOT NULL,
+          PRIMARY KEY ("userId", "noteId")
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_cache_user_id ON quiz_cache("userId");
+
+        CREATE TABLE IF NOT EXISTS quiz_reviews (
+          "questionId"   TEXT PRIMARY KEY,
+          "userId"       TEXT NOT NULL DEFAULT '',
+          "noteId"       TEXT NOT NULL,
+          "nextReviewAt" TEXT,
+          "lastReviewAt" TEXT,
+          "lastRating"   TEXT,
+          streak         INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_reviews_user_id ON quiz_reviews("userId");
+        CREATE INDEX IF NOT EXISTS idx_quiz_reviews_note_id ON quiz_reviews("noteId");
+        CREATE INDEX IF NOT EXISTS idx_quiz_reviews_next    ON quiz_reviews("nextReviewAt");
+
+        CREATE TABLE IF NOT EXISTS quiz_hidden (
+          "questionId" TEXT PRIMARY KEY,
+          "userId"     TEXT NOT NULL DEFAULT '',
+          "createdAt"  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_hidden_user_id ON quiz_hidden("userId");
       `);
     },
   },

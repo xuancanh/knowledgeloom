@@ -61,11 +61,34 @@ export interface Flashcard {
   };
 }
 
+export type QuizQuestionType = 'fill-blank' | 'multiple-choice' | 'short-answer';
+
+export interface QuizQuestion {
+  id: string;
+  noteId: string;
+  noteTitle: string;
+  category: string;
+  tags: string[];
+  type: QuizQuestionType;
+  question: string;
+  answer: string;
+  choices?: string[];
+  correctIndex?: number;
+  explanation?: string;
+  reviewData?: {
+    nextReviewAt: string | null;
+    lastReviewAt: string | null;
+    lastRating: 'correct' | 'wrong' | null;
+    streak: number;
+  };
+}
+
 export interface KnowledgeState {
   notes: KnowledgeNote[];
   categories: CategoryEntry[];
   graph: GraphEdge[];
   flashcards: Flashcard[];
+  quizQuestions: QuizQuestion[];
   updatedAt: string;
 }
 

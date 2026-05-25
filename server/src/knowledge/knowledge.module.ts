@@ -16,10 +16,11 @@ import { KnowledgeService } from './knowledge.service';
 import { SearchController } from '../search/search.controller';
 import { NotesFileModule } from '../notes/notes-file.module';
 import { FlashcardsModule } from '../flashcards/flashcards.module';
+import { QuizModule } from '../quiz/quiz.module';
 import { SearchModule } from '../search/search.module';
 
 @Module({
-  imports: [NotesFileModule, FlashcardsModule, SearchModule],
+  imports: [NotesFileModule, FlashcardsModule, QuizModule, SearchModule],
   controllers: [KnowledgeController, SearchController],
   providers: [KnowledgeService],
   exports: [KnowledgeService],
