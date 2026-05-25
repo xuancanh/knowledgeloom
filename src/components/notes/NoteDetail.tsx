@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { NoteUpdate } from '../../api';
+import { assistDraft, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
   categoryId,
@@ -246,7 +246,13 @@ export default function NoteDetail({
           onTagsChange={setTags}
           onToggleLink={toggleLink}
           getDraft={currentDraft}
-          onAiAssist={(prompt, draft) => onAssist(note.id, prompt, draft)}
+          onAiAssist={async (prompt, draft) => {
+            const { update } = await assistDraft(
+              { title: draft.title, body: draft.body, category: draft.category, summary: draft.summary, tags: draft.tags },
+              prompt,
+            );
+            return update;
+          }}
           onAiApplied={applyAiUpdate}
           onCancel={() => setEditing(false)}
           onSave={saveEdit}
