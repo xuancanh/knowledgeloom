@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { NoteUpdate } from '../../api';
 import type { KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
@@ -45,6 +45,12 @@ export function NoteEditorForm({
   onTitleChange, onSummaryChange, onCategoryChange, onTagsChange, onToggleLink,
   getDraft, onAiAssist, onAiApplied, onCancel, onSave,
 }: NoteEditorFormProps) {
+  const tagOptions = useMemo(() => {
+    const set = new Set<string>();
+    notes.forEach((n) => n.tags.forEach((t) => set.add(t)));
+    return [...set].sort();
+  }, [notes]);
+
   const [aiOpen, setAiOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiRunning, setAiRunning] = useState(false);
@@ -118,6 +124,7 @@ export function NoteEditorForm({
             tags={tags}
             onTagsChange={onTagsChange}
             categories={categories}
+            tagOptions={tagOptions}
             disabled={readOnly}
           />
         </div>
