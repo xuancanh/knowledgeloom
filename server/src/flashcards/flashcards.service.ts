@@ -206,30 +206,57 @@ export class FlashcardsService {
 
   private buildPrompt(note: KnowledgeNote, markdown: string, size: GenSize = 'small'): string {
     const { min, max } = FC_SIZE_RANGE[size];
-    return `Create high-signal flashcards from this knowledge note.
+    return `You are generating spaced-repetition flashcards from a personal knowledge note.
+Goal: cards that force genuine active recall — the reader must retrieve a specific fact, not just recognize a label.
 
-Rules:
-- Return only valid JSON. No markdown fence and no commentary.
-- Create ${min} to ${max} flashcards.
-- Each flashcard must be a snippet or micro lesson from the note, not a generic section heading.
-- The "prompt" must be specific to the card's idea. Never use generic titles like "What I learned", "Key details", "Lesson", or "Summary".
-- The "lesson" should be 1 to 3 concise sentences, grounded only in the note.
-- Prefer cards that help the user remember useful distinctions, tradeoffs, definitions, and practical implications.
-- The "kind" must be exactly one of: "concept", "question", "lesson", "tradeoff", "pattern".
-- Use a mix of kinds when the note supports it.
+━━ KINDS ━━
+concept  — what a term, mechanism, or principle IS and how it works
+question — when / why / how: a judgment call or causal chain
+lesson   — a specific insight the author captured from experience or reading
+tradeoff — an explicit tension between two approaches (X gains Y but costs Z)
+pattern  — a reusable structure or technique and the problem it solves
 
-Note metadata:
-${JSON.stringify({ id: note.id, title: note.title, category: note.category, tags: note.tags, summary: note.summary }, null, 2)}
+━━ PROMPT: GOOD vs BAD ━━
+✓ "What makes consistent hashing resilient to adding/removing nodes?"
+✓ "When does optimistic locking beat pessimistic locking?"
+✓ "What does the saga pattern give up compared to two-phase commit?"
+✓ "Why does adding a B-tree index slow down writes?"
+✓ "What heuristic did the author use to decide service boundaries?"
+✗ "What I learned"       — no retrieval cue at all
+✗ "Key idea"             — could be anything
+✗ "Distributed systems"  — a topic, not a question
+✗ "Main takeaway"        — generic non-prompt
 
-Markdown:
+━━ LESSON: GOOD vs BAD ━━
+✓ "Consistent hashing places keys on a ring; adding a node only remaps adjacent keys, so reshuffling is O(k/n) instead of O(k)."
+✓ "Optimistic locking avoids lock overhead by detecting conflicts at commit time. It wins when conflicts are rare but requires retry logic at the call site."
+✓ "The author found that splitting on team ownership boundaries produced more stable APIs than splitting on data entities."
+✗ "This is an important concept."          — no actual information
+✗ "See the note for details."              — not a self-contained lesson
+✗ A three-sentence preamble before the fact — front-load the substance
+
+━━ RULES ━━
+- Return ONLY valid JSON. No markdown fences, no prose outside the JSON.
+- Generate ${min}–${max} flashcards.
+- ATOMIC: one idea per card. Never combine two distinct facts into one card.
+- prompt: 8–90 chars. Specific enough that the reader knows exactly what to recall.
+- lesson: 1–3 sentences, 30–400 chars. Contain the actual fact — not a pointer to it.
+- Banned prompts (exact or near match): "Key takeaway", "What I learned", "Main concept", "Summary", "Lesson", "Key idea", "Key details", "Key insight", "Important note".
+- Do NOT repeat the same idea across multiple cards.
+- Skip obvious or trivially memorable facts. Prioritise non-obvious distinctions, failure modes, counterintuitive results, and decision heuristics.
+- Match kind precisely: use "tradeoff" only when the note explicitly compares two approaches; use "pattern" only when a reusable structure is described; default to "concept" or "lesson" otherwise.
+
+━━ NOTE METADATA ━━
+${JSON.stringify({ title: note.title, category: note.category, tags: note.tags, summary: note.summary }, null, 2)}
+
+━━ NOTE CONTENT ━━
 ${markdown}
 
-Return this exact JSON shape:
+━━ OUTPUT FORMAT ━━
 {
   "flashcards": [
-    { "prompt": "Specific card title", "lesson": "Micro lesson grounded in the note.", "kind": "concept" }
+    { "prompt": "...", "lesson": "...", "kind": "concept" }
   ]
-}
-`;
+}`;
   }
 }
