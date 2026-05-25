@@ -124,13 +124,14 @@ export async function restoreQuiz(id: string): Promise<void> {
   if (!response.ok) throw new Error(`Failed to restore quiz question: ${response.status}`);
 }
 
-export async function regenerateNote(id: string, target: 'flashcards' | 'quiz' | 'all'): Promise<void> {
+export async function regenerateNote(id: string, target: 'flashcards' | 'quiz' | 'all'): Promise<{ job: import('./types').LearnJob }> {
   const response = await apiFetch(`/api/notes/${encodeURIComponent(id)}/regenerate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ target }),
   });
   if (!response.ok) throw new Error(`Failed to regenerate: ${response.status}`);
+  return response.json();
 }
 
 export type NoteUpdate = {

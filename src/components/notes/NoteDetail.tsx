@@ -67,7 +67,7 @@ export default function NoteDetail({
   const [toolbarOpen, setToolbarOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const savedTheme = useRef<string | null>(null);
-  const [regenState, setRegenState] = useState<'idle' | 'loading' | 'done'>('idle');
+  const [regenState, setRegenState] = useState<'idle' | 'loading' | 'queued'>('idle');
   const [regenDropOpen, setRegenDropOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(note.title);
@@ -201,8 +201,8 @@ export default function NoteDetail({
     setRegenState('loading');
     try {
       await regenerateNote(note.id, target);
-      setRegenState('done');
-      window.setTimeout(() => setRegenState('idle'), 3000);
+      setRegenState('queued');
+      window.setTimeout(() => setRegenState('idle'), 4000);
     } catch {
       setRegenState('idle');
     }
@@ -230,7 +230,7 @@ export default function NoteDetail({
                 onClick={() => setRegenDropOpen((v) => !v)}
                 disabled={regenState === 'loading'}
               >
-                {regenState === 'loading' ? '…' : regenState === 'done' ? '✓ Done' : '↺ Regen'}
+                {regenState === 'loading' ? '…' : regenState === 'queued' ? '✓ Queued' : '↺ Regen'}
               </button>
               {regenDropOpen && (
                 <div className="regen-drop">

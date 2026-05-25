@@ -72,7 +72,7 @@ export type Flashcard = {
   };
 };
 
-export type CreateMode = 'write' | 'polish' | 'research' | 'link';
+export type CreateMode = 'write' | 'polish' | 'research' | 'link' | 'regen';
 
 export type CreateNoteRequest = {
   mode: CreateMode;

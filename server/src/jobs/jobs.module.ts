@@ -12,10 +12,12 @@ import { JobsService } from './jobs.service';
 import { JobRepository } from './job.repository';
 import { JobsProcessor } from './jobs.processor';
 import { CodexModule } from '../codex/codex.module';
+import { KnowledgeModule } from '../knowledge/knowledge.module';
 
 @Module({
   imports: [
     CodexModule,
+    KnowledgeModule,
     BullModule.registerQueue({
       name: 'codex-jobs',
     }),

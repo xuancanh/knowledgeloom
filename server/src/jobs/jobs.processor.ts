@@ -2,6 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { CodexService } from '../codex/codex.service';
+import { KnowledgeService } from '../knowledge/knowledge.service';
 import { JobRepository } from './job.repository';
 import type { Job as CodexJob } from '../types';
 
@@ -11,6 +12,7 @@ export class JobsProcessor extends WorkerHost {
 
   constructor(
     private readonly codexService: CodexService,
+    private readonly knowledgeService: KnowledgeService,
     private readonly repo: JobRepository,
   ) {
     super();
@@ -20,24 +22,30 @@ export class JobsProcessor extends WorkerHost {
     const codexJob = job.data;
     this.logger.log(`Starting job: ${codexJob.id} (${codexJob.mode})`);
 
-    // Update job status in SQLite to 'running'
     codexJob.status = 'running';
-    // attemptsMade starts at 1 for the first attempt in BullMQ.
-    // In our types,attempts count runs from 1 onwards.
     codexJob.attempts = job.attemptsMade;
     codexJob.startedAt = new Date().toISOString();
     codexJob.error = null;
     await this.repo.save(codexJob);
 
     try {
-      const result = await this.codexService.createNote(codexJob);
+      let result: any;
 
-      // Update job status in SQLite to 'done'
+      if (codexJob.mode === 'regen') {
+        const userId = (codexJob as any).userId || 'local';
+        const noteId = (codexJob as any).noteId;
+        const target: 'flashcards' | 'quiz' | 'all' = (codexJob as any).regenTarget || 'all';
+        await this.knowledgeService.regenerateForNote(userId, noteId, target);
+        await this.knowledgeService.rebuildIndexes(userId);
+        result = {};
+      } else {
+        result = await this.codexService.createNote(codexJob);
+      }
+
       codexJob.status = 'done';
       codexJob.finishedAt = new Date().toISOString();
       codexJob.nextRunAt = null;
 
-      // Merge result details (like result.note, result.state, result.codexStatus)
       const updatedJob = { ...codexJob, ...result };
       await this.repo.save(updatedJob);
       this.logger.log(`Completed job: ${codexJob.id}`);
