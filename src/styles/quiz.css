@@ -733,7 +733,28 @@
 .qz-correct-btn { color: var(--moss); border-color: color-mix(in srgb, var(--moss) 35%, var(--rule)); }
 .qz-correct-btn:hover { background: color-mix(in srgb, var(--moss) 8%, var(--paper)); border-color: var(--moss); }
 
-/* Done screen */
+/* ── Question preview modal ──────────────────────────────────── */
+
+.qz-preview-modal {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow: 0 16px 56px -12px rgba(0, 0, 0, 0.3);
+  width: min(700px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 28px 28px;
+  position: relative;
+  animation: fcDialogIn 200ms ease;
+}
+.qz-preview-modal .qz-card {
+  max-width: none;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* ── Done screen ─────────────────────────────────────────────── */
 
 .qz-done {
   display: flex;
