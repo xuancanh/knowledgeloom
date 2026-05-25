@@ -36,9 +36,9 @@ export class QuizService {
     return { nextReviewAt: next.toISOString(), streak: newStreak };
   }
 
-  async sync(userId: string, noteSources: NoteSource[], { force = false } = {}): Promise<QuizQuestion[]> {
+  async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true } = {}): Promise<QuizQuestion[]> {
     const cache = await this.cacheRepo.load(userId);
-    const disabled = this.config.get<boolean>('aiFlashcardsDisabled');
+    const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;
 
     if (disabled) {
       const noteIds = new Set(noteSources.map(({ note }) => note.id));
@@ -48,18 +48,34 @@ export class QuizService {
     }
 
     const nextNotes: Record<string, any> = {};
+    const uncached: NoteSource[] = [];
 
-    for (const { note, markdown } of noteSources) {
+    for (const source of noteSources) {
+      const { note, markdown } = source;
       const hash = this.noteHash(note, markdown);
       const cached = cache[note.id];
       if (!force && cached?.hash === hash && Array.isArray(cached.questions)) {
         nextNotes[note.id] = cached;
-        continue;
+      } else {
+        uncached.push(source);
       }
-      const prompt = this.buildPrompt(note, markdown);
-      const output = await this.ai.complete(prompt, { outputFormat: 'json' });
-      const questions = this.normalize(note, this.parseJson(output));
-      nextNotes[note.id] = { hash, questions, generatedAt: new Date().toISOString() };
+    }
+
+    // Process uncached notes in parallel batches of 3
+    const BATCH = 3;
+    for (let i = 0; i < uncached.length; i += BATCH) {
+      await Promise.all(
+        uncached.slice(i, i + BATCH).map(async ({ note, markdown }) => {
+          try {
+            const prompt = this.buildPrompt(note, markdown);
+            const output = await this.ai.complete(prompt, { outputFormat: 'json' });
+            const questions = this.normalize(note, this.parseJson(output));
+            nextNotes[note.id] = { hash: this.noteHash(note, markdown), questions, generatedAt: new Date().toISOString() };
+          } catch (err) {
+            if (cache[note.id]) nextNotes[note.id] = cache[note.id];
+          }
+        }),
+      );
     }
 
     await this.cacheRepo.replace(userId, nextNotes);

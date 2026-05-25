@@ -12,7 +12,7 @@
 import { Injectable, Inject, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { basename, join } from 'node:path';
-import { mkdir, writeFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises';
 import { NOTE_STORAGE, NoteStorageProvider } from '../storage/note-storage.interface';
 import { parseNote } from '../common/note-parser.util';
 import type { KnowledgeNote, NoteSource } from '../types';
@@ -118,6 +118,16 @@ export class NoteFileRepository {
       }
     } catch {
       // Category files are non-critical in S3 or read-only mode.
+    }
+  }
+
+  async readIndexJson(userId: string): Promise<any | null> {
+    try {
+      const indexPath = join(this.usersDir, userId, 'index.json');
+      const content = await readFile(indexPath, 'utf8');
+      return JSON.parse(content);
+    } catch {
+      return null;
     }
   }
 

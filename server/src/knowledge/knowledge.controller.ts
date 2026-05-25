@@ -20,6 +20,6 @@ export class KnowledgeController {
 
   @Get()
   getKnowledge(@CurrentUser() userId: string) {
-    return this.knowledgeService.rebuildIndexes(userId);
+    return this.knowledgeService.getState(userId);
   }
 }
