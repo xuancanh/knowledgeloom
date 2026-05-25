@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CategoryTreeNode, UiCategory } from '../../lib/view';
 
 type ViewMode = 'tree' | 'columns';
@@ -125,17 +126,18 @@ export function AllCategoriesRoute({
   categoryTree: CategoryTreeNode[];
   onOpenCategory: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewMode>('tree');
 
   return (
     <div className="cat-page">
       <div className="crumbs">
-        <span>Desk</span><span className="sep">/</span><span>Categories</span>
+        <span>{t('common.desk')}</span><span className="sep">/</span><span>{t('nav.categories')}</span>
       </div>
 
       <div className="cat-page-head">
         <div>
-          <h1>Categories</h1>
+          <h1>{t('nav.categories')}</h1>
           <p>{categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} · {categoryTree.length} root folder{categoryTree.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="cat-view-toggle">

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from './AllTagsRoute.module.css';
 
 export function AllTagsRoute({
@@ -6,16 +7,17 @@ export function AllTagsRoute({
   tagCounts: [string, number][];
   onOpenTag: (tag: string) => void;
 }) {
+  const { t } = useTranslation();
   const maxCount = tagCounts[0]?.[1] || 1;
 
   return (
     <div className={styles.page}>
       <div className="crumbs">
-        <span>Desk</span><span className="sep">/</span><span>Tags</span>
+        <span>{t('common.desk')}</span><span className="sep">/</span><span>{t('nav.tags')}</span>
       </div>
 
       <div className={styles.head}>
-        <h1 className={styles.title}>Tags</h1>
+        <h1 className={styles.title}>{t('nav.tags')}</h1>
         <p className={styles.subtitle}>{tagCounts.length} tag{tagCounts.length !== 1 ? 's' : ''}</p>
       </div>
 

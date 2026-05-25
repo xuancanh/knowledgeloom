@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Flashcard, KnowledgeNote } from '../../types';
 import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../../lib/view';
 import NoteList, { type ViewMode } from '../NoteList';
@@ -36,6 +37,7 @@ export default function CategoryIndex({
   onOpenCategory: (id: string) => void;
   onOpenFlashcards: (category: string) => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [sort, setSort] = useState<SortKey>('recent');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -110,7 +112,7 @@ export default function CategoryIndex({
     <div className={styles.page}>
       {/* Breadcrumb */}
       <nav className={styles.crumbs} aria-label="Category path">
-        <span className={styles.crumbHome} onClick={() => onOpenCategory('')}>Categories</span>
+        <span className={styles.crumbHome} onClick={() => onOpenCategory('')}>{t('categories.crumbHome')}</span>
         {pathParts.map((part, i) => {
           const id = pathParts.slice(0, i + 1).join('/');
           const isLast = i === pathParts.length - 1;
@@ -133,15 +135,15 @@ export default function CategoryIndex({
           <span className={styles.headDot} style={{ background: accentColor }} />
           <h1 className={styles.headTitle}>{categoryLabel(category.name)}</h1>
           <div className={styles.headChips}>
-            <span className={styles.chip}>{inCat.length} notes</span>
+            <span className={styles.chip}>{t('categories.notesCount', { count: inCat.length })}</span>
             {relatedFlashcards.length > 0 && (
               <button className={`${styles.chip} ${styles.chipAction}`} onClick={() => onOpenFlashcards(category.name)}>
-                {relatedFlashcards.length} flashcards ↗
+                {t('categories.flashcardsLink', { count: relatedFlashcards.length })}
               </button>
             )}
-            {totalLinks > 0 && <span className={styles.chip}>{totalLinks} links</span>}
+            {totalLinks > 0 && <span className={styles.chip}>{t('categories.linksCount', { count: totalLinks })}</span>}
           </div>
-          <button className={styles.newNoteBtn} onClick={newNoteInCategory}>+ New note</button>
+          <button className={styles.newNoteBtn} onClick={newNoteInCategory}>{t('categories.newNote')}</button>
         </div>
         {category.summary && category.summary !== 'No summary yet.' && (
           <p className={styles.headSummary}>{category.summary}</p>
@@ -151,7 +153,7 @@ export default function CategoryIndex({
       {/* Subfolders — always visible when present */}
       {childCategories.length > 0 && (
         <div className={styles.foldersSection}>
-          <div className={styles.foldersLabel}>Subfolders</div>
+          <div className={styles.foldersLabel}>{t('categories.subfolders')}</div>
           <div className={styles.folderList}>
             {childCategories.map((cat) => {
               const catColor = COLOR_VAR[cat.color] || 'var(--accent)';
@@ -178,13 +180,13 @@ export default function CategoryIndex({
       {/* Notes toolbar */}
       <div className={styles.sectionHead}>
         <h2 className={styles.notesLabel}>
-          Notes
+          {t('common.notes')}
           <span className={styles.notesCount}>{isFiltered ? `${filtered.length} / ${inCat.length}` : inCat.length}</span>
         </h2>
         <div className={styles.sortTabs}>
           {(['recent', 'oldest', 'links'] as SortKey[]).map((key) => (
             <button key={key} className={sort === key ? 'active' : ''} onClick={() => setSort(key)}>
-              {key === 'recent' ? 'Recent' : key === 'oldest' ? 'Oldest' : 'Most linked'}
+              {key === 'recent' ? t('common.recent') : key === 'oldest' ? t('common.oldest') : t('common.mostLinked')}
             </button>
           ))}
         </div>
@@ -197,7 +199,7 @@ export default function CategoryIndex({
             className="notes-search"
             value={noteSearch}
             onChange={(e) => setNoteSearch(e.target.value)}
-            placeholder="Search notes…"
+            placeholder={t('categories.searchNotes')}
             spellCheck={false}
           />
           {noteSearch && (
@@ -232,13 +234,13 @@ export default function CategoryIndex({
             </button>
           ))}
           {tagFilter && (
-            <button className={styles.clearAll} onClick={() => setTagFilter(null)}>Clear filter</button>
+            <button className={styles.clearAll} onClick={() => setTagFilter(null)}>{t('common.clear')}</button>
           )}
         </div>
       )}
 
       {filtered.length === 0 && isFiltered ? (
-        <div className="empty">No notes match — <button onClick={() => { setNoteSearch(''); setTagFilter(null); }}>clear filters</button></div>
+        <div className="empty">{t('categories.noNotesMatch')}<button onClick={() => { setNoteSearch(''); setTagFilter(null); }}>{t('categories.clearFilters')}</button></div>
       ) : (
         <NoteList notes={filtered} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} viewMode={viewMode} />
       )}

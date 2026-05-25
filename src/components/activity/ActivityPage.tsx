@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LearnJob } from '../../types';
 import { jobState } from '../../lib/view';
 import { formatJobDate } from '../../lib/format';
@@ -14,6 +15,7 @@ export default function ActivityPage({
   jobs: LearnJob[];
   onOpenNote: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState<Filter>('all');
 
   const sorted = [...jobs].sort((a, b) => {
@@ -32,34 +34,34 @@ export default function ActivityPage({
     : sorted;
 
   const filters: { key: Filter; label: string }[] = [
-    { key: 'all',    label: `All · ${sorted.length}` },
-    { key: 'active', label: `Active · ${activeJobs.length}` },
-    { key: 'done',   label: `Done · ${doneJobs.length}` },
-    { key: 'failed', label: `Failed · ${failedJobs.length}` },
+    { key: 'all',    label: t('activity.tabAll', { count: sorted.length }) },
+    { key: 'active', label: t('activity.tabActive', { count: activeJobs.length }) },
+    { key: 'done',   label: t('activity.tabDone', { count: doneJobs.length }) },
+    { key: 'failed', label: t('activity.tabFailed', { count: failedJobs.length }) },
   ];
 
   return (
     <div className={styles.page}>
-      <div className="crumbs"><span>Desk</span><span className="sep">/</span><span>Activity</span></div>
+      <div className="crumbs"><span>{t('common.desk')}</span><span className="sep">/</span><span>{t('activity.title')}</span></div>
 
       <div className={styles.head}>
         <div className={styles.headText}>
-          <h1>Activity</h1>
-          <p>Queued and running Codex requests resume after server restart. Completed jobs stay here as a permanent record.</p>
+          <h1>{t('activity.title')}</h1>
+          <p>{t('activity.description')}</p>
         </div>
         <div className={styles.headStats}>
           <div className={`${styles.statBadge} ${styles.active}`}>
             <b>{activeJobs.length}</b>
-            <span>active</span>
+            <span>{t('activity.active')}</span>
           </div>
           <div className={`${styles.statBadge} ${styles.done}`}>
             <b>{doneJobs.length}</b>
-            <span>done</span>
+            <span>{t('activity.done')}</span>
           </div>
           {failedJobs.length > 0 && (
             <div className={`${styles.statBadge} ${styles.failed}`}>
               <b>{failedJobs.length}</b>
-              <span>failed</span>
+              <span>{t('activity.failed')}</span>
             </div>
           )}
         </div>
@@ -79,7 +81,7 @@ export default function ActivityPage({
 
       {visible.length === 0 ? (
         <div className={styles.empty}>
-          {filter === 'all' ? 'No jobs yet.' : `No ${filter} jobs.`}
+          {filter === 'all' ? t('activity.noJobs') : t('activity.noJobsFilter', { filter })}
         </div>
       ) : (
         <div className={styles.list}>
@@ -92,7 +94,7 @@ export default function ActivityPage({
                 <div className={styles.jobMeta}>
                   <span className={styles.jobState}>
                     <span className={styles.pulse} />
-                    {state === 'researching' ? 'Running' : state.charAt(0).toUpperCase() + state.slice(1)}
+                    {state === 'researching' ? t('activity.running') : state.charAt(0).toUpperCase() + state.slice(1)}
                   </span>
                   <span className={styles.jobDot} />
                   <span className={styles.jobTime}>{formatJobDate(ts)}</span>

@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase';
 import styles from './LoginPage.module.css';
 
 type Mode = 'sign-in' | 'sign-up' | 'magic-link' | 'magic-sent';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,12 +63,10 @@ export function LoginPage() {
         <div className={styles.card}>
           <div className={styles.sent}>
             <div className={styles.sentIcon}>✉</div>
-            <h1 className={styles.sentTitle}>Check your inbox</h1>
-            <p className={styles.sentDesc}>
-              We sent a magic link to <strong>{email}</strong>. Click it to sign in.
-            </p>
+            <h1 className={styles.sentTitle}>{t('auth.checkInbox')}</h1>
+            <p className={styles.sentDesc} dangerouslySetInnerHTML={{ __html: t('auth.magicLinkSent', { email }) }} />
             <button className={styles.linkBtn} onClick={() => setMode('magic-link')}>
-              Resend link
+              {t('auth.resendLink')}
             </button>
           </div>
         </div>
@@ -79,19 +79,17 @@ export function LoginPage() {
       <nav className={styles.nav}>
         <Link to="/" className={styles.navBrand}>
           <span className={styles.navBrandDot} />
-          Knowledge Loom
+          {t('auth.appName')}
         </Link>
       </nav>
 
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h1 className={styles.cardTitle}>
-            {mode === 'sign-up' ? 'Create account' : 'Welcome back'}
+            {mode === 'sign-up' ? t('auth.createAccount') : t('auth.welcomeBack')}
           </h1>
           <p className={styles.cardSub}>
-            {mode === 'sign-up'
-              ? 'Your second brain starts here.'
-              : 'Sign in to your knowledge base.'}
+            {mode === 'sign-up' ? t('auth.signUpTagline') : t('auth.signInTagline')}
           </p>
         </div>
 
@@ -100,24 +98,24 @@ export function LoginPage() {
             className={`${styles.modeTab} ${mode === 'sign-in' ? styles.modeTabActive : ''}`}
             onClick={() => { setMode('sign-in'); clearError(); }}
           >
-            Sign in
+            {t('auth.signIn')}
           </button>
           <button
             className={`${styles.modeTab} ${mode === 'sign-up' ? styles.modeTabActive : ''}`}
             onClick={() => { setMode('sign-up'); clearError(); }}
           >
-            Sign up
+            {t('auth.signUp')}
           </button>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">Email</label>
+            <label className={styles.label} htmlFor="email">{t('auth.emailLabel')}</label>
             <input
               id="email"
               type="email"
               className={styles.input}
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
@@ -128,12 +126,12 @@ export function LoginPage() {
 
           {mode !== 'magic-link' && (
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="password">Password</label>
+              <label className={styles.label} htmlFor="password">{t('auth.passwordLabel')}</label>
               <input
                 id="password"
                 type="password"
                 className={styles.input}
-                placeholder={mode === 'sign-up' ? 'At least 8 characters' : ''}
+                placeholder={mode === 'sign-up' ? t('auth.passwordPlaceholder') : ''}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
@@ -147,23 +145,23 @@ export function LoginPage() {
 
           <button type="submit" className={styles.submitBtn} disabled={loading || !email}>
             {loading
-              ? 'Please wait…'
+              ? t('auth.pleaseWait')
               : mode === 'sign-up'
-              ? 'Create account'
+              ? t('auth.createAccount')
               : mode === 'magic-link'
-              ? 'Send magic link'
-              : 'Sign in'}
+              ? t('auth.sendMagicLink')
+              : t('auth.signIn')}
           </button>
         </form>
 
-        <div className={styles.divider}><span>or</span></div>
+        <div className={styles.divider}><span>{t('auth.or')}</span></div>
 
         <button
           className={styles.magicBtn}
           onClick={() => { setMode(mode === 'magic-link' ? 'sign-in' : 'magic-link'); clearError(); }}
           disabled={loading}
         >
-          {mode === 'magic-link' ? '← Use password instead' : '✉ Sign in with magic link'}
+          {mode === 'magic-link' ? t('auth.usePasswordInstead') : t('auth.signInMagicLink')}
         </button>
       </div>
     </div>
