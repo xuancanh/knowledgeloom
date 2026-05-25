@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Flashcard, KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import { FlashcardBrowse } from './FlashcardBrowse';
@@ -63,6 +64,7 @@ export default function FlashcardsPage({
     tags?: string[];
   }) => void;
 }) {
+  const { t } = useTranslation();
   const [studying, setStudying] = useState(false);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [studyIndex, setStudyIndex] = useState(0);
@@ -134,7 +136,7 @@ export default function FlashcardsPage({
       ? value
       : scope === 'tag' && value
         ? `#${value}`
-        : 'All cards';
+        : t('flashcards.allCards');
 
   useEffect(() => {
     setStudying(false);
@@ -291,8 +293,9 @@ export default function FlashcardsPage({
       selectedTags={selectedTags}
       dueCount={dueCount}
       onScopeChange={onScopeChange}
-      onStartStudy={(index) => startStudy(index)}
       onStartSession={(opts) => startStudy(0, opts)}
+      onRated={(cardId, rating) => setRatings((prev) => ({ ...prev, [cardId]: rating }))}
+      onOpenNote={onOpenNote}
       onKindFilterChange={handleKindChange}
       onRatingFilterChange={handleRatingChange}
       onSearchChange={handleSearchChange}

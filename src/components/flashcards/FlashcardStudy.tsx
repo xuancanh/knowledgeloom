@@ -1,20 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Flashcard } from '../../types';
 import { KIND_COLOR, KIND_LABEL, RATING_LABEL } from './constants';
 import type { Rating } from './types';
 import { reviewFlashcard } from '../../api';
-
-function formatNextReview(nextReviewAt: string | null): string {
-  if (!nextReviewAt) return '';
-  const due = new Date(nextReviewAt);
-  const now = new Date();
-  const diffMs = due.getTime() - now.getTime();
-  const diffHours = Math.round(diffMs / 3600000);
-  const diffDays = Math.round(diffMs / 86400000);
-  if (diffHours <= 0) return 'Due now';
-  if (diffHours < 24) return `Next: ${diffHours}h`;
-  return `Next: ${diffDays}d`;
-}
 
 export function FlashcardStudy({
   cards,
@@ -45,8 +34,21 @@ export function FlashcardStudy({
   onFinishEarly?: () => void;
   onOpenNote: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const activeCard = cards[index] ?? null;
   const touchStartX = useRef<number | null>(null);
+
+  function formatNextReview(nextReviewAt: string | null): string {
+    if (!nextReviewAt) return '';
+    const due = new Date(nextReviewAt);
+    const now = new Date();
+    const diffMs = due.getTime() - now.getTime();
+    const diffHours = Math.round(diffMs / 3600000);
+    const diffDays = Math.round(diffMs / 86400000);
+    if (diffHours <= 0) return t('flashcards.dueNow');
+    if (diffHours < 24) return t('flashcards.nextHours', { count: diffHours });
+    return t('flashcards.nextDays', { count: diffDays });
+  }
 
   const rateAndAdvance = useCallback(
     (rating: Rating) => {
@@ -129,7 +131,7 @@ export function FlashcardStudy({
   return (
     <div className="fc-page fc-study">
       <div className="fc-study-bar">
-        <button className="fc-back-btn" onClick={onExit}>← Collection</button>
+        <button className="fc-back-btn" onClick={onExit}>{t('flashcards.backCollection')}</button>
         <div className="fc-bar-center">
           <div className="fc-bar-track">
             <div className="fc-bar-fill" style={{ width: `${progress}%` }} />
@@ -154,13 +156,13 @@ export function FlashcardStudy({
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!flipped) onFlip(); } }}
-            aria-label={flipped ? 'Card answer revealed' : 'Press Space to reveal card'}
+            aria-label={flipped ? t('flashcards.revealCard') : t('flashcards.revealCard')}
           >
             <div className="fc-face fc-front">
               <div className="fc-kind-row" style={{ color: kindColor }}>
                 <span className="fc-dot" style={{ background: kindColor }} />
                 {KIND_LABEL[activeCard.kind] || activeCard.kind}
-                {activeCard.isUserCreated && <span className="fc-user-badge" title="User-created">✎</span>}
+                {activeCard.isUserCreated && <span className="fc-user-badge" title={t('flashcards.userCreated')}>✎</span>}
                 {nextReviewLabel && <span className={`fc-next-review ${activeCard.reviewData?.nextReviewAt && new Date(activeCard.reviewData.nextReviewAt) <= new Date() ? 'overdue' : ''}`}>{nextReviewLabel}</span>}
               </div>
               <div className="fc-front-body">
@@ -171,7 +173,7 @@ export function FlashcardStudy({
                   {activeCard.noteTitle} · {activeCard.category}
                 </div>
                 <div className="fc-hint-pill">
-                  <kbd>Space</kbd> to reveal
+                  <kbd>Space</kbd> {t('flashcards.revealCard').toLowerCase()}
                 </div>
               </div>
             </div>
@@ -204,7 +206,7 @@ export function FlashcardStudy({
             <div className="fc-reveal-area">
               {existingRating && (
                 <div className={`fc-prev-badge ${existingRating}`}>
-                  Previously: {RATING_LABEL[existingRating] || existingRating}
+                  {t('flashcards.previously', { rating: RATING_LABEL[existingRating] || existingRating })}
                 </div>
               )}
               {activeCard.reviewData && (
@@ -217,12 +219,12 @@ export function FlashcardStudy({
                 </div>
               )}
               <button className="fc-reveal-btn" onClick={onFlip}>
-                Reveal card <kbd>Space</kbd>
+                {t('flashcards.revealCard')} <kbd>Space</kbd>
               </button>
             </div>
           ) : (
             <div className="fc-rating-area" aria-live="polite">
-              <span className="fc-rate-prompt">How well did you recall it?</span>
+              <span className="fc-rate-prompt">{t('flashcards.howWell')}</span>
               <div className="fc-rate-row">
                 <button className="fc-rate again" onClick={() => rateAndAdvance('again')}>
                   <span>{RATING_LABEL['again']}</span>
@@ -243,20 +245,20 @@ export function FlashcardStudy({
 
         <div className="fc-nav-row">
           <button className="fc-nav-btn" onClick={() => goTo(index - 1, 'right')} disabled={index === 0}>
-            ← Prev
+            {t('flashcards.prevCard')}
           </button>
           <span className="fc-nav-hint">
-            <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>Esc</kbd> exit
+            {t('flashcards.navigate')}
           </span>
           <span className="fc-nav-end">
             {onFinishEarly && (
               <button className="fc-nav-finish" onClick={onFinishEarly}>
-                Finish early
+                {t('flashcards.finishEarly')}
               </button>
             )}
           </span>
           <button className="fc-nav-btn" onClick={() => goTo(index + 1, 'left')} disabled={index === cards.length - 1}>
-            Next →
+            {t('flashcards.nextCard')}
           </button>
         </div>
       </div>
