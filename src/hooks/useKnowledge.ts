@@ -198,7 +198,7 @@ export function useKnowledge() {
     [navigate],
   );
   const openTag = useCallback((tag: string) => navigate(`/tags/${encodeURIComponent(tag)}`), [navigate]);
-  const goHome = useCallback(() => navigate('/'), [navigate]);
+  const goHome = useCallback(() => navigate('/home'), [navigate]);
   const openActivity = useCallback(() => navigate('/activity'), [navigate]);
   const openSettings = useCallback(() => navigate('/settings'), [navigate]);
 
@@ -218,7 +218,7 @@ export function useKnowledge() {
     if (!window.confirm(`Delete "${note.title}"? This removes the markdown source file.`)) return;
     const result = await deleteNote(note.id);
     setState(result.state);
-    navigate('/', { replace: true });
+    navigate('/home', { replace: true });
   }
 
   async function handleSaveNote(id: string, update: NoteUpdate) {

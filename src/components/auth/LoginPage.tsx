@@ -40,14 +40,14 @@ export function LoginPage() {
         const { error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
         // Supabase may confirm immediately or require email verification
-        navigate('/');
+        navigate('/home');
         return;
       }
 
       // sign-in
       const { error: err } = await supabase.auth.signInWithPassword({ email, password });
       if (err) throw err;
-      navigate('/');
+      navigate('/home');
     } catch (err: any) {
       setError(err?.message ?? 'Something went wrong. Please try again.');
     } finally {
