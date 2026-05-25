@@ -119,6 +119,28 @@ export class KnowledgeService {
     return state;
   }
 
+  /**
+   * Force-regenerates AI content for a single note without a full rebuild.
+   * Bypasses the hash cache so the AI is called regardless of whether the
+   * note has changed since the last generation.
+   */
+  async regenerateForNote(userId: string, noteId: string, target: 'flashcards' | 'quiz' | 'all'): Promise<void> {
+    const allSources = await this.noteRepo.readAllSources(userId);
+    const source = allSources.find((s) => s.note.id === noteId);
+    if (!source) {
+      const err: any = new Error(`note not found: ${noteId}`);
+      err.status = 404;
+      throw err;
+    }
+    const sources = [source];
+    if (target === 'flashcards' || target === 'all') {
+      await this.flashcardsService.sync(userId, sources, { force: true });
+    }
+    if (target === 'quiz' || target === 'all') {
+      await this.quizService.sync(userId, sources, { force: true });
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
