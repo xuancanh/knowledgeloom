@@ -9,15 +9,10 @@ import NoteEditor, { type NoteEditorHandle } from '../notes/NoteEditor';
 import MetaFields from '../notes/MetaFields';
 import styles from './CaptureBox.module.css';
 
-/** Note capture mode: research, link (URL→note), or write (direct input). */
 type CaptureMode = 'research' | 'link' | 'write';
 
 function splitList(value: string) {
   return [...new Set(value.split(',').map((s) => s.trim()).filter(Boolean))];
-}
-
-function truncate(text: string, max: number) {
-  return text.length > max ? text.slice(0, max).trimEnd() + '…' : text;
 }
 
 export default function CaptureBox({
@@ -71,10 +66,6 @@ export default function CaptureBox({
     ? templatesForMode(templates, mode === 'link' ? 'link' : 'research')
     : [];
 
-  const guidanceLabel = guidance
-    ? modeTemplates.find((tpl) => tpl.text === guidance)?.label ?? truncate(guidance, 50)
-    : '';
-
   const primaryRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -98,6 +89,12 @@ export default function CaptureBox({
       e.preventDefault();
       submit();
     }
+  }
+
+  function switchMode(next: CaptureMode) {
+    setMode(next);
+    setGuidance(localStorage.getItem(`kl:cap-${next}`) || '');
+    setShowMore(false);
   }
 
   function reset() {
@@ -184,37 +181,32 @@ export default function CaptureBox({
     ? t('capture.submitResearch')
     : t('capture.submitWrite');
 
-
-
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className={`${styles.capture} ${styles[`mode-${mode}`]}`}>
 
-      {/* Header */}
-      <div className={styles.header}>
-        <span className={styles.prompt}>
-          <span className={styles.promptStar}>✦</span>
-          {readOnly ? t('capture.readOnlyBanner') : t('capture.promptQuestion')}
-        </span>
-        <div className={styles.modeSwitcher}>
-          {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              className={`${styles.modeBtn} ${styles[`modeBtn-${m}`]}${mode === m ? ` ${styles.modeBtnActive}` : ''}`}
-              onClick={() => { setMode(m); setGuidance(localStorage.getItem(`kl:cap-${m}`) || ''); setShowMore(false); }}
-              disabled={readOnly}
-            >
-              {m === 'research' ? t('capture.btnResearch') : m === 'link' ? t('capture.btnLink') : t('capture.btnWrite')}
-            </button>
-          ))}
-        </div>
+      {/* Tab strip */}
+      <div className={styles.tabs}>
+        {readOnly && <span className={styles.readOnlyTag}>{t('capture.readOnlyBanner')}</span>}
+        {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            className={`${styles.tab} ${styles[`tab-${m}`]}${mode === m ? ` ${styles.tabActive}` : ''}`}
+            onClick={() => switchMode(m)}
+            disabled={readOnly}
+          >
+            {m === 'research' ? t('capture.btnResearch') : m === 'link' ? t('capture.btnLink') : t('capture.btnWrite')}
+          </button>
+        ))}
       </div>
 
-      {/* ── Research mode ─────────────────────────────────────────────────── */}
-      {mode === 'research' && (
-        <div className={styles.body}>
-          <div className={styles.primaryZone}>
+      {/* Body */}
+      <div className={styles.body}>
+
+        {/* ── Primary input ── */}
+        <div className={styles.primaryZone}>
+          {mode === 'research' && (
             <input
               ref={primaryRef}
               className={styles.primary}
@@ -227,183 +219,25 @@ export default function CaptureBox({
               spellCheck={false}
               autoFocus={!readOnly}
             />
-          </div>
-          <div className={styles.moreRow}>
-          <button
-            type="button"
-            className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
-            onClick={() => setShowMore((v) => !v)}
-          >
-            <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-            {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
-          </button>
-            {!showMore && guidance && (
-              <span className={styles.guidancePreview}>{t('capture.writingInstructionPreview', { label: guidanceLabel })}</span>
-            )}
-          </div>
-          {showMore && (
-            <div className={styles.moreBody}>
-              <div className={styles.guidance}>
-                <div className={styles.guidanceTop}>
-                  <span className={styles.guidanceLabel}>{t('capture.writingInstructions')}</span>
-                  <div className={styles.guidanceLine} />
-                  <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-                    {t('common.manage')}
-                  </button>
-                </div>
-                {modeTemplates.length > 0 && (
-                  <div className={styles.chips}>
-                    {modeTemplates.map((tpl) => (
-                      <button
-                        key={tpl.id}
-                        type="button"
-                        className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
-                        style={guidance === tpl.text && tpl.color ? { color: `var(--${tpl.color})`, borderColor: `var(--${tpl.color})`, background: `color-mix(in srgb, var(--${tpl.color}) 8%, var(--surface))` } : undefined}
-                        onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
-                        disabled={readOnly}
-                      >
-                        {tpl.color && <span className={styles.chipDot} style={{ background: `var(--${tpl.color})` }} />}
-                        {tpl.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className={styles.guidanceInputWrap}>
-                  <span className={styles.guidanceInputIcon}>✎</span>
-                  <input
-                    className={styles.guidanceInput}
-                    value={guidance}
-                    onChange={(e) => setGuidance(e.target.value)}
-                    onKeyDown={onKey}
-                    placeholder={t('capture.customInstructionsResearch')}
-                    disabled={readOnly}
-                  />
-                </div>
-              </div>
-              <label className={styles.fieldLabel}>{t('capture.whatYouKnow')}</label>
-              <textarea
-                className={styles.seedArea}
-                value={seed}
-                onChange={(e) => setSeed(e.target.value)}
-                onKeyDown={onKey}
-                placeholder={t('capture.seedPlaceholder')}
-                rows={3}
-                disabled={readOnly}
-              />
-              <MetaFields
-                category={category}
-                onCategoryChange={setCategory}
-                tags={tags}
-                onTagsChange={setTags}
-                disabled={readOnly}
-                compact
-              />
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={t('capture.contextResearch')} disabled={readOnly} />
-            </div>
           )}
-        </div>
-      )}
-
-      {/* ── Link mode ─────────────────────────────────────────────────────── */}
-      {mode === 'link' && (
-        <div className={styles.body}>
-          <div className={styles.primaryZone}>
+          {mode === 'link' && (
             <div className={styles.urlRow}>
               <span className={styles.urlGlyph}>↗</span>
-            <input
-              ref={primaryRef}
-              className={styles.urlInput}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={onKey}
-              placeholder={t('capture.urlPlaceholder')}
-              disabled={readOnly}
-              autoComplete="off"
-              spellCheck={false}
-              type="url"
-            />
-          </div>
-          </div>
-          <div className={styles.moreRow}>
-          <button
-            type="button"
-            className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
-            onClick={() => setShowMore((v) => !v)}
-          >
-            <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-            {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
-          </button>
-            {!showMore && guidance && (
-              <span className={styles.guidancePreview}>{t('capture.writingInstructionPreview', { label: guidanceLabel })}</span>
-            )}
-          </div>
-          {showMore && (
-            <div className={styles.moreBody}>
-              <div className={styles.guidance}>
-                <div className={styles.guidanceTop}>
-                  <span className={styles.guidanceLabel}>{t('capture.writingInstructions')}</span>
-                  <div className={styles.guidanceLine} />
-                  <button type="button" className={styles.guidanceManage} onClick={() => navigate('/settings')}>
-                    {t('common.manage')}
-                  </button>
-                </div>
-                {modeTemplates.length > 0 && (
-                  <div className={styles.chips}>
-                    {modeTemplates.map((tpl) => (
-                      <button
-                        key={tpl.id}
-                        type="button"
-                        className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
-                        style={guidance === tpl.text && tpl.color ? { color: `var(--${tpl.color})`, borderColor: `var(--${tpl.color})`, background: `color-mix(in srgb, var(--${tpl.color}) 8%, var(--surface))` } : undefined}
-                        onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
-                        disabled={readOnly}
-                      >
-                        {tpl.color && <span className={styles.chipDot} style={{ background: `var(--${tpl.color})` }} />}
-                        {tpl.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className={styles.guidanceInputWrap}>
-                  <span className={styles.guidanceInputIcon}>✎</span>
-                  <input
-                    className={styles.guidanceInput}
-                    value={guidance}
-                    onChange={(e) => setGuidance(e.target.value)}
-                    onKeyDown={onKey}
-                    placeholder={t('capture.customInstructionsLink')}
-                    disabled={readOnly}
-                  />
-                </div>
-              </div>
-              <label className={styles.fieldLabel}>{t('capture.whatToFocus')}</label>
-              <textarea
-                className={styles.seedArea}
-                value={seed}
-                onChange={(e) => setSeed(e.target.value)}
+              <input
+                ref={primaryRef}
+                className={styles.urlInput}
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
                 onKeyDown={onKey}
-                placeholder={t('capture.focusPlaceholder')}
-                rows={2}
+                placeholder={t('capture.urlPlaceholder')}
                 disabled={readOnly}
+                autoComplete="off"
+                spellCheck={false}
+                type="url"
               />
-              <MetaFields
-                category={category}
-                onCategoryChange={setCategory}
-                tags={tags}
-                onTagsChange={setTags}
-                disabled={readOnly}
-                compact
-              />
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={t('capture.contextLink')} disabled={readOnly} />
             </div>
           )}
-        </div>
-      )}
-
-      {/* ── Write mode ────────────────────────────────────────────────────── */}
-      {mode === 'write' && (
-        <div className={styles.body}>
-          <div className={styles.primaryZone}>
+          {mode === 'write' && (
             <input
               className={styles.writeTitle}
               value={title}
@@ -412,66 +246,163 @@ export default function CaptureBox({
               placeholder={t('capture.noteTitlePlaceholder')}
               disabled={readOnly}
             />
-          </div>
-          <div className={styles.captureEditor}>
-            <NoteEditor
-              ref={editorRef}
-              placeholder={t('capture.writePlaceholder')}
+          )}
+        </div>
+
+        {/* ── Write: editor + meta + actions ── */}
+        {mode === 'write' && (
+          <>
+            <div className={styles.captureEditor}>
+              <NoteEditor
+                ref={editorRef}
+                placeholder={t('capture.writePlaceholder')}
+                disabled={readOnly}
+              />
+            </div>
+            <MetaFields
+              category={category}
+              onCategoryChange={setCategory}
+              tags={tags}
+              onTagsChange={setTags}
               disabled={readOnly}
+              compact
             />
+            <div className={styles.writeActions}>
+              <button
+                type="button"
+                className={styles.aiAssistBtn}
+                onClick={() => { setAiAssistOpen(true); setAiError(''); }}
+                disabled={readOnly}
+              >
+                {t('capture.aiAssist')}
+              </button>
+              <button
+                type="button"
+                className={styles.fullEditorBtn}
+                onClick={openFullEditor}
+                disabled={readOnly}
+              >
+                {t('capture.fullEditor')}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Research / Link: always-visible guidance ── */}
+        {mode !== 'write' && (
+          <div className={styles.guidance}>
+            {modeTemplates.length > 0 && (
+              <div className={styles.chips}>
+                {modeTemplates.map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    className={`${styles.chip}${guidance === tpl.text ? ` ${styles.chipActive}` : ''}`}
+                    style={guidance === tpl.text && tpl.color ? { color: `var(--${tpl.color})`, borderColor: `var(--${tpl.color})`, background: `color-mix(in srgb, var(--${tpl.color}) 8%, var(--surface))` } : undefined}
+                    onClick={() => setGuidance((v) => v === tpl.text ? '' : tpl.text)}
+                    disabled={readOnly}
+                  >
+                    {tpl.color && <span className={styles.chipDot} style={{ background: `var(--${tpl.color})` }} />}
+                    {tpl.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className={styles.guidanceInputWrap}>
+              <span className={styles.guidanceInputIcon}>✎</span>
+              <input
+                className={styles.guidanceInput}
+                value={guidance}
+                onChange={(e) => setGuidance(e.target.value)}
+                onKeyDown={onKey}
+                placeholder={mode === 'link' ? t('capture.customInstructionsLink') : t('capture.customInstructionsResearch')}
+                disabled={readOnly}
+              />
+            </div>
           </div>
-          <MetaFields
-            category={category}
-            onCategoryChange={setCategory}
-            tags={tags}
-            onTagsChange={setTags}
-            disabled={readOnly}
-            compact
-          />
-          <div className={styles.writeActions}>
-            <button
-              type="button"
-              className={styles.aiAssistBtn}
-              onClick={() => { setAiAssistOpen(true); setAiError(''); }}
-              disabled={readOnly}
-            >
-              {t('capture.aiAssist')}
-            </button>
-            <button
-              type="button"
-              className={styles.fullEditorBtn}
-              onClick={openFullEditor}
-              disabled={readOnly}
-            >
-              {t('capture.fullEditor')}
-            </button>
-          </div>
-          <button
-            type="button"
-            className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
-            onClick={() => setShowMore((v) => !v)}
-          >
-            <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
-            {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
-          </button>
-          {showMore && (
-            <div className={styles.moreBody}>
+        )}
+
+        {/* ── More options toggle ── */}
+        <button
+          type="button"
+          className={`${styles.moreToggle}${showMore ? ` ${styles.moreOpen}` : ''}`}
+          onClick={() => setShowMore((v) => !v)}
+        >
+          <span className={styles.moreArrow}>{showMore ? '▾' : '▸'}</span>
+          {showMore ? t('capture.fewerOptions') : t('capture.moreOptions')}
+        </button>
+
+        {/* ── More options body ── */}
+        {showMore && (
+          <div className={styles.moreBody}>
+            {mode === 'research' && (
+              <>
+                <label className={styles.fieldLabel}>{t('capture.whatYouKnow')}</label>
+                <textarea
+                  className={styles.seedArea}
+                  value={seed}
+                  onChange={(e) => setSeed(e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder={t('capture.seedPlaceholder')}
+                  rows={3}
+                  disabled={readOnly}
+                />
+                <MetaFields
+                  category={category}
+                  onCategoryChange={setCategory}
+                  tags={tags}
+                  onTagsChange={setTags}
+                  disabled={readOnly}
+                  compact
+                />
+              </>
+            )}
+            {mode === 'link' && (
+              <>
+                <label className={styles.fieldLabel}>{t('capture.whatToFocus')}</label>
+                <textarea
+                  className={styles.seedArea}
+                  value={seed}
+                  onChange={(e) => setSeed(e.target.value)}
+                  onKeyDown={onKey}
+                  placeholder={t('capture.focusPlaceholder')}
+                  rows={2}
+                  disabled={readOnly}
+                />
+                <MetaFields
+                  category={category}
+                  onCategoryChange={setCategory}
+                  tags={tags}
+                  onTagsChange={setTags}
+                  disabled={readOnly}
+                  compact
+                />
+              </>
+            )}
+            {mode === 'write' && (
               <div className={styles.metaRow}>
                 <input className={styles.metaInput} value={summary} onChange={(e) => setSummary(e.target.value)} onKeyDown={onKey} placeholder={t('capture.summaryPlaceholder')} disabled={readOnly} />
                 <input className={styles.metaInput} value={links} onChange={(e) => setLinks(e.target.value)} onKeyDown={onKey} placeholder={t('capture.linkedNotesPlaceholder')} disabled={readOnly} />
               </div>
-              <input className={styles.ctxInput} value={ctx} onChange={(e) => setCtx(e.target.value)} onKeyDown={onKey} placeholder={t('capture.contextWrite')} disabled={readOnly} />
-            </div>
-          )}
-        </div>
-      )}
+            )}
+            <input
+              className={styles.ctxInput}
+              value={ctx}
+              onChange={(e) => setCtx(e.target.value)}
+              onKeyDown={onKey}
+              placeholder={t(`capture.context${mode === 'research' ? 'Research' : mode === 'link' ? 'Link' : 'Write'}`)}
+              disabled={readOnly}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Footer */}
       <div className={styles.footer}>
         <span className={styles.hint}>
           {readOnly
             ? t('capture.readOnlyHint')
-            : <><kbd>/</kbd> {t('capture.keyboardHint')}</>}
+            : <><kbd>⌘↵</kbd> {t('capture.keyboardHint')}</>}
         </span>
         <button className={styles.submit} onClick={submit} disabled={!canSubmit}>
           {submitLabel}
