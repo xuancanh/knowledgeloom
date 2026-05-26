@@ -28,6 +28,9 @@ smart-knowledge-app/
 │   ├── hooks/              # Shared custom hooks
 │   │   ├── useKnowledge.ts # Central state, polling, mutations, derived data
 │   │   └── useRagChat.ts   # Chat message state, localStorage persistence, streaming abort
+│   ├── i18n/               # Internationalisation (react-i18next)
+│   │   ├── index.ts        # i18next init: language detection, localStorage persistence (kl:lang)
+│   │   └── locales/        # One JSON file per locale (en, zh, ja, es, vi, id, ms, fr, hi)
 │   ├── lib/                # Pure utility functions (no React imports except view.tsx)
 │   │   ├── format.ts       # Date formatting
 │   │   ├── guidance.ts     # Writing guidance template CRUD (localStorage)
@@ -402,3 +405,31 @@ Displays an individual note. Supports read mode and edit mode.
 Application settings and configuration UI.
 
 - Each guidance template now supports an optional **color** field (CSS variable name, e.g. `moss`, `indigo`, `teal`). Color swatches are shown as 20 px circles using the `--swatch-color` CSS variable. The CaptureBox chips reflect the selected color.
+
+### FlashcardBrowse (`components/flashcards/FlashcardBrowse.tsx`)
+
+Grid of flashcard tiles. Clicking a tile opens a `CardPreviewModal` — a 3-D flip-card popup — rather than starting a full study session. The modal reuses the same `.fc-face .fc-front` / `.fc-face .fc-back` CSS as the study view. Keyboard shortcuts in the modal: Space/Enter reveals the back face; 1=Again, 2=Hard, 3=Good rates the card (calls `reviewFlashcard` and fires `onRated`); Escape closes. Tile props: `onRated(cardId, rating)`, `onOpenNote(noteId)`.
+
+### QuizBrowse (`components/quiz/QuizBrowse.tsx`)
+
+Table of quiz questions. Clicking a row opens a `QuizPreviewModal` — an interactive inline study card — instead of expanding the answer inline. Three inner components handle question types: `FillBlankPreview`, `MultipleChoicePreview`, `ShortAnswerPreview`. Keyboard: Escape closes; Space/Enter (outside inputs) reveals the answer; Arrow keys or 1/2 rate after reveal. Rating calls `onRate(question, rating)` which triggers `reviewQuiz`.
+
+---
+
+## Internationalisation (i18n)
+
+All user-visible strings are translated via **react-i18next v17**. The single `translation` namespace is the default — components call `useTranslation()` with no namespace argument.
+
+```typescript
+import { useTranslation } from 'react-i18next';
+const { t } = useTranslation();
+// t('flashcards.browse.title') → "My Flashcards"
+```
+
+**Locale files** live at `src/i18n/locales/{lang}.json` (flat nested JSON). Nine locales ship: `en`, `zh`, `ja`, `es`, `vi`, `id`, `ms`, `fr`, `hi`.
+
+**Language persistence**: the selected language is stored in `localStorage` under the key `kl:lang`. `src/i18n/index.ts` initialises i18next with `languageDetector` falling back to `en`.
+
+**LanguageSwitcher** (`components/LanguageSwitcher.tsx`): a dropdown rendered inside `Rail.tsx` at the bottom of the sidebar. Calls `i18n.changeLanguage(code)` on selection.
+
+**Adding a locale**: create `src/i18n/locales/{lang}.json` mirroring the `en` key structure. Caution: ASCII double-quotes inside JSON string values must be escaped as `\"` or replaced with language-appropriate quote marks (e.g. Chinese corner brackets `「」`) — bare `"` breaks the JSON parser.

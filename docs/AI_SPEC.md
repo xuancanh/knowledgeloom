@@ -119,13 +119,39 @@ Flashcards are AI-authored study cards generated from saved notes. They are cach
 
 Set `AI_FLASHCARDS_DISABLED=1` for smoke tests or constrained deployments that need note/search rebuilds without invoking Codex for uncached cards.
 
-Allowed `kind` values:
+### Kind values
 
-- `concept`: defines what something is
-- `question`: tests recall or reasoning
-- `lesson`: captures a practical takeaway
-- `tradeoff`: explains a decision tension, caveat, or risk
-- `pattern`: captures a reusable approach or technique
+| Kind | When to use |
+|------|-------------|
+| `concept` | what a term, mechanism, or principle IS and how it works |
+| `question` | when/why/how: a judgment call or causal chain the reader must reason through |
+| `lesson` | a specific insight the author captured from experience or reading |
+| `tradeoff` | an explicit tension: X gains Y but costs Z (use only when the note directly compares two approaches) |
+| `pattern` | a reusable structure or technique and the problem it solves (use only when a reusable structure is described) |
+
+Default to `concept` or `lesson` when neither tradeoff nor pattern clearly fits.
+
+### Prompt quality rules
+
+- **Atomic**: one idea per card. Never combine two distinct facts.
+- **prompt** field: 8–90 chars. Must be specific enough that the reader knows exactly what to recall.
+- **lesson** field: 1–3 sentences, 30–400 chars. Must contain the actual fact — not a pointer to it.
+- **Banned prompts** (exact or near-match): "Key takeaway", "What I learned", "Main concept", "Summary", "Lesson", "Key idea", "Key details", "Key insight", "Important note".
+- Prioritise non-obvious distinctions, failure modes, counterintuitive results, and decision heuristics over obvious or trivially memorable facts.
+
+### Prompt examples
+
+Good prompts:
+- "What makes consistent hashing resilient to adding/removing nodes?"
+- "When does optimistic locking beat pessimistic locking?"
+- "What does the saga pattern give up compared to two-phase commit?"
+
+Bad prompts:
+- "What I learned" — no retrieval cue
+- "Key idea" — could be anything
+- "Distributed systems" — a topic, not a question
+
+### Output schema
 
 Codex must return only JSON:
 
@@ -133,15 +159,23 @@ Codex must return only JSON:
 {
   "flashcards": [
     {
-      "prompt": "Specific card title",
-      "lesson": "Micro lesson grounded in the note.",
+      "prompt": "Specific retrieval question (8–90 chars)",
+      "lesson": "Self-contained fact the prompt is testing (30–400 chars).",
       "kind": "concept"
     }
   ]
 }
 ```
 
-Card prompts must not be generic headings such as "What I learned", "Lesson", or "Summary".
+### Size variants
+
+| Size | Cards |
+|------|-------|
+| `small` | 5–10 |
+| `medium` | 10–20 |
+| `large` | 20–40 |
+
+The size is set per-regen call via the `regenSize` job field (see Queue Behavior below).
 
 ## Queue Behavior
 
@@ -151,6 +185,28 @@ AI creation jobs are durable SQLite rows. A queued job may become `running`, `do
 - Failed jobs retry until `CODEX_JOB_MAX_ATTEMPTS`.
 - Interrupted `running` jobs are reset to `queued` on boot.
 - Completed direct-write jobs are recorded as activity entries even though they do not run Codex.
+
+### Job modes
+
+| `mode` | Description |
+|--------|-------------|
+| `research` | Codex researches topic and writes one note |
+| `link` | Codex fetches a URL and converts it to a note |
+| `polish` | Codex improves an existing draft; draft is the only factual source |
+| `write` | Direct markdown write; no Codex, recorded as a completed activity entry |
+| `regen` | Regenerate flashcards and/or quiz questions for an existing note |
+
+### Regen-mode job fields
+
+Regen jobs carry three extra fields in addition to the base `Job` shape:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `noteId` | `string` | ID of the note to regenerate for |
+| `regenTarget` | `'flashcards' \| 'quiz' \| 'all'` | Which study material to regenerate |
+| `regenSize` | `'small' \| 'medium' \| 'large'` | Number of cards/questions to generate |
+
+`JobsService.enqueue()` must explicitly copy these fields from the payload — they are not part of the common job shape and will be silently dropped if the field list is not maintained. `JobsProcessor` reads them to dispatch `KnowledgeService.regenerateForNote(userId, noteId, target, size)`.
 
 ## Verification
 
