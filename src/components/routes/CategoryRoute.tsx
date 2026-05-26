@@ -11,13 +11,14 @@ import CategoryIndex from '../categories/CategoryIndex';
  * Returns null for unknown ids.
  */
 export function CategoryRoute({
-  notes, categories, categoryById, flashcards,
+  notes, categories, categoryById, flashcards, readNoteIds,
   onOpen, onOpenTag, onOpenCategory, onOpenFlashcards,
 }: {
   notes: KnowledgeNote[];
   categories: UiCategory[];
   categoryById: Map<string, CategoryTreeNode>;
   flashcards: Flashcard[];
+  readNoteIds?: string[];
   onOpen: (id: string) => void;
   onOpenTag: (tag: string) => void;
   onOpenCategory: (id: string) => void;
@@ -46,6 +47,7 @@ export function CategoryRoute({
       notes={notes}
       categories={categories}
       flashcards={flashcards}
+      readNoteIds={readNoteIds}
       onOpen={onOpen}
       onOpenTag={onOpenTag}
       onOpenCategory={onOpenCategory}

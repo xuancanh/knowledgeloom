@@ -23,6 +23,7 @@ export default function CategoryIndex({
   notes,
   categories,
   flashcards,
+  readNoteIds,
   onOpen,
   onOpenTag,
   onOpenCategory,
@@ -32,6 +33,7 @@ export default function CategoryIndex({
   notes: KnowledgeNote[];
   categories: UiCategory[];
   flashcards: Flashcard[];
+  readNoteIds?: string[];
   onOpen: (id: string) => void;
   onOpenTag: (tag: string) => void;
   onOpenCategory: (id: string) => void;
@@ -43,6 +45,9 @@ export default function CategoryIndex({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+
+  const readSet = useMemo(() => new Set(readNoteIds || []), [readNoteIds]);
 
   const inCat = useMemo(
     () =>
@@ -60,6 +65,9 @@ export default function CategoryIndex({
 
   const filtered = useMemo(() => {
     let result = sorted;
+    if (unreadOnly) {
+      result = result.filter((n) => !readSet.has(n.id));
+    }
     if (tagFilter) {
       result = result.filter((n) => n.tags.some((t) => t.toLowerCase() === tagFilter.toLowerCase()));
     }
@@ -70,7 +78,7 @@ export default function CategoryIndex({
       );
     }
     return result;
-  }, [sorted, tagFilter, noteSearch]);
+  }, [sorted, tagFilter, noteSearch, unreadOnly, readSet]);
 
   const relatedFlashcards = useMemo(
     () => flashcards.filter((card) => categoryContains(category.id, categoryId(card.category))),
@@ -97,7 +105,8 @@ export default function CategoryIndex({
 
   const accentColor = COLOR_VAR[category.color] || 'var(--accent)';
   const pathParts = category.id.split('/');
-  const isFiltered = !!(tagFilter || noteSearch.trim());
+  const unreadCount = useMemo(() => inCat.filter((n) => !readSet.has(n.id)).length, [inCat, readSet]);
+  const isFiltered = !!(tagFilter || noteSearch.trim() || unreadOnly);
 
   function toggleTagFilter(tag: string) {
     setTagFilter((prev) => (prev === tag ? null : tag));
@@ -206,6 +215,16 @@ export default function CategoryIndex({
             <button className="notes-search-clear" onClick={() => setNoteSearch('')}>✕</button>
           )}
         </div>
+        {unreadCount > 0 && (
+          <button
+            className={`unread-filter-btn${unreadOnly ? ' active' : ''}`}
+            onClick={() => setUnreadOnly((v) => !v)}
+            title={t('categories.unreadOnly')}
+          >
+            {t('categories.unreadOnly')}
+            <span className="unread-filter-count">{unreadCount}</span>
+          </button>
+        )}
         <div className="view-mode-btns">
           {(['list', 'grid', 'compact'] as ViewMode[]).map((m) => (
             <button
@@ -240,7 +259,7 @@ export default function CategoryIndex({
       )}
 
       {filtered.length === 0 && isFiltered ? (
-        <div className="empty">{t('categories.noNotesMatch')}<button onClick={() => { setNoteSearch(''); setTagFilter(null); }}>{t('categories.clearFilters')}</button></div>
+        <div className="empty">{t('categories.noNotesMatch')}<button onClick={() => { setNoteSearch(''); setTagFilter(null); setUnreadOnly(false); }}>{t('categories.clearFilters')}</button></div>
       ) : (
         <NoteList notes={filtered} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} viewMode={viewMode} />
       )}

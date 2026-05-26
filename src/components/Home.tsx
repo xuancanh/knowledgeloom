@@ -11,6 +11,7 @@ export default function Home({
   categories,
   flashcards,
   reminders,
+  readNoteIds,
   onOpen,
   onOpenTag,
   onOpenFlashcards,
@@ -23,6 +24,7 @@ export default function Home({
   categories: UiCategory[];
   flashcards: Flashcard[];
   reminders: Reminder[];
+  readNoteIds?: string[];
   onOpen: (id: string) => void;
   onOpenTag: (tag: string) => void;
   onOpenFlashcards: (scope?: 'all') => void;
@@ -33,6 +35,7 @@ export default function Home({
 }) {
   const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
+  const [discoverSeed, setDiscoverSeed] = useState(() => Math.random());
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -43,6 +46,19 @@ export default function Home({
     () => [...notes].sort((a, b) => formatCreated(b.createdAt).localeCompare(formatCreated(a.createdAt))).slice(0, 6),
     [notes],
   );
+
+  const discoverNotes = useMemo(() => {
+    const readSet = new Set(readNoteIds || []);
+    const unread = notes.filter((n) => !readSet.has(n.id));
+    if (!unread.length) return [];
+    if (unread.length <= 3) return unread;
+    const scored = unread.map((n) => ({
+      note: n,
+      score: ((discoverSeed * 1000) | 0) * 31 + n.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0),
+    }));
+    scored.sort((a, b) => a.score - b.score);
+    return scored.slice(0, 3).map((x) => x.note);
+  }, [notes, readNoteIds, discoverSeed]);
 
   const dueReminders = useMemo(
     () => [...reminders]
@@ -140,23 +156,32 @@ export default function Home({
         </>
       )}
 
-      {/* Stats strip */}
-      <div className="home-stats">
-        <div className="home-stat">
-          <span className="home-stat-n">{notes.length}</span>
-          <span className="home-stat-l">{t('home.statNotes')}</span>
-        </div>
-        <div className="home-stat-sep" />
-        <div className="home-stat">
-          <span className="home-stat-n">{categories.length}</span>
-          <span className="home-stat-l">{t('home.statCategories')}</span>
-        </div>
-        <div className="home-stat-sep" />
-        <div className="home-stat">
-          <span className="home-stat-n">{flashcards.length}</span>
-          <span className="home-stat-l">{t('home.statFlashcards')}</span>
-        </div>
-      </div>
+      {/* Discover — unread notes */}
+      {notes.length > 0 && (
+        <>
+          <div className="section-label">
+            <h2>{t('home.discover')}</h2>
+            {discoverNotes.length > 0 ? (
+              <button className="discover-shuffle" onClick={() => setDiscoverSeed(Math.random())} title={t('home.discoverShuffle')}>
+                ↺ {t('home.discoverShuffle')}
+              </button>
+            ) : null}
+          </div>
+          {discoverNotes.length === 0 ? (
+            <div className="discover-empty">{t('home.discoverEmpty')}</div>
+          ) : (
+            <div className="discover-grid">
+              {discoverNotes.map((note) => (
+                <button key={note.id} className="discover-card" onClick={() => onOpen(note.id)}>
+                  <span className="discover-card-cat">{note.category}</span>
+                  <span className="discover-card-title">{note.title}</span>
+                  {note.summary && <span className="discover-card-summary">{note.summary}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Recent notes */}
       <div className="section-label">

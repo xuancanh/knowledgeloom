@@ -23,6 +23,7 @@ export default function TagIndex({
   notes,
   categories,
   flashcards,
+  readNoteIds,
   page,
   onOpen,
   onOpenTag,
@@ -33,6 +34,7 @@ export default function TagIndex({
   notes: KnowledgeNote[];
   categories: UiCategory[];
   flashcards: Flashcard[];
+  readNoteIds?: string[];
   page: number;
   onOpen: (id: string) => void;
   onOpenTag: (tag: string) => void;
@@ -44,6 +46,9 @@ export default function TagIndex({
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [noteSearch, setNoteSearch] = useState('');
   const [catFilter, setCatFilter] = useState<string | null>(null);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+
+  const readSet = useMemo(() => new Set(readNoteIds || []), [readNoteIds]);
 
   const taggedNotes = useMemo(
     () =>
@@ -87,6 +92,9 @@ export default function TagIndex({
 
   const filtered = useMemo(() => {
     let result = sortedAll;
+    if (unreadOnly) {
+      result = result.filter((n) => !readSet.has(n.id));
+    }
     if (catFilter) {
       result = result.filter((n) => categoryId(n.category) === catFilter);
     }
@@ -97,9 +105,10 @@ export default function TagIndex({
       );
     }
     return result;
-  }, [sortedAll, catFilter, noteSearch]);
+  }, [sortedAll, catFilter, noteSearch, unreadOnly, readSet]);
 
-  const isFiltered = !!(catFilter || noteSearch.trim());
+  const unreadCount = useMemo(() => taggedNotes.filter((n) => !readSet.has(n.id)).length, [taggedNotes, readSet]);
+  const isFiltered = !!(catFilter || noteSearch.trim() || unreadOnly);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), totalPages);
   const start = (safePage - 1) * PAGE_SIZE;
@@ -234,6 +243,16 @@ export default function TagIndex({
             <button className="notes-search-clear" onClick={() => setNoteSearch('')}>✕</button>
           )}
         </div>
+        {unreadCount > 0 && (
+          <button
+            className={`unread-filter-btn${unreadOnly ? ' active' : ''}`}
+            onClick={() => { setUnreadOnly((v) => !v); onPage(1); }}
+            title={t('tags.unreadOnly')}
+          >
+            {t('tags.unreadOnly')}
+            <span className="unread-filter-count">{unreadCount}</span>
+          </button>
+        )}
         <div className="view-mode-btns">
           {(['list', 'grid', 'compact'] as ViewMode[]).map((m) => (
             <button
@@ -251,7 +270,7 @@ export default function TagIndex({
       {filtered.length === 0 ? (
         <div className="empty">
           {isFiltered
-            ? <span>{t('tags.noNotesMatch')}<button onClick={() => { setNoteSearch(''); setCatFilter(null); }}>{t('tags.clearFilters')}</button></span>
+            ? <span>{t('tags.noNotesMatch')}<button onClick={() => { setNoteSearch(''); setCatFilter(null); setUnreadOnly(false); }}>{t('tags.clearFilters')}</button></span>
             : t('tags.noNotesTag')}
         </div>
       ) : (

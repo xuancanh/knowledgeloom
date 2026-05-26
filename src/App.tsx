@@ -137,6 +137,7 @@ function AuthenticatedApp() {
                 categories={categories}
                 flashcards={state.flashcards || []}
                 reminders={reminders}
+                readNoteIds={state.readNoteIds}
                 onOpen={openNote}
                 onOpenTag={openTag}
                 onOpenFlashcards={openFlashcards}
@@ -173,6 +174,7 @@ function AuthenticatedApp() {
                 categories={categories}
                 readOnly={readOnly}
                 reminders={reminders}
+                readCounts={state.readCounts}
                 onOpenCategory={openCategory}
                 onOpenTag={openTag}
                 onSave={handleSaveNote}
@@ -193,6 +195,7 @@ function AuthenticatedApp() {
                   categories={categories}
                   categoryById={categoryById}
                   flashcards={state.flashcards || []}
+                  readNoteIds={state.readNoteIds}
                   onOpen={openNote}
                   onOpenTag={openTag}
                   onOpenCategory={openCategory}
@@ -209,6 +212,7 @@ function AuthenticatedApp() {
                   notes={state.notes}
                   categories={categories}
                   flashcards={state.flashcards || []}
+                  readNoteIds={state.readNoteIds}
                   onOpen={openNote}
                   onOpenTag={openTag}
                   onOpenFlashcards={(t) => openFlashcards('tag', t)}

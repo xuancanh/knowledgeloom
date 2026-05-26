@@ -248,7 +248,11 @@
     "noLinksYet": "None yet. Codex will add some after the next pass.",
     "backlinksCount": "Backlinks · {{count}}",
     "noBacklinksYet": "Nothing links here yet.",
-    "fileInfo": "File"
+    "fileInfo": "File",
+    "readCount": "{{count}} read",
+    "readCount_plural": "{{count}} reads",
+    "readCountTitle": "Opened {{count}} time",
+    "readCountTitle_plural": "Opened {{count}} times"
   },
   "chat": {
     "openBtn": "Ask AI",
@@ -327,7 +331,8 @@
     "noNotesMatch": "No notes match — ",
     "clearFilters": "clear filters",
     "searchNotes": "Search notes…",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "unreadOnly": "Unread"
   },
   "tags": {
     "crumbHome": "Tags",
@@ -341,7 +346,8 @@
     "noNotesMatch": "No notes match — ",
     "clearFilters": "clear filters",
     "noNotesTag": "No notes with this tag yet.",
-    "searchNotes": "Search notes…"
+    "searchNotes": "Search notes…",
+    "unreadOnly": "Unread"
   },
   "home": {
     "crumb": "Desk",
@@ -360,7 +366,10 @@
     "statFlashcards": "flashcards",
     "recentlyAdded": "Recently added",
     "totalNotes": "{{count}} total",
-    "noNotes": "No notes yet. Capture something above."
+    "noNotes": "No notes yet. Capture something above.",
+    "discover": "Discover",
+    "discoverShuffle": "Shuffle",
+    "discoverEmpty": "You've read everything — well done!"
   },
   "auth": {
     "appName": "Knowledge Loom",

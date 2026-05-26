@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchNoteMarkdown, type NoteUpdate } from '../../api';
+import { fetchNoteMarkdown, markNoteRead, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import NoteDetail from '../notes/NoteDetail';
@@ -12,7 +12,7 @@ import NoteDetail from '../notes/NoteDetail';
  * filters reminders for this note, and passes everything to `<NoteDetail>`.
  */
 export function NoteRoute({
-  notes, categories, readOnly, reminders,
+  notes, categories, readOnly, reminders, readCounts,
   onOpenCategory, onOpenTag,
   onSave, onAssist, onDelete,
   onCreateReminder, onCompleteReminder, onDeleteReminder,
@@ -21,6 +21,7 @@ export function NoteRoute({
   categories: UiCategory[];
   readOnly: boolean;
   reminders: Reminder[];
+  readCounts?: Record<string, number>;
   onOpenCategory: (id: string) => void;
   onOpenTag: (tag: string) => void;
   onSave: (id: string, update: NoteUpdate) => Promise<void>;
@@ -37,6 +38,7 @@ export function NoteRoute({
   useEffect(() => {
     if (!note) return;
     fetchNoteMarkdown(note.id).then(setMarkdown).catch(() => setMarkdown(''));
+    markNoteRead(note.id).catch(() => {});
   }, [note?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!note) return null;
@@ -48,6 +50,7 @@ export function NoteRoute({
       markdown={markdown}
       readOnly={readOnly}
       reminders={reminders.filter((r) => r.noteId === note.id)}
+      readCount={readCounts?.[note.id]}
       onOpenCategory={onOpenCategory}
       onOpenTag={onOpenTag}
       onSave={onSave}

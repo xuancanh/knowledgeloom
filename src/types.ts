@@ -49,6 +49,8 @@ export type KnowledgeState = {
   graph: Array<{ source: string; targets: string[] }>;
   flashcards?: Flashcard[];
   quizQuestions?: QuizQuestion[];
+  readNoteIds?: string[];
+  readCounts?: Record<string, number>;
   updatedAt?: string;
 };
 

@@ -39,6 +39,10 @@ export async function deleteNote(id: string): Promise<{ deleted: string; state: 
   return response.json();
 }
 
+export async function markNoteRead(id: string): Promise<void> {
+  await apiFetch(`/api/notes/${encodeURIComponent(id)}/read`, { method: 'POST' });
+}
+
 export async function fetchReminders(filters: { noteId?: string; status?: 'active' | 'done' | 'due' } = {}): Promise<{ reminders: Reminder[] }> {
   const params = new URLSearchParams();
   if (filters.noteId) params.set('noteId', filters.noteId);
