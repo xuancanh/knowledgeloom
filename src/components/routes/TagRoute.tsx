@@ -10,12 +10,13 @@ import TagIndex from '../tags/TagIndex';
  * query parameter. Delegates rendering and pagination to `<TagIndex>`.
  */
 export function TagRoute({
-  notes, categories, flashcards,
+  notes, categories, flashcards, readNoteIds,
   onOpen, onOpenTag, onOpenFlashcards,
 }: {
   notes: KnowledgeNote[];
   categories: UiCategory[];
   flashcards: Flashcard[];
+  readNoteIds?: string[];
   onOpen: (id: string) => void;
   onOpenTag: (tag: string) => void;
   onOpenFlashcards: (t: string) => void;
@@ -36,6 +37,7 @@ export function TagRoute({
       notes={notes}
       categories={categories}
       flashcards={flashcards}
+      readNoteIds={readNoteIds}
       page={page}
       onOpen={onOpen}
       onOpenTag={onOpenTag}

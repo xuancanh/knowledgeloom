@@ -32,6 +32,7 @@ export default function NoteDetail({
   onSave,
   reminders,
   readOnly,
+  readCount,
 }: {
   note: KnowledgeNote;
   notes: KnowledgeNote[];
@@ -47,6 +48,7 @@ export default function NoteDetail({
   onSave: (id: string, update: NoteUpdate) => Promise<void>;
   reminders: Reminder[];
   readOnly: boolean;
+  readCount?: number;
 }) {
   const editorRef = useRef<NoteEditorHandle>(null);
 
@@ -231,6 +233,11 @@ export default function NoteDetail({
         <div className="h-meta">
           <span>{formatCreated(note.createdAt)}</span>
           <span>· {outgoing.length}↗ {backlinks.length}↘</span>
+          {readCount !== undefined && readCount > 0 && (
+            <span className="read-count" title={t('notes.readCountTitle', { count: readCount })}>
+              {t('notes.readCount', { count: readCount })}
+            </span>
+          )}
           <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? t('notes.exitRead') : editing ? t('notes.focusMode') : t('notes.readMode')}</button>
           <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? t('notes.cancelEdit') : t('notes.editNote')}</button>
           <button className="delete-inline" onClick={onDelete} disabled={readOnly}>{t('notes.deleteNote')}</button>
