@@ -12,7 +12,7 @@
  */
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { basename } from 'node:path';
+import { basename, join } from 'node:path';
 import { NoteFileRepository } from './note-file.repository';
 import { NoteReadsRepository } from './note-reads.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
@@ -69,7 +69,7 @@ export class NotesService {
 
     // Build user notes dir path for slug uniqueness check
     const usersDir = this.config.get<string>('usersDir');
-    const userNotesDir = require('node:path').join(usersDir, userId, 'notes');
+    const userNotesDir = join(usersDir, userId, 'notes');
     const slug = uniqueNoteSlug(title, userNotesDir);
     const markdown = composeMarkdown({
       title,
