@@ -1,3 +1,10 @@
+/**
+ * Stores uploaded images on the local filesystem under knowledge/images/
+ * and serves them back by filename.
+ *
+ * Public API: save() writes a buffer to disk; resolve() looks up a file.
+ * Path traversal is prevented via basename() sanitization.
+ */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, writeFile, access } from 'node:fs/promises';

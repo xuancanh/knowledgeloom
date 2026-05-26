@@ -1,3 +1,7 @@
+/**
+ * Spaced-repetition review records for flashcards (SM-2 algorithm).
+ * Tracks easeFactor, interval, repetitions, and last rating per user per card.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';

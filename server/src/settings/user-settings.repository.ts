@@ -1,3 +1,10 @@
+/**
+ * Drizzle access for the user_settings table.
+ * Each user has one row; the settings column is a JSON blob.
+ *
+ * get() returns {} for missing or unparseable settings.
+ * patch() does a read-merge-write cycle with shallow merge.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE_DB, USER_SETTINGS_TABLE } from '../database/database.constants';

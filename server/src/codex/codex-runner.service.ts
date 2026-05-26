@@ -1,3 +1,11 @@
+/**
+ * Low-level CLI runner that spawns `codex exec` as a child process and captures
+ * the final model response via a temp file (--output-last-message flag).
+ *
+ * Uses a temp file rather than stdout because `codex exec` interleaves
+ * tool-call output on stdout; --output-last-message writes only the final
+ * model response to disk.
+ */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { spawn } from 'node:child_process';

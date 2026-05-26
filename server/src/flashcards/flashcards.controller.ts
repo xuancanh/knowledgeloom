@@ -1,3 +1,12 @@
+/**
+ * User-facing flashcard CRUD and spaced-repetition review endpoints.
+ * All routes require authentication.
+ *
+ *   POST   /api/flashcards/:id/review  — rate a flashcard (again/hard/good)
+ *   POST   /api/flashcards             — create a user-authored flashcard
+ *   PUT    /api/flashcards/:id         — update a user-authored flashcard
+ *   DELETE /api/flashcards/:id         — hide + delete a flashcard
+ */
 import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
 import { FlashcardsService } from './flashcards.service';
 import { UserFlashcardsRepository } from './user-flashcards.repository';

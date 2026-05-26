@@ -1,3 +1,13 @@
+/**
+ * BullMQ worker that processes one durable Codex job at a time (concurrency: 1).
+ *
+ * Handles two job modes:
+ * - **create modes** (research/link/polish): delegates to CodexService.createNote().
+ * - **regen mode**: calls KnowledgeService.regenerateForNote() + rebuildIndexes().
+ *
+ * On failure, updates the job status and re-throws so BullMQ handles retry
+ * with the configured backoff.
+ */
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';

@@ -1,3 +1,7 @@
+/**
+ * Tracks which AI-generated flashcards the user has hidden.
+ * Hidden cards are excluded from the study set.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';

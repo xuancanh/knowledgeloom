@@ -1,3 +1,9 @@
+/**
+ * i18next initialisation with react-i18next binding.
+ *
+ * Language detection: checks localStorage key kl:lang, falls back to "en".
+ * Nine supported locales. Namespace: "translation" (the default).
+ */
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';

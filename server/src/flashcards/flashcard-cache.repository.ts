@@ -1,3 +1,10 @@
+/**
+ * Drizzle access layer for the flashcard_cache table.
+ *
+ * Stores AI-generated flashcards keyed by noteId with a content hash.
+ * The hash prevents unnecessary AI calls — if note content hasn't changed,
+ * cached cards are reused during KnowledgeService.rebuildIndexes().
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';

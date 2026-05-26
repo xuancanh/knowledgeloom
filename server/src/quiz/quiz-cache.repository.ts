@@ -1,3 +1,10 @@
+/**
+ * Drizzle access layer for the quiz_cache table.
+ *
+ * Stores AI-generated quiz questions keyed by (userId, noteId, hash).
+ * The hash prevents unnecessary AI calls — if the note content hasn't changed,
+ * the cached questions are reused.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq } from 'drizzle-orm';
