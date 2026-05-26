@@ -346,40 +346,83 @@
   padding: 8px 10px;
 }
 
-/* ——— Home: review queue ——— */
-.review-queue {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 4px;
+/* ——— Home: daily panel (review queue + upcoming) ——— */
+.daily-panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 28px;
 }
-.review-card {
+.daily-panel-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 10px 12px;
-  background: var(--surface);
+  gap: 10px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface-2);
 }
-.review-card.flashcard-due {
-  border-left: 3px solid var(--accent);
+.daily-panel-title {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  flex: 1;
 }
-.review-card.reminder-due {
-  border-left: 3px solid var(--rust);
+.daily-badge {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--rust);
+  background: color-mix(in srgb, var(--rust) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--rust) 28%, var(--rule));
+  border-radius: 20px;
+  padding: 2px 8px;
 }
-.review-card-icon {
-  font-size: 18px;
-  width: 28px;
-  text-align: center;
+
+/* Due item rows */
+.daily-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.daily-row:last-child { border-bottom: 0; }
+.daily-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+.daily-row--flash::before { background: var(--accent); }
+.daily-row--overdue::before { background: var(--rust); }
+
+.daily-row-icon {
+  font-size: 15px;
   flex-shrink: 0;
+  width: 20px;
+  text-align: center;
   color: var(--muted);
 }
-.review-card-body {
+.daily-row--flash .daily-row-icon { color: var(--accent); }
+.daily-row--overdue .daily-row-icon { color: var(--rust); }
+
+.daily-row-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-.review-card-title {
-  font-size: 14px;
+.daily-row-title {
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--ink);
   line-height: 1.3;
@@ -387,50 +430,111 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.review-card-sub {
+.daily-row-sub {
   font-family: Inter, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted);
-  letter-spacing: 0.03em;
-  margin-top: 2px;
+  letter-spacing: 0.02em;
 }
-.review-card-actions {
+
+.daily-row-end {
   display: flex;
   gap: 6px;
   align-items: center;
   flex-shrink: 0;
 }
-.review-card-cta {
+
+.daily-cta {
   font-family: Inter, system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--rule));
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--rule));
   border-radius: 3px;
   padding: 4px 10px;
-  transition: background 120ms;
   white-space: nowrap;
+  transition: background 120ms;
 }
-.review-card-cta:hover {
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+.daily-cta:hover { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.daily-cta--muted {
+  color: var(--muted);
+  border-color: var(--rule);
 }
-.review-card-done {
+.daily-cta--muted:hover { color: var(--ink-2); border-color: var(--rule-2); background: var(--surface-2); }
+
+.daily-done {
   font-family: Inter, system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--muted);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 4px 10px;
-  transition: color 120ms, border-color 120ms;
+  color: var(--muted-2);
+  padding: 4px 2px;
+  transition: color 120ms;
 }
-.review-card-done:hover {
-  color: var(--ink-2);
-  border-color: var(--rule-2);
+.daily-done:hover { color: var(--ink-2); }
+.daily-done--sm { font-size: 10px; padding: 2px 2px; }
+
+/* Upcoming sub-section */
+.daily-upcoming {
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.daily-upcoming--divided {
+  border-top: 1px solid var(--rule);
+}
+.daily-upcoming-label {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 1px;
+}
+.daily-upcoming-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.daily-upcoming-time {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  min-width: 44px;
+}
+.daily-upcoming-main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.daily-upcoming-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.daily-upcoming-msg {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  max-width: 160px;
 }
 
 /* ——— Home: stats strip ——— */
@@ -504,32 +608,68 @@
 }
 
 /* ——— Discover widget (homepage unread notes) ——— */
+.discover-section {
+  margin-bottom: 28px;
+}
+.discover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.discover-heading {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+}
+.discover-shuffle {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  transition: color 120ms, background 120ms;
+}
+.discover-shuffle:hover { color: var(--ink-2); background: var(--surface-2); }
+
 .discover-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
 }
 .discover-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 16px;
+  padding: 14px 16px 16px;
   background: var(--surface-2);
   border: 1px solid var(--rule);
-  border-radius: 10px;
+  border-radius: 8px;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  min-height: 100px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 .discover-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 12%, transparent);
+  background: var(--surface);
+  border-color: var(--rule-2);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--ink) 6%, transparent);
 }
 .discover-card-cat {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
 }
@@ -538,31 +678,26 @@
   font-weight: 600;
   color: var(--ink);
   line-height: 1.35;
+  flex: 1;
 }
 .discover-card-summary {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .discover-empty {
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--muted);
-  padding: 12px 0;
+  padding: 8px 0;
 }
-.discover-shuffle {
-  font-size: 12px;
-  color: var(--muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
+
+@media (max-width: 600px) {
+  .discover-grid { grid-template-columns: 1fr; }
 }
-.discover-shuffle:hover { color: var(--ink); background: var(--surface-2); }
 
 /* ——— Unread filter button (categories + tags) ——— */
 .unread-filter-btn {
