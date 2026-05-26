@@ -1,3 +1,7 @@
+/**
+ * Spaced-repetition review records for quiz questions.
+ * Each row tracks: last rating, next review date, streak count.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';

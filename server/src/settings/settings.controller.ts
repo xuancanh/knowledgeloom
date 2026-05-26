@@ -1,3 +1,9 @@
+/**
+ * Per-user key-value settings stored as a JSON blob in the user_settings table.
+ *
+ *   GET   /api/settings   — returns the current user's settings (or {} if none)
+ *   PATCH /api/settings   — shallow-merges the body with existing settings
+ */
 import { Controller, Get, Patch, Body, UseGuards, HttpCode } from '@nestjs/common';
 import { UserSettingsRepository } from './user-settings.repository';
 import { SupabaseAuthGuard } from '../auth/auth.guard';

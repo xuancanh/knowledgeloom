@@ -45,16 +45,22 @@ useKnowledge (polling, mutations, derived state)
 
 | URL | Route wrapper | Page component | Location |
 |-----|--------------|----------------|----------|
-| `/` | _(none)_ | `Home` | `components/Home.tsx` |
+| `/` | _(none)_ | `LandingPage` | `components/landing/` |
+| `/home` | _(none)_ | `Home` | `components/Home.tsx` |
 | `/activity` | _(none)_ | `ActivityPage` | `components/activity/` |
 | `/categories` | `AllCategoriesRoute` | _(inline)_ | `components/routes/` |
 | `/categories/*` | `CategoryRoute` | `CategoryIndex` | `components/categories/` |
 | `/flashcards` | `FlashcardsRoute` | `FlashcardsPage` | `components/flashcards/` |
+| `/login` | _(none)_ | `LoginPage` | `components/auth/` |
 | `/new` | `NewNoteRoute` | _(inline)_ | `components/routes/` |
 | `/notes/:id` | `NoteRoute` | `NoteDetail` | `components/notes/` |
+| `/quiz` | `QuizRoute` | `QuizPage` | `components/quiz/` |
 | `/settings` | _(none)_ | `SettingsPage` | `components/settings/` |
 | `/tags` | `AllTagsRoute` | _(inline)_ | `components/routes/` |
 | `/tags/:tag` | `TagRoute` | `TagIndex` | `components/tags/` |
+
+Note: `/` serves `LandingPage` for unauthenticated visitors. `Home` is at `/home`
+and renders the `CaptureBox` plus toggleable widgets.
 
 ---
 
@@ -130,42 +136,9 @@ in-progress streaming message) are forwarded as conversation history.
 
 ---
 
-## Home (`components/Home.tsx`)
-
-**Route**: `/`
-
-Main desk view. Shows `CaptureBox` (note creation form) plus three toggleable
-widgets. Widget visibility is stored per-user in `userSettings.homeWidgets`
-(a `{ daily, discover, recent }` boolean object). State is initialized from the
-`userSettings` prop (passed from `KnowledgeState`) and saved to the server via
-`PATCH /api/settings` on each toggle (fire-and-forget).
-
-**Customise bar**: A "Customize" button in the crumbs row reveals chip toggles
-for each widget. Chips show a colored dot (filled = visible, muted = hidden).
-
-**Daily widget** (`widgets.daily`): A bordered card shown when there are
-overdue reminders or due flashcards, or upcoming reminders. Two sections:
-
-- *Due now* (`daily-due`): flashcard row (opens flashcard session) and one row
-  per overdue reminder with Open / Done actions. Each row has a 3 px left pip —
-  accent for flashcards, rust for reminders.
-- *Upcoming* (`daily-upcoming`): slim list of non-overdue reminders, up to 3.
-  Divided from the due section by a horizontal rule when both are present.
-
-A 60-second clock re-checks overdue status.
-
-**Discover widget** (`widgets.discover`): Shows up to 3 randomly selected
-unread notes as card tiles (shufflable). Notes the user has already opened are
-excluded using the `readNoteIds` set. Hidden when all notes have been read.
-
-**Recent widget** (`widgets.recent`): The 6 most recently created notes via
-`NoteList`, plus total note count.
-
----
-
 ## CaptureBox (`components/capture/`)
 
-**Route**: home page (`/`)
+**Route**: home page (`/home`)
 **CSS Module**: `CaptureBox.module.css`
 
 Three capture modes toggled by header buttons:
@@ -242,6 +215,39 @@ Tag detail page with:
 
 ---
 
+## Home (`components/Home.tsx`)
+
+**Route**: `/home`
+
+Main desk view. Shows `CaptureBox` (note creation form) plus three toggleable
+widgets. Widget visibility is stored per-user in `userSettings.homeWidgets`
+(a `{ daily, discover, recent }` boolean object). State is initialized from the
+`userSettings` prop (passed from `KnowledgeState`) and saved to the server via
+`PATCH /api/settings` on each toggle (fire-and-forget).
+
+**Customise bar**: A "Customize" button in the crumbs row reveals chip toggles
+for each widget. Chips show a colored dot (filled = visible, muted = hidden).
+
+**Daily widget** (`widgets.daily`): A bordered card shown when there are
+overdue reminders or due flashcards, or upcoming reminders. Two sections:
+
+- *Due now* (`daily-due`): flashcard row (opens flashcard session) and one row
+  per overdue reminder with Open / Done actions. Each row has a 3 px left pip —
+  accent for flashcards, rust for reminders.
+- *Upcoming* (`daily-upcoming`): slim list of non-overdue reminders, up to 3.
+  Divided from the due section by a horizontal rule when both are present.
+
+A 60-second clock re-checks overdue status.
+
+**Discover widget** (`widgets.discover`): Shows up to 3 randomly selected
+unread notes as card tiles (shufflable). Notes the user has already opened are
+excluded using the `readNoteIds` set. Hidden when all notes have been read.
+
+**Recent widget** (`widgets.recent`): The 6 most recently created notes via
+`NoteList`, plus total note count.
+
+---
+
 ## NoteDetail (`components/notes/NoteDetail.tsx`)
 
 **Route**: `/notes/:id` (via `NoteRoute` wrapper)
@@ -251,15 +257,15 @@ Note reader and editor.
 **Reader mode**:
 - Clickable category breadcrumb.
 - Inline header with category pill, date, tag/link counts, edit/delete buttons.
-- Markdown body rendered via `parseMarkdownBlocks` (headings, quotes, paragraphs).
+- Markdown body rendered via TipTap `NoteViewer` (which includes Mermaid diagram support).
 - Collapsible raw source drawer showing full markdown.
 - `ReminderSection` — schedule + active reminder list.
 
 **Editor mode** (two tabs):
 - *Manual edit*: title, summary, category (with datalist suggestions), tags,
-  `LiveEditor` for markdown body, `LinkEditor` for cross-note links.
-- *AI prompt*: free-text instruction (handled by `AiAssistPanel`). Returns
-  a proposal applied to form state; user must still click Save.
+  TipTap `NoteEditor` for rich-text markdown body, `LinkEditor` for cross-note links.
+- *AI prompt*: free-text instruction handled by inline AI assist in `NoteEditorForm`.
+  Returns a proposal applied to form state; user must still click Save.
 
 Opening the editor snapshots the latest note props into local draft state,
 so background polling doesn't overwrite in-progress edits.
@@ -276,27 +282,71 @@ note open. The read count for the note (from `readCounts`) is displayed in the
 reader header as a small annotation (e.g. "3 reads").
 
 **Sub-components**:
-- `AiAssistPanel` — AI instruction input, runs `/api/notes/:id/assist`.
+- `NoteEditorForm` — inline AI assist modal and save/cancel actions.
+- `NoteEditor` — TipTap-based rich text markdown editor with formatting toolbar.
+- `NoteViewer` — TipTap-based read-only markdown viewer with Mermaid diagram rendering.
 - `ReminderSection` — datetime-local picker, reminder list with Done/Delete.
 - `LinkEditor` — checkbox list of other notes, searchable by title/category/tag.
+- `MetaFields` — category dropdown with search, tag chips with add/remove.
 
 ---
 
-## LiveEditor (`components/LiveEditor.tsx`)
+## NoteEditor (`components/notes/NoteEditor.tsx`)
 
-Reusable contentEditable line-based markdown editor. Used by `CaptureBox`
-(Write mode) and `NoteDetail` (manual edit tab).
+TipTap-based rich text markdown editor used by `CaptureBox` (Write mode) and
+`NoteDetail` (manual edit tab).
 
-**Props**: `placeholder`, `disabled`, `className`, `initialValue`.
+**Features**:
+- Formatting toolbar: bold, italic, strikethrough, headings, blockquote, code,
+  bullet/ordered list, horizontal rule, image upload, link insertion.
+- Bubble menu on text selection for quick formatting.
+- `Enter` creates new list items; `Shift+Enter` for soft breaks.
+- Image upload calls `POST /api/images` and inserts the URL.
+- Link insertion uses browser-native `window.prompt()`.
+- Exposes `getMarkdown()` and `clear()` via `forwardRef` + `useImperativeHandle`.
 
-**Imperative handle**: `getValue()`, `setValue(markdown)`, `clear()`, `focus()`.
+## NoteViewer (`components/notes/NoteViewer.tsx`)
 
-Each line is a contentEditable `<div>`. The component applies `md-line` classes
-(`md-h1`, `md-h2`, `md-h3`, `md-quote`, `md-list`, `md-code`) based on line prefix
-for live styling. Enter splits lines; Backspace at offset 0 merges with the
-previous line; Arrow keys navigate between lines. Paste inserts multi-line
-plain text. Caret position is restored via `useLayoutEffect` after programmatic
-line changes.
+TipTap-based read-only markdown viewer. Renders parsed markdown with Mermaid
+diagram support. Diagrams are rendered asynchronously (80ms delay after content
+set) via `mermaid.run()`. Rendering errors add a CSS class `ne-mermaid-error`
+without crashing the viewer.
+
+## NoteEditorForm (`components/notes/NoteEditorForm.tsx`)
+
+Edit form wrapper used inside `NoteDetail`'s editor mode. Manages title, summary,
+category, tags, and the TipTap editor. Provides:
+- AI assist modal: free-text instruction → calls `POST /api/notes/:id/assist`.
+- Save button (calls `onSave`).
+- Cancel button (exits editor without saving).
+
+## MetaFields (`components/notes/MetaFields.tsx`)
+
+Category and tag picker shared between `CaptureBox`, `NoteDetail`, and `NewNoteRoute`.
+- Category dropdown with search against all known categories (120ms blur delay
+  to allow click events on dropdown items).
+- Tag chips with add (comma or Enter) and remove (X button with `aria-label`).
+- Tag suggestions filtered from all known tags.
+
+## ReminderSection (`components/notes/ReminderSection.tsx`)
+
+Scheduled review reminder UI embedded in `NoteDetail` and `Home`.
+- Datetime-local picker for setting a future review date.
+- Active reminder list with "Done" and "Delete" actions.
+- 60-second clock re-render to update overdue status in real time.
+- Validates future dates with `Number.isNaN(selectedDate.getTime())`.
+
+## LinkEditor (`components/notes/LinkEditor.tsx`)
+
+Cross-note link picker. Shows checkboxes for all other notes (excluding the
+current note), searchable by title, category, or tag. Uses `useMemo` for
+filtering and includes counts (note count, selected count).
+
+## AiAssistPanel (`components/notes/AiAssistPanel.tsx`)
+
+AI instruction input component. **Note**: this component exists in the codebase
+but is currently not imported by `NoteDetail` (the inline AI assist in
+`NoteEditorForm` handles this flow instead). Kept for potential reuse.
 
 ---
 
@@ -478,8 +528,76 @@ node calls `onOpen(id)`. Legend explains the colors.
 
 ---
 
+## QuizPage (`components/quiz/`)
+
+**Route**: `/quiz` (via `QuizRoute` wrapper)
+
+Quiz study mode with three sub-views: Browse, Study, and the rating flow.
+
+### QuizBrowse
+Table of quiz questions. Each row shows type, question text, and source note.
+Filters: all / category / tag scoping. Type filter dropdown for `fill-blank`,
+`multiple-choice`, `short-answer`. Clicking a row opens a `QuizPreviewModal`
+with the full question interaction (fill-blank input, multiple-choice radio
+buttons, or short-answer textarea). Keyboard: Escape closes; Space/Enter reveals
+the answer; Arrow keys or 1/2 rate after reveal.
+
+### QuizStudy
+Sequential question study session. Three question type renderers:
+- **FillBlank**: text input with auto-check against the answer (case-insensitive trim).
+- **MultipleChoice**: radio button options with correct/incorrect feedback.
+- **ShortAnswer**: textarea for free-text answer, shows reference answer after reveal.
+
+Rating: Correct / Wrong buttons after reveal. Spaced-repetition schedule
+(1, 3, 7, 14 days) identical to the backend's `computeReview()`.
+Progress bar and navigation (←/→).
+
+### Constants
+`NEXT_REVIEW_LABELS` maps streak numbers to human-readable labels.
+
+---
+
+## LandingPage (`components/landing/LandingPage.tsx`)
+
+**Route**: `/`
+
+Public marketing page for unauthenticated visitors.
+- Hero section with value proposition.
+- Feature highlights (hardcoded `FEATURES` array, not i18n-translated).
+- Quick-capture demo via `CaptureBox` (no authentication required).
+- "Get started" and "Sign in" links to `/login`.
+
+---
+
+## LoginPage (`components/auth/LoginPage.tsx`)
+
+**Route**: `/login`
+
+Supabase authentication page. Four modes:
+- **Sign in**: email + password.
+- **Sign up**: email + password (creates a new Supabase account).
+- **Magic link**: email only (passwordless sign-in via Supabase magic link).
+- **Magic link sent**: confirmation message after sending.
+
+Error messages display in a `<p>` element after failed attempts. Form fields
+use `<label htmlFor>` for accessibility. Uses `dangerouslySetInnerHTML` for
+some translated messages — ensure translation strings contain no user input.
+
+---
+
+## LanguageSwitcher (`components/LanguageSwitcher.tsx`)
+
+Dropdown rendered at the bottom of the `Rail` sidebar. Calls
+`i18n.changeLanguage(code)` on selection. Shows the current locale's native
+name. Language preference is persisted to `localStorage` under key `kl:lang`.
+Nine supported locales: English, 中文, 日本語, Español, Tiếng Việt, Bahasa Indonesia,
+Bahasa Melayu, Français, हिन्दी.
+
+---
+
 ## RichEditor (`components/RichEditor.tsx`)
 
 TipTap-based rich text editor with markdown import/export. **Currently unused**
-in the UI flow but kept as an alternative editor option. Exposes `getMarkdown()`,
-`clear()`, and `focus()` via `forwardRef` + `useImperativeHandle`.
+in the UI flow — `NoteEditor` handles the main editing needs. Kept as an
+alternative editor option. Exposes `getMarkdown()`, `clear()`, and `focus()`
+via `forwardRef` + `useImperativeHandle`.

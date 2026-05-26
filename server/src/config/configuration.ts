@@ -1,6 +1,16 @@
+/**
+ * Configuration factory — loads all environment variables once at startup,
+ * normalises them into typed config keys, and makes them available everywhere
+ * via NestJS ConfigService.
+ *
+ * Path resolution: __dirname is server/dist/config (compiled) or
+ * server/src/config (ts-node). Both require resolve(__dirname, '../../..')
+ * to reach the project root.
+ */
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
+/** Reads a .env file and sets process.env for any keys not already defined. */
 function loadEnv(filePath: string) {
   if (!existsSync(filePath)) return;
   const content = readFileSync(filePath, 'utf8');

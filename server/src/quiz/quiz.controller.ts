@@ -1,3 +1,11 @@
+/**
+ * Quiz review, hide, and restore endpoints.
+ * All routes require authentication.
+ *
+ *   POST   /api/quiz/:id/review   — rate a quiz question (correct/wrong)
+ *   DELETE /api/quiz/:id          — hide a question from study
+ *   POST   /api/quiz/:id/restore  — unhide a previously hidden question
+ */
 import { Controller, Post, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { QuizReviewsRepository } from './quiz-reviews.repository';

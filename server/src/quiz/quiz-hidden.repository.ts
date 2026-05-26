@@ -1,3 +1,7 @@
+/**
+ * Tracks which quiz questions the user has hidden from study.
+ * Hidden questions are filtered out of the study set.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';

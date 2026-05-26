@@ -1,3 +1,10 @@
+/**
+ * AI chat state hook consumed exclusively by ChatPanel.
+ *
+ * Manages: message array, streaming flag, abort controller.
+ * Persistence: messages are stored in localStorage under kl:chat-history
+ * (max 200 entries, streaming flag stripped before save).
+ */
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { ChatMessage, RagScope } from '../types';
 import { streamRagAnswer } from '../api';

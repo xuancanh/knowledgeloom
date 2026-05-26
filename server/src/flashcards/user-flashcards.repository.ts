@@ -1,3 +1,7 @@
+/**
+ * Manages user-authored flashcards (distinct from AI-generated cached cards).
+ * Supports CRUD operations keyed by (userId, cardId).
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';

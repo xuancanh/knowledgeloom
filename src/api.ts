@@ -1,6 +1,12 @@
+/**
+ * Typed HTTP client for all backend API calls.
+ * Every exported function corresponds to one backend endpoint.
+ * Error handling: throws on non-2xx responses with status code in message.
+ */
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope, ChatMessage } from './types';
 import { supabase } from './lib/supabase';
 
+/** Returns Supabase auth headers if the client is available, or {} in local mode. */
 async function authHeaders(): Promise<Record<string, string>> {
   if (!supabase) return {};
   const { data } = await supabase.auth.getSession();

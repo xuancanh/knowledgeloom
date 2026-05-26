@@ -1,3 +1,11 @@
+/**
+ * Tracks per-user note read counts. Each row records how many times a user
+ * has opened a note, plus first/last read timestamps.
+ *
+ * Called silently by NoteRoute on every note open. Read data is exposed
+ * through KnowledgeState so the frontend can show read counts and filter
+ * by unread status.
+ */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';
