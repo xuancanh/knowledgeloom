@@ -17,15 +17,18 @@ import { sqliteJobs, sqliteFlashcardCache } from '../server/src/database/schema.
 const DDL = `
   PRAGMA journal_mode = WAL;
   CREATE TABLE IF NOT EXISTS jobs (
-    id TEXT PRIMARY KEY, status TEXT NOT NULL, mode TEXT NOT NULL,
+    id TEXT PRIMARY KEY, userId TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL, mode TEXT NOT NULL,
     topic TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
     maxAttempts INTEGER NOT NULL DEFAULT 0, createdAt TEXT NOT NULL,
     startedAt TEXT, finishedAt TEXT, nextRunAt TEXT, error TEXT,
     payload TEXT NOT NULL
   );
   CREATE TABLE IF NOT EXISTS flashcard_cache (
-    noteId TEXT PRIMARY KEY, hash TEXT NOT NULL,
-    cards TEXT NOT NULL, generatedAt TEXT NOT NULL
+    userId TEXT NOT NULL DEFAULT '',
+    noteId TEXT NOT NULL, hash TEXT NOT NULL,
+    cards TEXT NOT NULL, generatedAt TEXT NOT NULL,
+    PRIMARY KEY (userId, noteId)
   );
 `;
 
@@ -43,6 +46,7 @@ test.after(() => {
 test('job table persists and updates queue snapshots', async () => {
   const job = {
     id: 'job-1',
+    userId: '',
     status: 'queued',
     mode: 'research',
     topic: 'Layered architecture',
@@ -76,8 +80,8 @@ test('job table persists and updates queue snapshots', async () => {
 
 test('flashcard cache table replaces stale note rows', async () => {
   const rows = [
-    { noteId: 'note-a', hash: 'hash-a', cards: JSON.stringify([{ id: 'card-a', kind: 'concept' }]), generatedAt: '2026-05-21T00:00:00.000Z' },
-    { noteId: 'note-b', hash: 'hash-b', cards: JSON.stringify([{ id: 'card-b', kind: 'pattern' }]), generatedAt: '2026-05-21T00:00:00.000Z' },
+    { userId: '', noteId: 'note-a', hash: 'hash-a', cards: JSON.stringify([{ id: 'card-a', kind: 'concept' }]), generatedAt: '2026-05-21T00:00:00.000Z' },
+    { userId: '', noteId: 'note-b', hash: 'hash-b', cards: JSON.stringify([{ id: 'card-b', kind: 'pattern' }]), generatedAt: '2026-05-21T00:00:00.000Z' },
   ];
   await db.insert(sqliteFlashcardCache).values(rows);
 
@@ -87,7 +91,7 @@ test('flashcard cache table replaces stale note rows', async () => {
   // Replace: delete all, insert only note-b with new hash
   await db.delete(sqliteFlashcardCache);
   await db.insert(sqliteFlashcardCache).values([
-    { noteId: 'note-b', hash: 'hash-b2', cards: JSON.stringify([{ id: 'card-b2', kind: 'lesson' }]), generatedAt: '2026-05-21T00:05:00.000Z' },
+    { userId: '', noteId: 'note-b', hash: 'hash-b2', cards: JSON.stringify([{ id: 'card-b2', kind: 'lesson' }]), generatedAt: '2026-05-21T00:05:00.000Z' },
   ]);
 
   const second = await db.select().from(sqliteFlashcardCache);
