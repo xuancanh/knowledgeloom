@@ -28,6 +28,18 @@ import { sqliteReminders as remindersTable } from './schema';
 import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
 import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE } from './database.constants';
 
+/**
+ * Drizzle database instance covering both SQLite and PG backends.
+ *
+ * Intentionally typed as `any` because BetterSQLite3Database and NodePgDatabase
+ * have incompatible method signatures (sync vs async, different return types).
+ * Repositories narrow the type via dialect-specific code paths (`if (dialect ===
+ * 'postgres') { await ... } else { ... .run() }`).
+ *
+ * A proper typed union would require extracting a shared interface from both
+ * Drizzle drivers, which is a breaking change upstream.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DrizzleDb = any;
 
 const drizzleProvider = {
