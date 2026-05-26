@@ -85,87 +85,86 @@ export default function Home({
 
       <CaptureBox onSubmit={onSubmit} readOnly={readOnly} templates={templates} />
 
-      {/* Review queue */}
-      {hasReviewItems && (
-        <>
-          <div className="section-label">
-            <h2>{t('home.reviewQueue')}</h2>
-            <span className="meta">
-              {t('home.itemsDue', { count: overdueReminders.length + dueFlashcards.length })}
-            </span>
+      {/* ── Daily panel: overdue + upcoming ── */}
+      {(hasReviewItems || upcomingReminders.length > 0) && (
+        <div className="daily-panel">
+          <div className="daily-panel-head">
+            <span className="daily-panel-title">{t('home.reviewQueue')}</span>
+            {(overdueReminders.length + dueFlashcards.length) > 0 && (
+              <span className="daily-badge">
+                {t('home.itemsDue', { count: overdueReminders.length + dueFlashcards.length })}
+              </span>
+            )}
           </div>
 
-          <div className="review-queue">
-            {dueFlashcards.length > 0 && (
-              <div className="review-card flashcard-due">
-                <div className="review-card-icon">⟁</div>
-                <div className="review-card-body">
-                  <div className="review-card-title">{t('home.flashcardsDue')}</div>
-                  <div className="review-card-sub">{t('home.flashcardsReady', { count: dueFlashcards.length })}</div>
+          {hasReviewItems && (
+            <div className="daily-due">
+              {dueFlashcards.length > 0 && (
+                <div className="daily-row daily-row--flash">
+                  <span className="daily-row-icon">⟁</span>
+                  <div className="daily-row-body">
+                    <span className="daily-row-title">{t('home.flashcardsDue')}</span>
+                    <span className="daily-row-sub">{t('home.flashcardsReady', { count: dueFlashcards.length })}</span>
+                  </div>
+                  <button className="daily-cta" onClick={() => onOpenFlashcards('all')}>
+                    {t('home.reviewCta')}
+                  </button>
                 </div>
-                <button className="review-card-cta" onClick={() => onOpenFlashcards('all')}>
-                  {t('home.reviewCta')}
-                </button>
-              </div>
-            )}
-
-            {overdueReminders.map((reminder) => {
-              const note = notes.find((item) => item.id === reminder.noteId);
-              return (
-                <div key={reminder.id} className="review-card reminder-due">
-                  <div className="review-card-icon">◎</div>
-                  <div className="review-card-body">
-                    <div className="review-card-title">{note?.title || reminder.noteId}</div>
-                    <div className="review-card-sub">
-                      {reminder.message || t('reminders.dueNow')}
+              )}
+              {overdueReminders.map((reminder) => {
+                const note = notes.find((item) => item.id === reminder.noteId);
+                return (
+                  <div key={reminder.id} className="daily-row daily-row--overdue">
+                    <span className="daily-row-icon">◎</span>
+                    <div className="daily-row-body">
+                      <span className="daily-row-title">{note?.title || reminder.noteId}</span>
+                      <span className="daily-row-sub">{reminder.message || t('reminders.dueNow')}</span>
+                    </div>
+                    <div className="daily-row-end">
+                      {note && <button className="daily-cta daily-cta--muted" onClick={() => onOpen(note.id)}>{t('home.openNote')}</button>}
+                      <button className="daily-done" onClick={() => onCompleteReminder(reminder.id)}>{t('common.done')}</button>
                     </div>
                   </div>
-                  <div className="review-card-actions">
-                    {note && <button className="review-card-cta" onClick={() => onOpen(note.id)}>{t('home.openNote')}</button>}
-                    <button className="review-card-done" onClick={() => onCompleteReminder(reminder.id)}>{t('common.done')}</button>
+                );
+              })}
+            </div>
+          )}
+
+          {upcomingReminders.length > 0 && (
+            <div className={`daily-upcoming${hasReviewItems ? ' daily-upcoming--divided' : ''}`}>
+              <span className="daily-upcoming-label">
+                {t('home.upcoming')} · {t('home.scheduledCount', { count: dueReminders.length - overdueReminders.length })}
+              </span>
+              {upcomingReminders.map((reminder) => {
+                const note = notes.find((item) => item.id === reminder.noteId);
+                return (
+                  <div key={reminder.id} className="daily-upcoming-row">
+                    <span className="daily-upcoming-time">
+                      {new Date(reminder.remindAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </span>
+                    <button className="daily-upcoming-main" onClick={() => note && onOpen(note.id)}>
+                      <span className="daily-upcoming-title">{note?.title || reminder.noteId}</span>
+                      {reminder.message && <span className="daily-upcoming-msg">{reminder.message}</span>}
+                    </button>
+                    <button className="daily-done daily-done--sm" onClick={() => onCompleteReminder(reminder.id)}>{t('common.done')}</button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Upcoming reminders (not yet due) */}
-      {upcomingReminders.length > 0 && (
-        <>
-          <div className="section-label">
-            <h2>{t('home.upcoming')}</h2>
-            <span className="meta">{t('home.scheduledCount', { count: dueReminders.length - overdueReminders.length })}</span>
-          </div>
-          <div className="reminder-list">
-            {upcomingReminders.map((reminder) => {
-              const note = notes.find((item) => item.id === reminder.noteId);
-              return (
-                <div key={reminder.id} className="reminder-row">
-                  <button className="reminder-main" onClick={() => note && onOpen(note.id)}>
-                    <span>{new Date(reminder.remindAt).toLocaleString()}</span>
-                    <b>{note?.title || reminder.noteId}</b>
-                    {reminder.message && <em>{reminder.message}</em>}
-                  </button>
-                  <button className="reminder-done" onClick={() => onCompleteReminder(reminder.id)}>{t('common.done')}</button>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Discover — unread notes */}
+      {/* ── Discover: unread notes ── */}
       {notes.length > 0 && (
-        <>
-          <div className="section-label">
-            <h2>{t('home.discover')}</h2>
-            {discoverNotes.length > 0 ? (
+        <div className="discover-section">
+          <div className="discover-header">
+            <span className="discover-heading">{t('home.discover')}</span>
+            {discoverNotes.length > 0 && (
               <button className="discover-shuffle" onClick={() => setDiscoverSeed(Math.random())} title={t('home.discoverShuffle')}>
                 ↺ {t('home.discoverShuffle')}
               </button>
-            ) : null}
+            )}
           </div>
           {discoverNotes.length === 0 ? (
             <div className="discover-empty">{t('home.discoverEmpty')}</div>
@@ -180,7 +179,7 @@ export default function Home({
               ))}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* Recent notes */}
