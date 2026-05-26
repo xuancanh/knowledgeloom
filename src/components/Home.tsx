@@ -5,13 +5,14 @@ import { formatCreated, type UiCategory } from '../lib/view';
 import type { GuidanceTemplate } from '../lib/guidance';
 import CaptureBox from './capture/CaptureBox';
 import NoteList from './NoteList';
+import { patchSettings } from '../api';
 
 type HomeWidgets = { daily: boolean; discover: boolean; recent: boolean };
 const DEFAULT_WIDGETS: HomeWidgets = { daily: true, discover: true, recent: true };
 
-function loadWidgets(): HomeWidgets {
-  try { return { ...DEFAULT_WIDGETS, ...JSON.parse(localStorage.getItem('kl:home-widgets') || '{}') }; }
-  catch { return DEFAULT_WIDGETS; }
+function parseWidgets(raw: unknown): HomeWidgets {
+  if (raw && typeof raw === 'object') return { ...DEFAULT_WIDGETS, ...(raw as Partial<HomeWidgets>) };
+  return DEFAULT_WIDGETS;
 }
 
 export default function Home({
@@ -27,6 +28,7 @@ export default function Home({
   onSubmit,
   readOnly,
   templates,
+  userSettings,
 }: {
   notes: KnowledgeNote[];
   categories: UiCategory[];
@@ -40,17 +42,18 @@ export default function Home({
   onSubmit: (payload: CreateNoteRequest) => void;
   readOnly: boolean;
   templates: GuidanceTemplate[];
+  userSettings?: Record<string, unknown>;
 }) {
   const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
   const [discoverSeed, setDiscoverSeed] = useState(() => Math.random());
   const [customizing, setCustomizing] = useState(false);
-  const [widgets, setWidgets] = useState<HomeWidgets>(loadWidgets);
+  const [widgets, setWidgets] = useState<HomeWidgets>(() => parseWidgets(userSettings?.homeWidgets));
 
   function toggleWidget(key: keyof HomeWidgets) {
     setWidgets((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      localStorage.setItem('kl:home-widgets', JSON.stringify(next));
+      patchSettings({ homeWidgets: next }).catch(() => {});
       return next;
     });
   }

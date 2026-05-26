@@ -19,9 +19,10 @@ import { FlashcardsModule } from '../flashcards/flashcards.module';
 import { QuizModule } from '../quiz/quiz.module';
 import { SearchModule } from '../search/search.module';
 import { NoteReadsModule } from '../notes/note-reads.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
-  imports: [NotesFileModule, FlashcardsModule, QuizModule, SearchModule, NoteReadsModule],
+  imports: [NotesFileModule, FlashcardsModule, QuizModule, SearchModule, NoteReadsModule, SettingsModule],
   controllers: [KnowledgeController, SearchController],
   providers: [KnowledgeService],
   exports: [KnowledgeService],
