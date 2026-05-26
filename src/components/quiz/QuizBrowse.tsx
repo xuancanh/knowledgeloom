@@ -3,55 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { QuizQuestion, QuizQuestionType } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import { QUIZ_TYPE_LABELS, QUIZ_TYPE_COLORS } from './constants';
-
-function MultiSelectDropdown({
-  label,
-  items,
-  selected,
-  onChange,
-}: {
-  label: string;
-  items: Array<{ id: string; label: string; count: number }>;
-  selected: string[];
-  onChange: (ids: string[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDocClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, [open]);
-
-  function toggle(itemId: string) {
-    if (selected.includes(itemId)) onChange(selected.filter((id) => id !== itemId));
-    else onChange([...selected, itemId]);
-  }
-
-  return (
-    <div className="fc-multi" ref={ref}>
-      <button className="fc-multi-trigger" onClick={() => setOpen(!open)}>
-        {label}{selected.length > 0 ? ` (${selected.length})` : ''} ▾
-      </button>
-      {open && (
-        <div className="fc-multi-dropdown">
-          {items.length === 0 && <div className="fc-multi-empty">None</div>}
-          {items.map((item) => (
-            <label key={item.id} className="fc-multi-item">
-              <input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)} />
-              <span className="fc-multi-name">{item.label}</span>
-              <span className="fc-multi-count">{item.count}</span>
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { MultiSelectDropdown } from '../MultiSelectDropdown';
+import { FillBlankQuestion, MultipleChoiceQuestion, ShortAnswerQuestion } from './QuizQuestionRenderers';
 
 const ALL_TYPES: QuizQuestionType[] = ['fill-blank', 'multiple-choice', 'short-answer'];
 
@@ -264,89 +217,6 @@ export default function QuizBrowse({
 
 // ── Quiz preview modal ─────────────────────────────────────────────────────
 
-function FillBlankPreview({ question, revealed, userInput, onInput }: {
-  question: QuizQuestion; revealed: boolean; userInput: string; onInput: (v: string) => void;
-}) {
-  const { t } = useTranslation();
-  const parts = question.question.split('___');
-  const isCorrect = revealed && userInput.trim().toLowerCase() === question.answer.trim().toLowerCase();
-  return (
-    <div className="qz-fill-blank">
-      <p className="qz-sentence">
-        {parts[0]}
-        {revealed
-          ? <span className={`qz-blank-answer ${isCorrect ? 'correct' : 'wrong'}`}>{question.answer}</span>
-          : <input className="qz-blank-input" value={userInput} onChange={(e) => onInput(e.target.value)} placeholder={t('quiz.typeAnswer')} autoFocus spellCheck={false} />}
-        {parts[1] || ''}
-      </p>
-      {revealed && userInput.trim() && (
-        <p className={`qz-your-answer ${isCorrect ? 'correct' : 'wrong'}`}>
-          {t('quiz.yourAnswer')}: <em>{userInput.trim()}</em>
-        </p>
-      )}
-    </div>
-  );
-}
-
-function MultipleChoicePreview({ question, revealed, selectedIndex, onSelect }: {
-  question: QuizQuestion; revealed: boolean; selectedIndex: number | null; onSelect: (i: number) => void;
-}) {
-  const choices = question.choices ?? [];
-  return (
-    <div className="qz-mc">
-      <p className="qz-mc-question">{question.question}</p>
-      <div className="qz-choices">
-        {choices.map((choice, i) => {
-          let cls = 'qz-choice';
-          if (revealed) {
-            if (i === question.correctIndex) cls += ' correct';
-            else if (i === selectedIndex) cls += ' wrong';
-          } else if (i === selectedIndex) cls += ' selected';
-          return (
-            <button key={i} className={cls} onClick={() => !revealed && onSelect(i)} disabled={revealed}>
-              <span className="qz-choice-letter">{String.fromCharCode(65 + i)}</span>
-              <span className="qz-choice-text">{choice}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ShortAnswerPreview({ question, revealed, userInput, onInput }: {
-  question: QuizQuestion; revealed: boolean; userInput: string; onInput: (v: string) => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="qz-short">
-      <p className="qz-short-question">{question.question}</p>
-      {!revealed ? (
-        <textarea className="qz-short-input" value={userInput} onChange={(e) => onInput(e.target.value)} placeholder={t('quiz.typeAnswer')} rows={4} autoFocus />
-      ) : (
-        <div className="qz-short-answers">
-          {userInput.trim() && (
-            <div className="qz-short-yours">
-              <span className="qz-short-label">{t('quiz.yourAnswer')}</span>
-              <p>{userInput.trim()}</p>
-            </div>
-          )}
-          <div className="qz-short-ref">
-            <span className="qz-short-label">{t('quiz.referenceAnswer')}</span>
-            <p>{question.answer}</p>
-          </div>
-          {question.explanation && (
-            <div className="qz-short-expl">
-              <span className="qz-short-label">{t('quiz.keyPoint')}</span>
-              <p>{question.explanation}</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function QuizPreviewModal({ question, onRate, onClose }: {
   question: QuizQuestion;
   onRate: (q: QuizQuestion, rating: Rating) => void;
@@ -410,13 +280,13 @@ function QuizPreviewModal({ question, onRate, onClose }: {
 
           <div className="qz-card-body">
             {question.type === 'fill-blank' && (
-              <FillBlankPreview question={question} revealed={revealed} userInput={userInput} onInput={setUserInput} />
+              <FillBlankQuestion question={question} revealed={revealed} userInput={userInput} onInput={setUserInput} />
             )}
             {question.type === 'multiple-choice' && (
-              <MultipleChoicePreview question={question} revealed={revealed} selectedIndex={selectedIndex} onSelect={autoRevealOnMcSelect} />
+              <MultipleChoiceQuestion question={question} revealed={revealed} selectedIndex={selectedIndex} onSelect={autoRevealOnMcSelect} />
             )}
             {question.type === 'short-answer' && (
-              <ShortAnswerPreview question={question} revealed={revealed} userInput={userInput} onInput={setUserInput} />
+              <ShortAnswerQuestion question={question} revealed={revealed} userInput={userInput} onInput={setUserInput} />
             )}
             {revealed && question.explanation && (
               <div className="qz-explanation">
