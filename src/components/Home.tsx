@@ -6,6 +6,14 @@ import type { GuidanceTemplate } from '../lib/guidance';
 import CaptureBox from './capture/CaptureBox';
 import NoteList from './NoteList';
 
+type HomeWidgets = { daily: boolean; discover: boolean; recent: boolean };
+const DEFAULT_WIDGETS: HomeWidgets = { daily: true, discover: true, recent: true };
+
+function loadWidgets(): HomeWidgets {
+  try { return { ...DEFAULT_WIDGETS, ...JSON.parse(localStorage.getItem('kl:home-widgets') || '{}') }; }
+  catch { return DEFAULT_WIDGETS; }
+}
+
 export default function Home({
   notes,
   categories,
@@ -36,6 +44,16 @@ export default function Home({
   const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
   const [discoverSeed, setDiscoverSeed] = useState(() => Math.random());
+  const [customizing, setCustomizing] = useState(false);
+  const [widgets, setWidgets] = useState<HomeWidgets>(loadWidgets);
+
+  function toggleWidget(key: keyof HomeWidgets) {
+    setWidgets((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('kl:home-widgets', JSON.stringify(next));
+      return next;
+    });
+  }
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -79,14 +97,43 @@ export default function Home({
 
   const hasReviewItems = overdueReminders.length > 0 || dueFlashcards.length > 0;
 
+  const widgetDefs: { key: keyof HomeWidgets; label: string }[] = [
+    { key: 'daily',    label: t('home.widgetDaily') },
+    { key: 'discover', label: t('home.widgetDiscover') },
+    { key: 'recent',   label: t('home.widgetRecent') },
+  ];
+
   return (
     <div className="home">
-      <div className="crumbs"><span>{t('home.crumb')}</span></div>
+      <div className="crumbs">
+        <span>{t('home.crumb')}</span>
+        <button
+          className={`home-customize-btn${customizing ? ' active' : ''}`}
+          onClick={() => setCustomizing((v) => !v)}
+        >
+          {t('home.customize')}
+        </button>
+      </div>
+
+      {customizing && (
+        <div className="home-customize-bar">
+          {widgetDefs.map(({ key, label }) => (
+            <button
+              key={key}
+              className={`home-widget-chip${widgets[key] ? ' active' : ''}`}
+              onClick={() => toggleWidget(key)}
+            >
+              <span className="home-widget-chip-dot" />
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <CaptureBox onSubmit={onSubmit} readOnly={readOnly} templates={templates} />
 
       {/* ── Daily panel: overdue + upcoming ── */}
-      {(hasReviewItems || upcomingReminders.length > 0) && (
+      {widgets.daily && (hasReviewItems || upcomingReminders.length > 0) && (
         <div className="daily-panel">
           <div className="daily-panel-head">
             <span className="daily-panel-title">{t('home.reviewQueue')}</span>
@@ -156,7 +203,7 @@ export default function Home({
       )}
 
       {/* ── Discover: unread notes ── */}
-      {notes.length > 0 && (
+      {widgets.discover && notes.length > 0 && (
         <div className="discover-section">
           <div className="discover-header">
             <span className="discover-heading">{t('home.discover')}</span>
@@ -183,14 +230,18 @@ export default function Home({
       )}
 
       {/* Recent notes */}
-      <div className="section-label">
-        <h2>{t('home.recentlyAdded')}</h2>
-        <span className="meta">{t('home.totalNotes', { count: notes.length })}</span>
-      </div>
-      {recent.length === 0 ? (
-        <div className="empty">{t('home.noNotes')}</div>
-      ) : (
-        <NoteList notes={recent} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} />
+      {widgets.recent && (
+        <>
+          <div className="section-label">
+            <h2>{t('home.recentlyAdded')}</h2>
+            <span className="meta">{t('home.totalNotes', { count: notes.length })}</span>
+          </div>
+          {recent.length === 0 ? (
+            <div className="empty">{t('home.noNotes')}</div>
+          ) : (
+            <NoteList notes={recent} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} />
+          )}
+        </>
       )}
     </div>
   );

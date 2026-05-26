@@ -369,7 +369,11 @@
     "noNotes": "No notes yet. Capture something above.",
     "discover": "Discover",
     "discoverShuffle": "Shuffle",
-    "discoverEmpty": "You've read everything — well done!"
+    "discoverEmpty": "You've read everything — well done!",
+    "customize": "Customize",
+    "widgetDaily": "Daily review",
+    "widgetDiscover": "Discover",
+    "widgetRecent": "Recent notes"
   },
   "auth": {
     "appName": "Knowledge Loom",
