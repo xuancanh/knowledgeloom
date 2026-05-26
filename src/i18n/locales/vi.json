@@ -248,7 +248,11 @@
     "noLinksYet": "Chưa có. Codex sẽ thêm sau lần xử lý tiếp theo.",
     "backlinksCount": "Liên kết ngược · {{count}}",
     "noBacklinksYet": "Chưa có ghi chú nào liên kết đến đây.",
-    "fileInfo": "Tệp"
+    "fileInfo": "Tệp",
+    "readCount": "{{count}} lần đọc",
+    "readCount_plural": "{{count}} lần đọc",
+    "readCountTitle": "Đã đọc {{count}} lần",
+    "readCountTitle_plural": "Đã đọc {{count}} lần"
   },
   "chat": {
     "openBtn": "Hỏi AI",
@@ -327,7 +331,8 @@
     "noNotesMatch": "Không có ghi chú phù hợp — ",
     "clearFilters": "xóa bộ lọc",
     "searchNotes": "Tìm kiếm ghi chú…",
-    "allCategories": "Tất cả danh mục"
+    "allCategories": "Tất cả danh mục",
+    "unreadOnly": "Chưa đọc"
   },
   "tags": {
     "crumbHome": "Thẻ",
@@ -341,7 +346,8 @@
     "noNotesMatch": "Không có ghi chú phù hợp — ",
     "clearFilters": "xóa bộ lọc",
     "noNotesTag": "Chưa có ghi chú nào với thẻ này.",
-    "searchNotes": "Tìm kiếm ghi chú…"
+    "searchNotes": "Tìm kiếm ghi chú…",
+    "unreadOnly": "Chưa đọc"
   },
   "home": {
     "crumb": "Bàn làm việc",
@@ -360,7 +366,14 @@
     "statFlashcards": "thẻ học",
     "recentlyAdded": "Mới thêm",
     "totalNotes": "{{count}} tổng cộng",
-    "noNotes": "Chưa có ghi chú. Hãy ghi lại điều gì đó ở trên."
+    "noNotes": "Chưa có ghi chú. Hãy ghi lại điều gì đó ở trên.",
+    "discover": "Khám phá",
+    "discoverShuffle": "Xáo trộn",
+    "discoverEmpty": "Bạn đã đọc tất cả — làm tốt lắm!",
+    "customize": "Tuỳ chỉnh",
+    "widgetDaily": "Ôn tập hàng ngày",
+    "widgetDiscover": "Khám phá",
+    "widgetRecent": "Ghi chú gần đây"
   },
   "auth": {
     "appName": "Knowledge Loom",

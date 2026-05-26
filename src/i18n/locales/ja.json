@@ -248,7 +248,11 @@
     "noLinksYet": "まだありません。Codexが次回処理時に追加します。",
     "backlinksCount": "被リンク · {{count}}",
     "noBacklinksYet": "まだリンクされていません。",
-    "fileInfo": "ファイル"
+    "fileInfo": "ファイル",
+    "readCount": "{{count}}回",
+    "readCount_plural": "{{count}}回",
+    "readCountTitle": "{{count}}回閲覧",
+    "readCountTitle_plural": "{{count}}回閲覧"
   },
   "chat": {
     "openBtn": "AIに質問",
@@ -327,7 +331,8 @@
     "noNotesMatch": "一致するノートがありません — ",
     "clearFilters": "絞り込みをクリア",
     "searchNotes": "ノートを検索…",
-    "allCategories": "すべてのカテゴリ"
+    "allCategories": "すべてのカテゴリ",
+    "unreadOnly": "未読"
   },
   "tags": {
     "crumbHome": "タグ",
@@ -341,7 +346,8 @@
     "noNotesMatch": "一致するノートがありません — ",
     "clearFilters": "絞り込みをクリア",
     "noNotesTag": "このタグのノートはまだありません。",
-    "searchNotes": "ノートを検索…"
+    "searchNotes": "ノートを検索…",
+    "unreadOnly": "未読"
   },
   "home": {
     "crumb": "デスク",
@@ -360,7 +366,14 @@
     "statFlashcards": "フラッシュカード",
     "recentlyAdded": "最近追加",
     "totalNotes": "合計{{count}}件",
-    "noNotes": "まだノートがありません。上でキャプチャしてください。"
+    "noNotes": "まだノートがありません。上でキャプチャしてください。",
+    "discover": "発見",
+    "discoverShuffle": "シャッフル",
+    "discoverEmpty": "すべて読みました — よくできました！",
+    "customize": "カスタマイズ",
+    "widgetDaily": "デイリーレビュー",
+    "widgetDiscover": "発見",
+    "widgetRecent": "最近のノート"
   },
   "auth": {
     "appName": "ナレッジルーム",

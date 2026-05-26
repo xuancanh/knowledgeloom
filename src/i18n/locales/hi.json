@@ -248,7 +248,11 @@
     "noLinksYet": "अभी तक कोई नहीं। Codex अगली प्रक्रिया में जोड़ेगा।",
     "backlinksCount": "बैकलिंक · {{count}}",
     "noBacklinksYet": "अभी तक कोई लिंक नहीं।",
-    "fileInfo": "फ़ाइल"
+    "fileInfo": "फ़ाइल",
+    "readCount": "{{count}} बार",
+    "readCount_plural": "{{count}} बार",
+    "readCountTitle": "{{count}} बार पढ़ा",
+    "readCountTitle_plural": "{{count}} बार पढ़ा"
   },
   "chat": {
     "openBtn": "AI से पूछें",
@@ -327,7 +331,8 @@
     "noNotesMatch": "कोई नोट मेल नहीं खाता — ",
     "clearFilters": "फ़िल्टर साफ़ करें",
     "searchNotes": "नोट्स खोजें…",
-    "allCategories": "सभी श्रेणियाँ"
+    "allCategories": "सभी श्रेणियाँ",
+    "unreadOnly": "अपठित"
   },
   "tags": {
     "crumbHome": "टैग",
@@ -341,7 +346,8 @@
     "noNotesMatch": "कोई नोट मेल नहीं खाता — ",
     "clearFilters": "फ़िल्टर साफ़ करें",
     "noNotesTag": "इस टैग के साथ अभी तक कोई नोट नहीं।",
-    "searchNotes": "नोट्स खोजें…"
+    "searchNotes": "नोट्स खोजें…",
+    "unreadOnly": "अपठित"
   },
   "home": {
     "crumb": "डेस्क",
@@ -360,7 +366,14 @@
     "statFlashcards": "फ्लैशकार्ड",
     "recentlyAdded": "हाल ही में जोड़ा गया",
     "totalNotes": "{{count}} कुल",
-    "noNotes": "अभी तक कोई नोट नहीं। ऊपर कुछ कैप्चर करें।"
+    "noNotes": "अभी तक कोई नोट नहीं। ऊपर कुछ कैप्चर करें।",
+    "discover": "खोजें",
+    "discoverShuffle": "फेरबदल",
+    "discoverEmpty": "आपने सब कुछ पढ़ लिया — शाबाश!",
+    "customize": "अनुकूलित करें",
+    "widgetDaily": "दैनिक समीक्षा",
+    "widgetDiscover": "खोजें",
+    "widgetRecent": "हाल की नोट्स"
   },
   "auth": {
     "appName": "Knowledge Loom",

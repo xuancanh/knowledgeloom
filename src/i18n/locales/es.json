@@ -249,7 +249,11 @@
     "noLinksYet": "Ninguno aún. Codex añadirá algunos en el siguiente pase.",
     "backlinksCount": "Backlinks · {{count}}",
     "noBacklinksYet": "Nada enlaza aquí todavía.",
-    "fileInfo": "Archivo"
+    "fileInfo": "Archivo",
+    "readCount": "{{count}} lectura",
+    "readCount_plural": "{{count}} lecturas",
+    "readCountTitle": "Leído {{count}} vez",
+    "readCountTitle_plural": "Leído {{count}} veces"
   },
   "chat": {
     "openBtn": "Preguntar IA",
@@ -329,7 +333,8 @@
     "noNotesMatch": "Sin notas coincidentes — ",
     "clearFilters": "limpiar filtros",
     "searchNotes": "Buscar notas…",
-    "allCategories": "Todas las categorías"
+    "allCategories": "Todas las categorías",
+    "unreadOnly": "No leído"
   },
   "tags": {
     "crumbHome": "Etiquetas",
@@ -343,7 +348,8 @@
     "noNotesMatch": "Sin notas coincidentes — ",
     "clearFilters": "limpiar filtros",
     "noNotesTag": "Aún no hay notas con esta etiqueta.",
-    "searchNotes": "Buscar notas…"
+    "searchNotes": "Buscar notas…",
+    "unreadOnly": "No leído"
   },
   "home": {
     "crumb": "Escritorio",
@@ -363,7 +369,14 @@
     "statFlashcards": "tarjetas",
     "recentlyAdded": "Añadido recientemente",
     "totalNotes": "{{count}} en total",
-    "noNotes": "Aún no hay notas. Captura algo arriba."
+    "noNotes": "Aún no hay notas. Captura algo arriba.",
+    "discover": "Descubrir",
+    "discoverShuffle": "Mezclar",
+    "discoverEmpty": "Lo has leído todo — ¡bien hecho!",
+    "customize": "Personalizar",
+    "widgetDaily": "Revisión diaria",
+    "widgetDiscover": "Descubrir",
+    "widgetRecent": "Notas recientes"
   },
   "auth": {
     "appName": "Knowledge Loom",

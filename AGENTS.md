@@ -54,10 +54,11 @@ smart-knowledge-app/
 │   │   ├── images/         # POST /api/images — image upload
 │   │   ├── knowledge/      # Index rebuild pipeline
 │   │   ├── learn/          # Note capture endpoint
-│   │   ├── notes/          # Note CRUD
+│   │   ├── notes/          # Note CRUD + note-reads tracking
 │   │   ├── rag/            # POST /api/rag/stream — streaming RAG over the knowledge base
 │   │   ├── reminders/      # Note reminders
 │   │   ├── search/         # Pluggable search (Meilisearch / in-memory)
+│   │   ├── settings/       # GET/PATCH /api/settings — per-user JSON blob in user_settings table
 │   │   ├── status/         # Health endpoint
 │   │   ├── storage/        # Pluggable note storage (local / S3)
 │   │   ├── app.module.ts   # Root NestJS module
@@ -74,7 +75,7 @@ smart-knowledge-app/
 ├── knowledge/              # Runtime data (NOT committed except schema)
 │   ├── notes/              # Markdown source of truth (category sub-folders)
 │   ├── categories/         # Generated category markdown files
-│   ├── app.sqlite          # SQLite: jobs, reminders, flashcard_cache
+│   ├── app.sqlite          # SQLite: jobs, reminders, flashcard_cache, note_reads, user_settings
 │   └── index.json          # Generated knowledge index snapshot
 ├── scripts/
 │   └── dev.mjs             # Starts ts-node NestJS + Vite in parallel
@@ -249,6 +250,8 @@ npm run server
 - [ ] Call `KnowledgeService.rebuildIndexes()` after any note mutation
 - [ ] Add the config key to `configuration.ts` if a new env variable is needed
 - [ ] Run `npx tsc -p server/tsconfig.json --noEmit` — must pass with 0 errors
+- [ ] **Add all new user-visible strings to `en.json` AND every other locale file in `src/i18n/locales/`**
+      (9 locales: en, zh, ja, es, vi, id, ms, fr, hi). Fallback to English is not acceptable.
 
 ---
 
@@ -376,23 +379,6 @@ useKnowledge hook (polling + state)
 
 ## Component details
 
-### CaptureBox (`components/capture/CaptureBox.tsx`)
-
-Multi-mode note-capture widget. Mode is toggled via a tab bar at the top.
-
-| Mode | Description |
-|------|-------------|
-| Quick | Plain-text quick note |
-| Write | Full markdown note with title, category, tags |
-| Link | URL bookmarking with title + notes |
-| Voice | Voice memo (transcription via backend) |
-
-**Write tab specifics:**
-- **AI Assist** button opens a popup modal where the user types an instruction; calls `POST /api/notes/assist-draft` and applies the returned text to the form.
-- **Full Editor** button saves the current draft to `sessionStorage` key `kl:new-note-draft` and navigates to `/new`.
-
-**Guidance chips** appear below the mode bar. Each chip corresponds to a writing guidance template. When the template has a `color` field, the chip shows a **colored dot** using that color. The active chip uses the template color as its text/border color.
-
 ### NoteDetail (`components/notes/NoteDetail.tsx`)
 
 Displays an individual note. Supports read mode and edit mode.
@@ -433,3 +419,27 @@ const { t } = useTranslation();
 **LanguageSwitcher** (`components/LanguageSwitcher.tsx`): a dropdown rendered inside `Rail.tsx` at the bottom of the sidebar. Calls `i18n.changeLanguage(code)` on selection.
 
 **Adding a locale**: create `src/i18n/locales/{lang}.json` mirroring the `en` key structure. Caution: ASCII double-quotes inside JSON string values must be escaped as `\"` or replaced with language-appropriate quote marks (e.g. Chinese corner brackets `「」`) — bare `"` breaks the JSON parser.
+
+**Adding new strings**: When a feature adds user-visible text, translations must be added to **all nine locale files** in the same commit. Adding only to `en.json` and relying on fallback is not acceptable — the other locales will silently display raw English keys. Use the `en.json` value as the reference and provide appropriate translations. Plural keys (`key_plural`) follow i18next conventions and must be included for any count-interpolated string.
+
+**User settings**: Per-user preferences (e.g. home widget visibility) are stored in the `user_settings` table (SQLite key `userId`, value is a JSON blob). Read via `GET /api/settings`, write via `PATCH /api/settings` (partial merge). `KnowledgeService.getState()` overlays fresh settings onto every `/api/knowledge` response without tying settings reads to the 30-second rebuild cycle. Never store user preferences in `localStorage` unless they are purely UI-local (theme, font) and not account-level data.
+
+**Note read tracking**: `POST /api/notes/:id/read` increments the `note_reads` table row for the current user. `NoteRoute` fires this silently on every note open. `KnowledgeState.readNoteIds` and `readCounts` expose read data to the frontend. `CategoryIndex` and `TagIndex` support an "Unread" filter using the `readNoteIds` set. `Home` shows 3 randomly-selected unread notes in the Discover widget (re-shufflable).
+
+### CaptureBox (`components/capture/CaptureBox.tsx`)
+
+Multi-mode note-capture widget. Mode is toggled via an **underline tab bar** at the top of the widget.
+
+| Tab | API `mode` | Behaviour |
+|-----|-----------|-----------|
+| Research | `research` | AI researches topic and writes a note (durable queue) |
+| Link | `link` | AI fetches URL and converts to a note (durable queue) |
+| Write | `write` | Direct save to markdown |
+
+**Write tab extras**: Below the TipTap editor (`NoteEditor`), two action buttons appear:
+- **AI Assist** — opens a modal popup with a textarea for a free-text instruction. On submit, calls `POST /api/notes/assist-draft` via `assistDraft()` and applies the returned `NoteUpdate` proposal to the form fields. The user still saves manually.
+- **Full Editor** — serialises the current draft (title, body, category, summary, tags) to `sessionStorage` under key `kl:new-note-draft` and navigates to `/new`.
+
+**Guidance** (Research/Link tabs): Always-visible section below the primary input. Template chips have a colored dot when the template has a `color` field (CSS variable name like `moss`, `indigo`, `teal`). Below the chips is a free-text custom instruction field. Guidance text persists per-mode in `localStorage` (`kl:cap-research`, `kl:cap-link`).
+
+**More options** (expandable): exposes seed text, context, and `MetaFields` (category + tags) depending on the active tab.

@@ -248,7 +248,11 @@
     "noLinksYet": "Aucun pour l'instant. Codex en ajoutera lors du prochain passage.",
     "backlinksCount": "Rétroliens · {{count}}",
     "noBacklinksYet": "Rien ne pointe encore ici.",
-    "fileInfo": "Fichier"
+    "fileInfo": "Fichier",
+    "readCount": "{{count}} lecture",
+    "readCount_plural": "{{count}} lectures",
+    "readCountTitle": "Lu {{count}} fois",
+    "readCountTitle_plural": "Lu {{count}} fois"
   },
   "chat": {
     "openBtn": "Demander à l'IA",
@@ -327,7 +331,8 @@
     "noNotesMatch": "Aucune note ne correspond — ",
     "clearFilters": "effacer les filtres",
     "searchNotes": "Rechercher des notes…",
-    "allCategories": "Toutes les catégories"
+    "allCategories": "Toutes les catégories",
+    "unreadOnly": "Non lu"
   },
   "tags": {
     "crumbHome": "Étiquettes",
@@ -341,7 +346,8 @@
     "noNotesMatch": "Aucune note ne correspond — ",
     "clearFilters": "effacer les filtres",
     "noNotesTag": "Aucune note avec cette étiquette pour l'instant.",
-    "searchNotes": "Rechercher des notes…"
+    "searchNotes": "Rechercher des notes…",
+    "unreadOnly": "Non lu"
   },
   "home": {
     "crumb": "Bureau",
@@ -360,7 +366,14 @@
     "statFlashcards": "fiches",
     "recentlyAdded": "Récemment ajouté",
     "totalNotes": "{{count}} au total",
-    "noNotes": "Aucune note pour l'instant. Capturez quelque chose ci-dessus."
+    "noNotes": "Aucune note pour l'instant. Capturez quelque chose ci-dessus.",
+    "discover": "Découvrir",
+    "discoverShuffle": "Mélanger",
+    "discoverEmpty": "Vous avez tout lu — bravo !",
+    "customize": "Personnaliser",
+    "widgetDaily": "Révision quotidienne",
+    "widgetDiscover": "Découvrir",
+    "widgetRecent": "Notes récentes"
   },
   "auth": {
     "appName": "Knowledge Loom",
