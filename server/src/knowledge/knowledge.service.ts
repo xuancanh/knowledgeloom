@@ -22,6 +22,7 @@ import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { NoteFileRepository } from '../notes/note-file.repository';
 import { NoteReadsRepository } from '../notes/note-reads.repository';
+import { UserSettingsRepository } from '../settings/user-settings.repository';
 import { FlashcardsService } from '../flashcards/flashcards.service';
 import { QuizService } from '../quiz/quiz.service';
 import { SearchService } from '../search/search.service';
@@ -42,6 +43,7 @@ export class KnowledgeService {
   constructor(
     private readonly noteRepo: NoteFileRepository,
     private readonly noteReadsRepo: NoteReadsRepository,
+    private readonly settingsRepo: UserSettingsRepository,
     private readonly flashcardsService: FlashcardsService,
     private readonly quizService: QuizService,
     private readonly searchService: SearchService,
@@ -70,11 +72,16 @@ export class KnowledgeService {
       this.backgroundRebuilds.set(userId, p);
     }
 
+    // Settings are always read fresh here (not part of the rebuild cycle) so
+    // they reflect the latest PATCH /api/settings immediately.
+    const userSettings = await this.settingsRepo.get(userId);
+
     // If we have a cached snapshot, serve it immediately (background rebuild will update it).
-    if (cached) return cached;
+    if (cached) return { ...cached, userSettings };
 
     // No cached state yet (first startup) — wait for the rebuild.
-    return this.backgroundRebuilds.get(userId)!;
+    const state = await this.backgroundRebuilds.get(userId)!;
+    return { ...state, userSettings };
   }
 
   /**
@@ -144,7 +151,9 @@ export class KnowledgeService {
     const readCounts = await this.noteReadsRepo.getReadCounts(userId);
     const readNoteIds = Object.keys(readCounts);
 
-    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, quizQuestions: enrichedQuizQuestions, readNoteIds, readCounts, updatedAt: new Date().toISOString() };
+    // userSettings is intentionally {} here — getState() overlays the live value
+    // from the DB so it's always fresh without being tied to the rebuild cycle.
+    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, quizQuestions: enrichedQuizQuestions, readNoteIds, readCounts, userSettings: {}, updatedAt: new Date().toISOString() };
 
     if (!this.readOnly) {
       await this.noteRepo.writeIndexJson(userId, state);

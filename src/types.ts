@@ -51,6 +51,7 @@ export type KnowledgeState = {
   quizQuestions?: QuizQuestion[];
   readNoteIds?: string[];
   readCounts?: Record<string, number>;
+  userSettings?: Record<string, unknown>;
   updatedAt?: string;
 };
 

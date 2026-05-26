@@ -43,6 +43,14 @@ export async function markNoteRead(id: string): Promise<void> {
   await apiFetch(`/api/notes/${encodeURIComponent(id)}/read`, { method: 'POST' });
 }
 
+export async function patchSettings(patch: Record<string, unknown>): Promise<void> {
+  await apiFetch('/api/settings', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+}
+
 export async function fetchReminders(filters: { noteId?: string; status?: 'active' | 'done' | 'due' } = {}): Promise<{ reminders: Reminder[] }> {
   const params = new URLSearchParams();
   if (filters.noteId) params.set('noteId', filters.noteId);

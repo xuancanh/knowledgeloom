@@ -145,6 +145,7 @@ function AuthenticatedApp() {
                 onSubmit={submitCapture}
                 readOnly={readOnly}
                 templates={templates}
+                userSettings={state.userSettings}
               />
             } />
             <Route path="/activity" element={

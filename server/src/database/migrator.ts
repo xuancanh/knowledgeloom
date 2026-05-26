@@ -268,6 +268,17 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0005_user_settings',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS user_settings (
+          userId   TEXT NOT NULL PRIMARY KEY,
+          settings TEXT NOT NULL DEFAULT '{}'
+        );
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
