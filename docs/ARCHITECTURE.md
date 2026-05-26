@@ -53,6 +53,7 @@ server/src/notes/          Note CRUD, assist, assist-draft endpoints
 server/src/rag/            RAG streaming endpoint (POST /api/rag/stream)
 server/src/reminders/      Reminder CRUD
 server/src/search/         MeilisearchProvider + InMemorySearchProvider
+server/src/settings/       UserSettingsRepository + GET/PATCH /api/settings
 server/src/status/         GET /api/status
 server/src/storage/        Pluggable note storage: LocalNoteStorage or S3NoteStorage
 ```
@@ -114,7 +115,7 @@ Durable state ownership:
 
 ```text
 knowledge/notes/**/*.md          Canonical note content
-knowledge/app.sqlite             Jobs, reminders, and AI flashcard cache (single SQLite file)
+knowledge/app.sqlite             Jobs, reminders, flashcard cache, note reads, user settings
 Meilisearch knowledge_notes      Search documents rebuilt from notes
 knowledge/index.json             Derived frontend compatibility manifest
 knowledge/categories/*.md        Derived category index files
@@ -122,6 +123,10 @@ knowledge/meili-sync-*.json      Derived search sync manifest
 ```
 
 Note: reminders are stored in `knowledge/app.sqlite`, not in a separate `knowledge/reminders.sqlite`. There is no `knowledge/reminders.sqlite`.
+
+**User settings**: Per-user preferences are stored in the `user_settings` table (one row per user, `settings` column is a JSON blob). `GET /api/settings` reads the blob; `PATCH /api/settings` does a shallow merge. `KnowledgeService.getState()` always overlays fresh settings from the DB onto every `/api/knowledge` response — this bypasses the 30-second rebuild cooldown so settings changes are visible immediately without waiting for a full rebuild.
+
+**Note read tracking**: `note_reads` table records when each user opens each note. `POST /api/notes/:id/read` increments the read count; it is called silently by `NoteRoute` on every note open. `KnowledgeState` includes `readNoteIds` (array of note IDs the user has read) and `readCounts` (map of note ID → read count) so the frontend can filter and display read state without an extra request.
 
 **Key invariants:**
 

@@ -134,9 +134,32 @@ in-progress streaming message) are forwarded as conversation history.
 
 **Route**: `/`
 
-Main desk view. Shows `CaptureBox` (note creation form), the 6 most urgently
-due reminders sorted by `remindAt`, and the 8 most recently created notes via
-`NoteList`. A 60-second clock re-checks "Due now" status.
+Main desk view. Shows `CaptureBox` (note creation form) plus three toggleable
+widgets. Widget visibility is stored per-user in `userSettings.homeWidgets`
+(a `{ daily, discover, recent }` boolean object). State is initialized from the
+`userSettings` prop (passed from `KnowledgeState`) and saved to the server via
+`PATCH /api/settings` on each toggle (fire-and-forget).
+
+**Customise bar**: A "Customize" button in the crumbs row reveals chip toggles
+for each widget. Chips show a colored dot (filled = visible, muted = hidden).
+
+**Daily widget** (`widgets.daily`): A bordered card shown when there are
+overdue reminders or due flashcards, or upcoming reminders. Two sections:
+
+- *Due now* (`daily-due`): flashcard row (opens flashcard session) and one row
+  per overdue reminder with Open / Done actions. Each row has a 3 px left pip —
+  accent for flashcards, rust for reminders.
+- *Upcoming* (`daily-upcoming`): slim list of non-overdue reminders, up to 3.
+  Divided from the due section by a horizontal rule when both are present.
+
+A 60-second clock re-checks overdue status.
+
+**Discover widget** (`widgets.discover`): Shows up to 3 randomly selected
+unread notes as card tiles (shufflable). Notes the user has already opened are
+excluded using the `readNoteIds` set. Hidden when all notes have been read.
+
+**Recent widget** (`widgets.recent`): The 6 most recently created notes via
+`NoteList`, plus total note count.
 
 ---
 
@@ -199,6 +222,7 @@ Displays one category page:
 - Subcategory chips (direct children, depth + 1).
 - Tag frequency chips (top 12 tags in this category).
 - Sortable note list (recent / oldest / most linked) via `NoteList`.
+- **Unread filter**: "Unread only" toggle hides notes the user has already read (uses `readNoteIds` set passed from `CategoryRoute`).
 - Include notes in sub-folders via `categoryContains()`.
 
 ---
@@ -213,6 +237,7 @@ Tag detail page with:
 - Category distribution chips for this tag.
 - Related (co-occurring) tags with weighted display.
 - Sortable, paginated note list (10 per page; recent / oldest / most linked).
+- **Unread filter**: "Unread only" toggle hides notes the user has already read (uses `readNoteIds` set).
 - Pagination updates the URL query string (`?page=N`) so back/forward works.
 
 ---
@@ -245,6 +270,10 @@ adds `body.reading` class and injects a `<style>` tag targeting
 `body.reading .note-detail .ne-view-content .tiptap` with `!important` to
 override the editor's base font size. Font size (`s` / `m` / `l`) and content
 width are adjustable via controls shown in focus mode only.
+
+**Read tracking**: `NoteRoute` silently calls `POST /api/notes/:id/read` on every
+note open. The read count for the note (from `readCounts`) is displayed in the
+reader header as a small annotation (e.g. "3 reads").
 
 **Sub-components**:
 - `AiAssistPanel` — AI instruction input, runs `/api/notes/:id/assist`.

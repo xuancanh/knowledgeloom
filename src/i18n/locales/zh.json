@@ -248,7 +248,11 @@
     "noLinksYet": "暂无链接。Codex 将在下次处理后添加。",
     "backlinksCount": "反向链接 · {{count}}",
     "noBacklinksYet": "暂无文章链接到此处。",
-    "fileInfo": "文件"
+    "fileInfo": "文件",
+    "readCount": "已读 {{count}} 次",
+    "readCount_plural": "已读 {{count}} 次",
+    "readCountTitle": "已读 {{count}} 次",
+    "readCountTitle_plural": "已读 {{count}} 次"
   },
   "chat": {
     "openBtn": "问 AI",
@@ -327,7 +331,8 @@
     "noNotesMatch": "没有匹配的笔记 — ",
     "clearFilters": "清除筛选",
     "searchNotes": "搜索笔记…",
-    "allCategories": "所有分类"
+    "allCategories": "所有分类",
+    "unreadOnly": "未读"
   },
   "tags": {
     "crumbHome": "标签",
@@ -341,7 +346,8 @@
     "noNotesMatch": "没有匹配的笔记 — ",
     "clearFilters": "清除筛选",
     "noNotesTag": "暂无带此标签的笔记。",
-    "searchNotes": "搜索笔记…"
+    "searchNotes": "搜索笔记…",
+    "unreadOnly": "未读"
   },
   "home": {
     "crumb": "桌面",
@@ -360,7 +366,14 @@
     "statFlashcards": "闪卡",
     "recentlyAdded": "最近添加",
     "totalNotes": "共 {{count}} 篇",
-    "noNotes": "暂无笔记。请在上方捕获一些内容。"
+    "noNotes": "暂无笔记。请在上方捕获一些内容。",
+    "discover": "发现",
+    "discoverShuffle": "随机",
+    "discoverEmpty": "您已读完所有内容 — 做得好！",
+    "customize": "自定义",
+    "widgetDaily": "每日复习",
+    "widgetDiscover": "发现",
+    "widgetRecent": "最近笔记"
   },
   "auth": {
     "appName": "知识织机",

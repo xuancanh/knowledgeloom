@@ -248,7 +248,11 @@
     "noLinksYet": "Tiada lagi. Codex akan menambah selepas proses seterusnya.",
     "backlinksCount": "Pautan balik · {{count}}",
     "noBacklinksYet": "Tiada yang memaut ke sini lagi.",
-    "fileInfo": "Fail"
+    "fileInfo": "Fail",
+    "readCount": "{{count}} bacaan",
+    "readCount_plural": "{{count}} bacaan",
+    "readCountTitle": "Dibaca {{count}} kali",
+    "readCountTitle_plural": "Dibaca {{count}} kali"
   },
   "chat": {
     "openBtn": "Tanya AI",
@@ -327,7 +331,8 @@
     "noNotesMatch": "Tiada nota yang sepadan — ",
     "clearFilters": "kosongkan penapis",
     "searchNotes": "Cari nota…",
-    "allCategories": "Semua kategori"
+    "allCategories": "Semua kategori",
+    "unreadOnly": "Belum dibaca"
   },
   "tags": {
     "crumbHome": "Tag",
@@ -341,7 +346,8 @@
     "noNotesMatch": "Tiada nota yang sepadan — ",
     "clearFilters": "kosongkan penapis",
     "noNotesTag": "Tiada nota dengan tag ini lagi.",
-    "searchNotes": "Cari nota…"
+    "searchNotes": "Cari nota…",
+    "unreadOnly": "Belum dibaca"
   },
   "home": {
     "crumb": "Meja",
@@ -360,7 +366,14 @@
     "statFlashcards": "kad imbas",
     "recentlyAdded": "Baru ditambah",
     "totalNotes": "{{count}} jumlah",
-    "noNotes": "Tiada nota lagi. Tangkap sesuatu di atas."
+    "noNotes": "Tiada nota lagi. Tangkap sesuatu di atas.",
+    "discover": "Temui",
+    "discoverShuffle": "Kocok",
+    "discoverEmpty": "Anda telah membaca semuanya — bagus!",
+    "customize": "Suaikan",
+    "widgetDaily": "Semakan harian",
+    "widgetDiscover": "Temui",
+    "widgetRecent": "Nota terbaru"
   },
   "auth": {
     "appName": "Knowledge Loom",
