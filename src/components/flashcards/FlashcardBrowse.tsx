@@ -5,6 +5,7 @@ import type { UiCategory } from '../../lib/view';
 import { KIND_COLOR, KIND_LABEL, RATING_LABEL, RATING_COLOR } from './constants';
 import type { Rating } from './types';
 import { createFlashcard, reviewFlashcard } from '../../api';
+import { MultiSelectDropdown } from '../MultiSelectDropdown';
 
 function isCardDue(card: Flashcard): boolean {
   if (!card.reviewData?.nextReviewAt) return true;
@@ -24,55 +25,6 @@ function getDueLabel(card: Flashcard, t: (key: string, opts?: Record<string, unk
 }
 
 const CARD_LIMITS = [10, 20, 50] as const;
-
-function MultiSelectDropdown({
-  label,
-  items,
-  selected,
-  onChange,
-}: {
-  label: string;
-  items: Array<{ id: string; label: string; count: number }>;
-  selected: string[];
-  onChange: (ids: string[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDocClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, [open]);
-
-  function toggle(itemId: string) {
-    if (selected.includes(itemId)) onChange(selected.filter((id) => id !== itemId));
-    else onChange([...selected, itemId]);
-  }
-
-  return (
-    <div className="fc-multi" ref={ref}>
-      <button className="fc-multi-trigger" onClick={() => setOpen(!open)}>
-        {label} {selected.length > 0 && `(${selected.length})`} ▾
-      </button>
-      {open && (
-        <div className="fc-multi-dropdown">
-          {items.length === 0 && <div className="fc-multi-empty">None</div>}
-          {items.map((item) => (
-            <label key={item.id} className="fc-multi-item">
-              <input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)} />
-              <span className="fc-multi-name">{item.label}</span>
-              <span className="fc-multi-count">{item.count}</span>
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function FlashcardBrowse({
   flashcards,
