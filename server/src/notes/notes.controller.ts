@@ -61,6 +61,13 @@ export class NotesController {
     return this.notesService.assistEdit(id, body?.draft || {}, prompt);
   }
 
+  @Post(':id/read')
+  @HttpCode(200)
+  async markRead(@CurrentUser() userId: string, @Param('id') id: string) {
+    await this.notesService.markRead(userId, id);
+    return { ok: true };
+  }
+
   @Post(':id/regenerate')
   @HttpCode(200)
   @UseGuards(WritableGuard)

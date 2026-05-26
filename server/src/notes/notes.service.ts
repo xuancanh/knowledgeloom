@@ -14,6 +14,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { ConfigService } from '@nestjs/config';
 import { basename } from 'node:path';
 import { NoteFileRepository } from './note-file.repository';
+import { NoteReadsRepository } from './note-reads.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { RemindersService } from '../reminders/reminders.service';
 import { SearchService } from '../search/search.service';
@@ -34,6 +35,7 @@ export class NotesService {
 
   constructor(
     private readonly noteRepo: NoteFileRepository,
+    private readonly noteReadsRepo: NoteReadsRepository,
     private readonly knowledgeService: KnowledgeService,
     private readonly remindersService: RemindersService,
     private readonly searchService: SearchService,
@@ -42,6 +44,11 @@ export class NotesService {
     private readonly config: ConfigService,
   ) {
     this.readOnly = config.get<boolean>('readOnly');
+  }
+
+  /** Records that userId opened noteId. Safe to call in read-only mode (reads still happen). */
+  async markRead(userId: string, noteId: string): Promise<void> {
+    await this.noteReadsRepo.markRead(userId, noteId);
   }
 
   /** Returns the raw markdown for the editor. */

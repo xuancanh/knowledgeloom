@@ -89,6 +89,8 @@ export interface KnowledgeState {
   graph: GraphEdge[];
   flashcards: Flashcard[];
   quizQuestions: QuizQuestion[];
+  readNoteIds: string[];
+  readCounts: Record<string, number>;
   updatedAt: string;
 }
 

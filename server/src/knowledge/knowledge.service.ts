@@ -21,6 +21,7 @@ import { mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { NoteFileRepository } from '../notes/note-file.repository';
+import { NoteReadsRepository } from '../notes/note-reads.repository';
 import { FlashcardsService } from '../flashcards/flashcards.service';
 import { QuizService } from '../quiz/quiz.service';
 import { SearchService } from '../search/search.service';
@@ -40,6 +41,7 @@ export class KnowledgeService {
 
   constructor(
     private readonly noteRepo: NoteFileRepository,
+    private readonly noteReadsRepo: NoteReadsRepository,
     private readonly flashcardsService: FlashcardsService,
     private readonly quizService: QuizService,
     private readonly searchService: SearchService,
@@ -139,7 +141,10 @@ export class KnowledgeService {
       };
     });
 
-    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, quizQuestions: enrichedQuizQuestions, updatedAt: new Date().toISOString() };
+    const readCounts = await this.noteReadsRepo.getReadCounts(userId);
+    const readNoteIds = Object.keys(readCounts);
+
+    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, quizQuestions: enrichedQuizQuestions, readNoteIds, readCounts, updatedAt: new Date().toISOString() };
 
     if (!this.readOnly) {
       await this.noteRepo.writeIndexJson(userId, state);

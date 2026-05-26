@@ -20,9 +20,10 @@ import { RemindersModule } from '../reminders/reminders.module';
 import { SearchModule } from '../search/search.module';
 import { CodexModule } from '../codex/codex.module';
 import { JobsModule } from '../jobs/jobs.module';
+import { NoteReadsModule } from './note-reads.module';
 
 @Module({
-  imports: [NotesFileModule, KnowledgeModule, RemindersModule, SearchModule, CodexModule, JobsModule],
+  imports: [NotesFileModule, KnowledgeModule, RemindersModule, SearchModule, CodexModule, JobsModule, NoteReadsModule],
   controllers: [NotesController],
   providers: [NotesService],
   exports: [NotesService],

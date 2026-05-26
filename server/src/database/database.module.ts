@@ -26,7 +26,7 @@ import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
 import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
-import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE } from './database.constants';
+import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE } from './database.constants';
 
 export type DrizzleDb = any;
 
@@ -141,6 +141,15 @@ const quizHiddenTableProvider = {
   },
 };
 
+const noteReadsTableProvider = {
+  provide: NOTE_READS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const _dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return schema.sqliteNoteReads;
+  },
+};
+
 @Global()
 @Module({
   providers: [
@@ -154,6 +163,7 @@ const quizHiddenTableProvider = {
     quizCacheTableProvider,
     quizReviewsTableProvider,
     quizHiddenTableProvider,
+    noteReadsTableProvider,
   ],
   exports: [
     DRIZZLE_DB,
@@ -166,6 +176,7 @@ const quizHiddenTableProvider = {
     QUIZ_CACHE_TABLE,
     QUIZ_REVIEWS_TABLE,
     QUIZ_HIDDEN_TABLE,
+    NOTE_READS_TABLE,
   ],
 })
 export class DatabaseModule implements OnModuleInit {

@@ -251,6 +251,23 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0004_note_reads',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS note_reads (
+          userId      TEXT NOT NULL DEFAULT '',
+          noteId      TEXT NOT NULL,
+          readCount   INTEGER NOT NULL DEFAULT 1,
+          firstReadAt TEXT NOT NULL,
+          lastReadAt  TEXT NOT NULL,
+          PRIMARY KEY (userId, noteId)
+        );
+        CREATE INDEX IF NOT EXISTS idx_note_reads_user_id ON note_reads(userId);
+        CREATE INDEX IF NOT EXISTS idx_note_reads_note_id ON note_reads(noteId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------

@@ -190,3 +190,14 @@ export const pgQuizHidden = pgTable('quiz_hidden', {
   userId: pgText('userId').notNull().default(''),
   createdAt: pgText('createdAt').notNull(),
 });
+
+/** Per-user note read tracking (read count + timestamps). */
+export const sqliteNoteReads = sqliteTable('note_reads', {
+  userId: sqliteText('userId').notNull().default(''),
+  noteId: sqliteText('noteId').notNull(),
+  readCount: sqliteInteger('readCount').notNull().default(1),
+  firstReadAt: sqliteText('firstReadAt').notNull(),
+  lastReadAt: sqliteText('lastReadAt').notNull(),
+}, (t) => ({
+  pk: sqlitePrimaryKey({ columns: [t.userId, t.noteId] }),
+}));
