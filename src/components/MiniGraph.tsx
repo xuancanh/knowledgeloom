@@ -14,12 +14,20 @@ export default function MiniGraph({
   onOpen: (id: string) => void;
 }) {
   const related = useMemo(() => {
-    const outgoing = note.links
+    const biSet = new Set(note.bilinks ?? []);
+    const monoLinks = note.links.filter((id) => !biSet.has(id));
+    const outgoing = monoLinks
       .map((id) => notes.find((item) => item.id === id))
       .filter((item): item is KnowledgeNote => Boolean(item));
-    const back = notes.filter((item) => item.links.includes(note.id) && !note.links.includes(item.id));
+    const bilinked = [...biSet]
+      .map((id) => notes.find((item) => item.id === id))
+      .filter((item): item is KnowledgeNote => Boolean(item));
+    const back = notes.filter(
+      (item) => item.links.includes(note.id) && !note.links.includes(item.id) && !biSet.has(item.id),
+    );
     return [
       ...outgoing.map((item) => ({ note: item, kind: 'out' as const })),
+      ...bilinked.map((item) => ({ note: item, kind: 'bi' as const })),
       ...back.map((item) => ({ note: item, kind: 'back' as const })),
     ];
   }, [note, notes]);
@@ -48,7 +56,7 @@ export default function MiniGraph({
           const y = cy + Math.sin(angle) * radius;
           return (
             <g key={item.id} style={{ cursor: 'pointer' }} onClick={() => onOpen(item.id)}>
-              <circle cx={x} cy={y} r="5" fill={kind === 'out' ? 'var(--ink-2)' : 'var(--ochre)'} />
+              <circle cx={x} cy={y} r="5" fill={kind === 'out' ? 'var(--ink-2)' : kind === 'bi' ? 'var(--teal)' : 'var(--ochre)'} />
               <title>{item.title}</title>
             </g>
           );
@@ -57,6 +65,7 @@ export default function MiniGraph({
       <div className="legend">
         <span>● <span style={{ color: 'var(--accent)' }}>here</span></span>
         <span>● <span style={{ color: 'var(--ink-2)' }}>links to</span></span>
+        <span>● <span style={{ color: 'var(--teal)' }}>bidirectional</span></span>
         <span>● <span style={{ color: 'var(--ochre)' }}>linked from</span></span>
       </div>
     </div>
