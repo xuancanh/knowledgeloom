@@ -38,16 +38,21 @@ export class JobsService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     if (this.readOnly) return;
 
-    // Reset jobs in SQLite that were running when the process was killed,
-    // and re-enqueue them to BullMQ if necessary.
+    // Recover interrupted jobs (were running when the process was killed).
     const running = await this.repo.getRunningJobs();
     for (const job of running) {
       this.logger.log(`Recovering interrupted job on boot: ${job.id}`);
       job.status = 'queued';
       job.nextRunAt = new Date().toISOString();
       await this.repo.save(job);
+    }
 
-      // Re-add to BullMQ queue so it gets processed
+    // Re-enqueue all queued jobs (includes just-reset running jobs).
+    // BullMQ deduplicates by jobId so this is safe even if the job is
+    // already in Redis — it returns the existing entry without creating a duplicate.
+    const queued = await this.repo.getQueuedJobs();
+    for (const job of queued) {
+      this.logger.log(`Re-enqueuing queued job on boot: ${job.id}`);
       await this.codexQueue.add('process-job', job, {
         jobId: job.id,
         attempts: job.maxAttempts || this.maxAttempts,
@@ -56,6 +61,10 @@ export class JobsService implements OnModuleInit {
           delay: this.retryMs,
         },
       });
+    }
+
+    if (queued.length > 0) {
+      this.logger.log(`Boot recovery complete: ${queued.length} job(s) re-enqueued`);
     }
   }
 

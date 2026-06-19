@@ -8,6 +8,7 @@ export type KnowledgeNote = {
   summary: string;
   tags: string[];
   links: string[];
+  bilinks?: string[];
   createdAt: string;
   sourceUrl?: string;
   originalRequest?: string;
@@ -43,10 +44,16 @@ export type QuizQuestion = {
   };
 };
 
+export type GraphLinkDirection = 'mono' | 'bi';
+export type GraphEdge = {
+  source: string;
+  targets: Array<{ id: string; direction: GraphLinkDirection }>;
+};
+
 export type KnowledgeState = {
   notes: KnowledgeNote[];
   categories: KnowledgeCategory[];
-  graph: Array<{ source: string; targets: string[] }>;
+  graph: GraphEdge[];
   flashcards?: Flashcard[];
   quizQuestions?: QuizQuestion[];
   readNoteIds?: string[];
@@ -89,6 +96,7 @@ export type CreateNoteRequest = {
   summary?: string;
   tags?: string[];
   links?: string[];
+  bilinks?: string[];
   guidance?: string;
 };
 

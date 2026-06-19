@@ -83,13 +83,14 @@ export default function NoteDetail({
   const [summary, setSummary] = useState(note.summary);
   const [tags, setTags] = useState<string[]>(note.tags);
   const [links, setLinks] = useState<string[]>(note.links);
+  const [bilinks, setBilinks] = useState<string[]>(note.bilinks ?? []);
   const [saveError, setSaveError] = useState('');
   const [aiSuccess, setAiSuccess] = useState('');
 
   const catId = categoryId(note.category);
   const cat = categories.find((item) => item.id === catId) || categories[0];
-  const outgoing = note.links.map((id) => notes.find((item) => item.id === id)).filter(Boolean);
-  const backlinks = notes.filter((item) => item.links.includes(note.id));
+  const outgoing = [...note.links, ...(note.bilinks ?? [])].map((id) => notes.find((item) => item.id === id)).filter(Boolean);
+  const backlinks = notes.filter((item) => item.links.includes(note.id) || (item.bilinks ?? []).includes(note.id));
 
   useEffect(() => {
     const styleId = 'kl-reading-style';
@@ -151,6 +152,7 @@ export default function NoteDetail({
     setSummary(note.summary);
     setTags(note.tags);
     setLinks(note.links);
+    setBilinks(note.bilinks ?? []);
     setSaveError('');
     setAiSuccess('');
     setEditing(true);
@@ -160,6 +162,10 @@ export default function NoteDetail({
     setLinks((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   }
 
+  function toggleBilink(id: string) {
+    setBilinks((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  }
+
   function currentDraft(): NoteUpdate {
     return {
       title,
@@ -167,6 +173,7 @@ export default function NoteDetail({
       summary,
       tags,
       links,
+      bilinks,
       body: editorRef.current?.getValue() ?? '',
     };
   }
@@ -190,6 +197,7 @@ export default function NoteDetail({
     setSummary(update.summary);
     setTags(update.tags);
     setLinks(update.links);
+    setBilinks(update.bilinks ?? []);
     editorRef.current?.setValue(update.body);
     setAiSuccess('AI draft applied. Review the changes, then save the note.');
   }
@@ -296,6 +304,7 @@ export default function NoteDetail({
           category={category}
           tags={tags}
           links={links}
+          bilinks={bilinks}
           initialBody={stripFrontmatter(markdown)}
           notes={notes}
           categories={categories}
@@ -310,6 +319,7 @@ export default function NoteDetail({
           onCategoryChange={setCategory}
           onTagsChange={setTags}
           onToggleLink={toggleLink}
+          onToggleBilink={toggleBilink}
           getDraft={currentDraft}
           onAiAssist={async (prompt, draft) => {
             const { update } = await assistDraft(

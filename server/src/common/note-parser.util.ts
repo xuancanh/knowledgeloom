@@ -79,6 +79,7 @@ export function composeMarkdown(fields: {
   summary: string;
   tags: unknown;
   links: unknown;
+  bilinks?: unknown;
   createdAt: string;
   sourceUrl?: string;
   originalRequest?: string;
@@ -88,13 +89,17 @@ export function composeMarkdown(fields: {
   const cleanBody = String(fields.body || '').trim() || `# ${cleanTitle}\n\n## What I learned\n\n`;
   const sourceUrlLine = fields.sourceUrl ? `sourceUrl: "${escapeFrontmatter(fields.sourceUrl)}"\n` : '';
   const originalRequestLine = fields.originalRequest ? `originalRequest: "${escapeFrontmatter(fields.originalRequest)}"\n` : '';
+  const bilinksArr = normalizeArray(fields.bilinks);
+  const bilinksLine = bilinksArr.length > 0
+    ? `bilinks: [${bilinksArr.map((l) => `"${escapeFrontmatter(l)}"`).join(', ')}]\n`
+    : '';
   return `---
 title: "${escapeFrontmatter(cleanTitle)}"
 category: "${escapeFrontmatter(normalizeCategoryPath(fields.category || 'Uncategorized'))}"
 summary: "${escapeFrontmatter(fields.summary || '')}"
 tags: [${normalizeArray(fields.tags).map((tag) => `"${escapeFrontmatter(tag)}"`).join(', ')}]
 links: [${normalizeArray(fields.links).map((link) => `"${escapeFrontmatter(link)}"`).join(', ')}]
-createdAt: "${escapeFrontmatter(fields.createdAt || new Date().toISOString())}"
+${bilinksLine}createdAt: "${escapeFrontmatter(fields.createdAt || new Date().toISOString())}"
 ${sourceUrlLine}${originalRequestLine}
 ---
 
@@ -119,6 +124,7 @@ export function parseNote(fileName: string, markdown: string): KnowledgeNote {
     summary,
     tags: parseArrayField(markdown, 'tags'),
     links: parseArrayField(markdown, 'links'),
+    bilinks: parseArrayField(markdown, 'bilinks'),
     createdAt,
     sourceUrl,
     originalRequest,

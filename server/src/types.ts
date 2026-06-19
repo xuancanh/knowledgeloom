@@ -17,6 +17,7 @@ export interface KnowledgeNote {
   summary: string;
   tags: string[];
   links: string[];
+  bilinks?: string[];
   createdAt: string;
   sourceUrl?: string;
   originalRequest?: string;
@@ -36,9 +37,11 @@ export interface CategoryEntry {
   notes: { id: string; title: string; summary: string }[];
 }
 
+export type GraphLinkDirection = 'mono' | 'bi';
+
 export interface GraphEdge {
   source: string;
-  targets: string[];
+  targets: Array<{ id: string; direction: GraphLinkDirection }>;
 }
 
 export interface Flashcard {

@@ -158,6 +158,7 @@ export type NoteUpdate = {
   summary: string;
   tags: string[];
   links: string[];
+  bilinks?: string[];
   body: string;
 };
 
@@ -201,6 +202,22 @@ export async function updateNote(id: string, update: NoteUpdate): Promise<{ note
     body: JSON.stringify(update),
   });
   if (!response.ok) throw new Error(`Failed to update note: ${response.status}`);
+  return response.json();
+}
+
+export async function patchNote(id: string, patch: Partial<NoteUpdate>): Promise<{ note: KnowledgeNote; state: KnowledgeState }> {
+  const response = await apiFetch(`/api/notes/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!response.ok) throw new Error(`Failed to patch note: ${response.status}`);
+  return response.json();
+}
+
+export async function backfillBilinks(): Promise<{ pairsConverted: number; state: KnowledgeState }> {
+  const response = await apiFetch('/api/notes/backfill-bilinks', { method: 'POST' });
+  if (!response.ok) throw new Error(`Failed to backfill bilinks: ${response.status}`);
   return response.json();
 }
 

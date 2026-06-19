@@ -77,6 +77,7 @@ export class NotesService {
       summary: draft.summary || '',
       tags: draft.tags || [],
       links: draft.links || [],
+      bilinks: draft.bilinks || [],
       createdAt: draft.createdAt || new Date().toISOString(),
       body,
     });
@@ -108,6 +109,7 @@ export class NotesService {
       summary: updates.summary ?? current.summary,
       tags: updates.tags ?? current.tags,
       links: updates.links ?? current.links,
+      bilinks: updates.bilinks ?? current.bilinks,
       createdAt: updates.createdAt ?? current.createdAt,
       sourceUrl: updates.sourceUrl ?? current.sourceUrl,
       originalRequest: updates.originalRequest ?? current.originalRequest,
@@ -178,6 +180,55 @@ export class NotesService {
       regenTarget: target,
       regenSize: size,
     });
+  }
+
+  /**
+   * Finds all mutual mono-link pairs (A→B and B→A) and upgrades them to
+   * bidirectional links (bilinks), removing from each note's mono-links list.
+   * Writes files directly and does a single rebuild at the end.
+   */
+  async backfillBilinks(userId: string): Promise<any> {
+    this.assertWritable();
+    const notes = await this.noteRepo.readAll(userId);
+    const byId = new Map(notes.map((n) => [n.id, n]));
+
+    const changes = new Map<string, { links: string[]; bilinks: string[] }>();
+    const visited = new Set<string>();
+
+    for (const note of notes) {
+      for (const targetId of note.links) {
+        const pairKey = [note.id, targetId].sort().join('|');
+        if (visited.has(pairKey)) continue;
+        const target = byId.get(targetId);
+        if (!target || !target.links.includes(note.id)) continue;
+        visited.add(pairKey);
+
+        const aState = changes.get(note.id) ?? { links: [...note.links], bilinks: [...(note.bilinks ?? [])] };
+        const bState = changes.get(targetId) ?? { links: [...target.links], bilinks: [...(target.bilinks ?? [])] };
+
+        aState.links = aState.links.filter((l) => l !== targetId);
+        if (!aState.bilinks.includes(targetId)) aState.bilinks.push(targetId);
+
+        bState.links = bState.links.filter((l) => l !== note.id);
+        if (!bState.bilinks.includes(note.id)) bState.bilinks.push(note.id);
+
+        changes.set(note.id, aState);
+        changes.set(targetId, bState);
+      }
+    }
+
+    for (const [noteId, { links, bilinks }] of changes.entries()) {
+      const file = await this.noteRepo.findById(userId, noteId);
+      if (!file) continue;
+      const markdown = await this.noteRepo.readMarkdown(userId, noteId);
+      const current = parseNote(file, markdown);
+      const body = stripFrontmatter(markdown);
+      const updated = composeMarkdown({ ...current, links, bilinks, body });
+      await this.noteRepo.write(userId, file, updated);
+    }
+
+    const state = await this.knowledgeService.rebuildIndexes(userId);
+    return { pairsConverted: visited.size, state };
   }
 
   private assertWritable(): void {
