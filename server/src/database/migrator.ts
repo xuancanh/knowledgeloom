@@ -279,6 +279,22 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0006_learn_progress',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS learn_progress (
+          userId         TEXT NOT NULL PRIMARY KEY,
+          xp             INTEGER NOT NULL DEFAULT 0,
+          todayXp        INTEGER NOT NULL DEFAULT 0,
+          dailyGoalXp    INTEGER NOT NULL DEFAULT 100,
+          streak         INTEGER NOT NULL DEFAULT 0,
+          lastActiveDate TEXT,
+          mastery        TEXT NOT NULL DEFAULT '{}'
+        );
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -508,6 +524,22 @@ const PG_MIGRATIONS: PgMigration[] = [
           "createdAt"  TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_quiz_hidden_user_id ON quiz_hidden("userId");
+      `);
+    },
+  },
+  {
+    id: '0006_learn_progress_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS learn_progress (
+          "userId"         TEXT    NOT NULL PRIMARY KEY,
+          xp               INTEGER NOT NULL DEFAULT 0,
+          "todayXp"        INTEGER NOT NULL DEFAULT 0,
+          "dailyGoalXp"    INTEGER NOT NULL DEFAULT 100,
+          streak           INTEGER NOT NULL DEFAULT 0,
+          "lastActiveDate" TEXT,
+          mastery          TEXT    NOT NULL DEFAULT '{}'
+        );
       `);
     },
   },

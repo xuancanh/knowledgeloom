@@ -212,3 +212,24 @@ export const pgUserSettings = pgTable('user_settings', {
   userId: pgText('userId').primaryKey(),
   settings: pgText('settings').notNull().default('{}'),
 });
+
+/** Per-user learn progress: XP, streak, daily goal, and note mastery. */
+export const sqliteLearnProgress = sqliteTable('learn_progress', {
+  userId: sqliteText('userId').primaryKey(),
+  xp: sqliteInteger('xp').notNull().default(0),
+  todayXp: sqliteInteger('todayXp').notNull().default(0),
+  dailyGoalXp: sqliteInteger('dailyGoalXp').notNull().default(100),
+  streak: sqliteInteger('streak').notNull().default(0),
+  lastActiveDate: sqliteText('lastActiveDate'),
+  mastery: sqliteText('mastery').notNull().default('{}'),
+});
+
+export const pgLearnProgress = pgTable('learn_progress', {
+  userId: pgText('userId').primaryKey(),
+  xp: pgInteger('xp').notNull().default(0),
+  todayXp: pgInteger('todayXp').notNull().default(0),
+  dailyGoalXp: pgInteger('dailyGoalXp').notNull().default(100),
+  streak: pgInteger('streak').notNull().default(0),
+  lastActiveDate: pgText('lastActiveDate'),
+  mastery: pgText('mastery').notNull().default('{}'),
+});
