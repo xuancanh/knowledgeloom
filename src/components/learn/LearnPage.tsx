@@ -1,0 +1,959 @@
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import type { KnowledgeNote } from '../../types';
+import type { UiCategory } from '../../lib/view';
+import type { LearnProgress } from '../../hooks/useLearnProgress';
+import {
+  HOSTS, parseBodyBlocks, buildDeck, filterDeck, buildPlan, estimateCards, buildPodcastProgram,
+  clip,
+} from '../../lib/learnContent';
+import type { NoteForLearn, LearnCtx, LearnCard, PodLine } from '../../lib/learnContent';
+import { fetchNoteMarkdown } from '../../api';
+
+const KEYS = ['A', 'B', 'C', 'D', 'E'];
+const CAT_TINT: Record<string, string> = {
+  oxblood: '#b8553e', moss: '#6f8c4c', indigo: '#5a72b8',
+  ochre: '#c08e30', teal: '#3f8f86', rust: '#a8553a',
+};
+
+/* ────────── gamification ────────── */
+function GoalRing({ value, goal }: { value: number; goal: number }) {
+  const r = 9, c = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(1, goal ? value / goal : 0));
+  return (
+    <svg className="goal-ring" width="26" height="26" viewBox="0 0 26 26" title={`Daily goal · ${value}/${goal} XP`}>
+      <circle cx="13" cy="13" r={r} fill="none" stroke="var(--rule)" strokeWidth="3.2" />
+      <circle cx="13" cy="13" r={r} fill="none" stroke="var(--moss)" strokeWidth="3.2"
+        strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct)}
+        transform="rotate(-90 13 13)" style={{ transition: 'stroke-dashoffset 400ms ease' }} />
+    </svg>
+  );
+}
+function StreakChip({ streak }: { streak: number }) {
+  return <span className="streak-chip" title="Day streak"><span className="fl">●</span>{streak}</span>;
+}
+function XpChip({ xp }: { xp: number }) {
+  return <span className="xp-chip" title="Total XP"><span className="xp">◆</span>{xp.toLocaleString()}</span>;
+}
+
+/* ────────── plan builder ────────── */
+function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose }: {
+  notes: NoteForLearn[];
+  categories: UiCategory[];
+  seedNodeId?: string;
+  progress: LearnProgress;
+  onStart: (planIds: string[], format: string) => void;
+  onClose: () => void;
+}) {
+  const byId = useMemo(() => Object.fromEntries(notes.map(n => [n.id, n])), [notes]);
+  const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
+  const [scope, setScope] = useState<'node' | 'category' | 'everything'>(seedNodeId ? 'node' : 'category');
+  const [category, setCategory] = useState(
+    (seedNodeId && byId[seedNodeId]?.category) || categories[0]?.slug || ''
+  );
+  const [includePrereqs, setIncludePrereqs] = useState(true);
+  const [format, setFormat] = useState<'slides' | 'podcast'>('slides');
+
+  const planIds = useMemo(
+    () => buildPlan({ scope, nodeId: seedNodeId, category, includePrereqs, notes }),
+    [scope, seedNodeId, category, includePrereqs, notes]
+  );
+  const cards = useMemo(() => estimateCards(planIds, notes), [planIds, notes]);
+  const mins = Math.max(1, Math.round(cards * 0.4));
+  const seedNote = seedNodeId ? byId[seedNodeId] : null;
+
+  return (
+    <div className="planner" onMouseDown={onClose}>
+      <div className="planner-panel" onMouseDown={e => e.stopPropagation()}>
+        <div className="planner-head">
+          <div className="eyebrow">
+            <span>◷</span> Learning plan
+            <span className="x" onClick={onClose}>×</span>
+          </div>
+          <h2>
+            {scope === 'node' && seedNote
+              ? `Learn "${clip(seedNote.title, 46)}"`
+              : scope === 'category'
+              ? `${catById[category]?.name || category} curriculum`
+              : 'The whole vault, in order'}
+          </h2>
+        </div>
+
+        <div className="planner-scope">
+          <button className={`scope-tab${scope === 'node' ? ' active' : ''}`} disabled={!seedNodeId} onClick={() => setScope('node')}>
+            {seedNote ? 'This node + prerequisites' : 'Pick a node first'}
+          </button>
+          <button className={`scope-tab${scope === 'category' ? ' active' : ''}`} onClick={() => setScope('category')}>By category</button>
+          <button className={`scope-tab${scope === 'everything' ? ' active' : ''}`} onClick={() => setScope('everything')}>Everything</button>
+        </div>
+
+        {scope === 'category' && (
+          <div className="planner-cat">
+            {categories.map(c => (
+              <button key={c.id} className={`gchip${category === c.id ? ' active' : ''}`} onClick={() => setCategory(c.id)}>
+                <span className="dot" /> {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {scope !== 'everything' && scope !== 'node' && (
+          <div className="planner-opts">
+            <label>
+              <input type="checkbox" checked={includePrereqs} onChange={e => setIncludePrereqs(e.target.checked)} />
+              Pull in prerequisites from other areas
+            </label>
+          </div>
+        )}
+
+        <div className="planner-format">
+          <button className={`pfmt${format === 'slides' ? ' active' : ''}`} onClick={() => setFormat('slides')}>
+            <span className="pf-ic">▤</span>
+            <span className="pf-tx"><b>Slide lesson</b><i>Swipe through micro-cards — teach, flashcards, quizzes, recap.</i></span>
+          </button>
+          <button className={`pfmt${format === 'podcast' ? ' active' : ''}`} onClick={() => setFormat('podcast')}>
+            <span className="pf-ic">◉</span>
+            <span className="pf-tx"><b>Podcast</b><i>Two hosts talk it through; flashcards &amp; quizzes pop up as you listen.</i></span>
+          </button>
+        </div>
+
+        <div className="planner-list">
+          {planIds.map((id, i) => {
+            const n = byId[id]; if (!n) return null;
+            const cat = catById[n.category] || null;
+            const done = progress.mastery[id] === 'mastered';
+            return (
+              <div key={id} className={`plan-step${done ? ' done' : ''}`}>
+                <span className="num">{i + 1}</span>
+                <span className="dot" />
+                <span className="pt">{n.title}</span>
+                <span className="pc">{cat ? cat.name.split(' ')[0] : ''}</span>
+                {done && <span className="check">✓</span>}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="planner-foot">
+          <span className="stats"><b>{planIds.length}</b> nodes · ~<b>{cards}</b> cards · ~<b>{mins}</b> min</span>
+          <button className="start" disabled={!planIds.length} onClick={() => onStart(planIds, format)}>
+            {format === 'podcast' ? 'Start listening ▸' : 'Start learning →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────── card renderers ────────── */
+function HookCard({ card, catById, onNext }: { card: LearnCard & { type: 'hook' }; catById: Record<string, UiCategory>; onNext: () => void }) {
+  const cat = catById[card.category];
+  return (
+    <div className="lcard hook">
+      <div className="lcard-inner">
+        <div className="l-eyebrow"><span className="dot" /> {cat?.name || card.category} <span className="kind">· lesson</span></div>
+        <h1 className="l-title">{card.title}</h1>
+        <p className="l-lede">{card.lede}</p>
+        <div className="l-meta">
+          <span>{(card.tags || []).slice(0, 3).map(t => '#' + t).join('  ')}</span>
+        </div>
+        <button className="l-cta" onClick={onNext}>Start ↓</button>
+      </div>
+    </div>
+  );
+}
+function TeachCard({ card }: { card: LearnCard & { type: 'teach' } }) {
+  return (
+    <div className="lcard teach">
+      <div className="lcard-inner">
+        <div className="l-eyebrow"><span className="kind">{card.head}</span></div>
+        <div className="l-head">{card.head}</div>
+        <div className="l-body">{card.paras.map((p, i) => <p key={i}>{p}</p>)}</div>
+      </div>
+    </div>
+  );
+}
+function InsightCard({ card, catById }: { card: LearnCard & { type: 'insight' }; catById: Record<string, UiCategory> }) {
+  return (
+    <div className="lcard insight">
+      <div className="lcard-inner">
+        <div className="l-quote">{card.text}</div>
+        <div className="l-attr">{catById[card.attr]?.name || card.attr}</div>
+      </div>
+    </div>
+  );
+}
+function FlashCard({ card, state, setState, onRate }: {
+  card: LearnCard & { type: 'flash' };
+  state: Record<string, unknown>;
+  setState: (v: Record<string, unknown>) => void;
+  onRate: (r: string) => void;
+}) {
+  const flipped = !!state.flipped;
+  return (
+    <div className="lcard flash">
+      <div className="lcard-inner">
+        <div className="l-eyebrow"><span className="kind">Flashcard</span> · recall</div>
+        <div className={`flip${flipped ? ' flipped' : ''}`} onClick={() => setState({ ...state, flipped: true })}>
+          <div className="flip-inner">
+            <div className="flip-face flip-front">
+              <div className="ff-label">Prompt</div>
+              <div className="ff-text">{card.front}</div>
+            </div>
+            <div className="flip-face flip-back">
+              <div className="ff-label">Answer</div>
+              <div className="ff-text">{card.back}</div>
+            </div>
+          </div>
+        </div>
+        {!flipped
+          ? <div className="flip-hint">Tap the card to reveal</div>
+          : (
+            <div className="flash-rate">
+              <button className="again" onClick={() => onRate('again')}>Again<span className="sub">&lt; 1d</span></button>
+              <button className="good" onClick={() => onRate('good')}>Good<span className="sub">3d</span></button>
+              <button className="easy" onClick={() => onRate('easy')}>Easy<span className="sub">7d</span></button>
+            </div>
+          )}
+      </div>
+    </div>
+  );
+}
+function QuizCard({ card, state, setState, onAnswer, onNext }: {
+  card: LearnCard & { type: 'quiz' };
+  state: Record<string, unknown>;
+  setState: (v: Record<string, unknown>) => void;
+  onAnswer: (correct: boolean) => void;
+  onNext: () => void;
+}) {
+  const picked = state.picked as string | undefined;
+  const answered = picked != null;
+  return (
+    <div className="lcard quiz">
+      <div className="lcard-inner">
+        <div className="l-eyebrow"><span className="kind">Quick check</span></div>
+        <div className="q-prompt">{card.prompt}</div>
+        <div className="q-opts">
+          {card.options.map((opt, i) => {
+            const isCorrect = opt === card.answer;
+            let cls = 'qopt';
+            if (answered) { cls += ' locked'; if (isCorrect) cls += ' correct'; else if (opt === picked) cls += ' wrong'; else cls += ' dimmed'; }
+            return (
+              <button key={i} className={cls} disabled={answered}
+                onClick={() => { if (answered) return; setState({ picked: opt }); onAnswer(opt === card.answer); }}>
+                <span className="key">{KEYS[i]}</span><span>{opt}</span>
+              </button>
+            );
+          })}
+        </div>
+        {answered && (
+          <div className={`q-feedback${picked === card.answer ? ' ok' : ''}`}>
+            {picked === card.answer ? card.feedback : `Not quite. ${card.feedback}`}
+          </div>
+        )}
+        {answered && <button className="l-cta" onClick={onNext}>Continue ↓</button>}
+      </div>
+    </div>
+  );
+}
+function PodcastCard({ card, active, hosts }: {
+  card: LearnCard & { type: 'podcast' };
+  active: boolean;
+  hosts: typeof HOSTS;
+}) {
+  const [playing, setPlaying] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const [tick, setTick] = useState(0);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lines = card.lines;
+  const durs = useMemo(() => lines.map(l => l.dur), [lines]);
+
+  useEffect(() => { if (!active) setPlaying(false); }, [active]);
+  useEffect(() => {
+    if (timer.current) clearInterval(timer.current);
+    if (!playing || !active) return;
+    const start = Date.now();
+    timer.current = setInterval(() => {
+      const p = (Date.now() - start) / durs[idx];
+      if (p >= 1) {
+        if (idx < lines.length - 1) { setIdx(i => i + 1); setTick(0); }
+        else { setPlaying(false); setTick(1); if (timer.current) clearInterval(timer.current); }
+      } else setTick(p);
+    }, 60);
+    return () => { if (timer.current) clearInterval(timer.current); };
+  }, [playing, idx, active, durs, lines.length]);
+
+  const cur = lines[idx];
+  const host = hosts.find(h => h.id === cur.who) || hosts[0];
+  const total = durs.reduce((a, b) => a + b, 0);
+  const elapsed = durs.slice(0, idx).reduce((a, b) => a + b, 0) + tick * durs[idx];
+  const fmt = (ms: number) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+  return (
+    <div className="lcard podcast">
+      <div className="pod-wrap">
+        <div className="pod-hosts">
+          {hosts.map(h => (
+            <div key={h.id} className={`pod-host${h.id === cur.who ? ' live' : ''}`} style={{ color: h.color }}>
+              <div className="av" style={{ background: h.color }}>{h.initial}</div>
+              <div className="nm">{h.name}</div>
+            </div>
+          ))}
+        </div>
+        <div className="pod-caption" key={idx}>
+          <span className="who" style={{ color: host.color }}>{host.name}</span>
+          {cur.text}
+        </div>
+        <div className="pod-controls">
+          <button className="pod-play" onClick={() => {
+            if (idx >= lines.length - 1 && tick >= 1) { setIdx(0); setTick(0); }
+            setPlaying(p => !p);
+          }}>
+            {playing ? '❚❚' : '▶'}
+          </button>
+          <div className="pod-prog" onClick={e => {
+            const r = e.currentTarget.getBoundingClientRect();
+            const p = (e.clientX - r.left) / r.width;
+            let acc = 0, target = 0;
+            for (let i = 0; i < durs.length; i++) { if ((acc + durs[i]) / total >= p) { target = i; break; } acc += durs[i]; target = i; }
+            setIdx(target); setTick(0);
+          }}>
+            <i style={{ width: `${Math.min(100, (elapsed / total) * 100)}%` }} />
+          </div>
+          <span className="pod-time">{fmt(elapsed)} / {fmt(total)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+function RecapCard({ card, isLast, earned, onContinue }: {
+  card: LearnCard & { type: 'recap' };
+  isLast: boolean;
+  earned: number;
+  onContinue: () => void;
+}) {
+  return (
+    <div className="lcard recap">
+      <div className="lcard-inner">
+        <div className="l-sub">Recap</div>
+        <div className="l-head">{card.title}</div>
+        <ul className="recap-list">
+          {card.takeaways.map((t, i) => <li key={i}><span className="tick">✓</span>{t}</li>)}
+        </ul>
+        <div className="recap-earned">
+          <span className="earn-chip">◆ <span className="v">+{earned}</span> XP this lesson</span>
+          <span className="earn-chip">✓ Node mastered</span>
+        </div>
+        <button className="l-cta" onClick={onContinue}>{isLast ? 'Finish plan ✦' : 'Mark mastered & continue →'}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ────────── slide stage (one node) ────────── */
+function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, onAward, onComplete, onPrevNode, isLast }: {
+  note: NoteForLearn;
+  ctx: LearnCtx;
+  mode: string;
+  catById: Record<string, UiCategory>;
+  planIds: string[];
+  nodeIndex: number;
+  progress: LearnProgress;
+  onAward: (xp: number) => void;
+  onComplete: () => void;
+  onPrevNode: () => void;
+  isLast: boolean;
+}) {
+  const fullDeck = useMemo(() => note ? buildDeck(note, ctx) : [], [note]);
+  const deck = useMemo(() => filterDeck(fullDeck, mode), [fullDeck, mode]);
+
+  const [cardIndex, setCardIndex] = useState(0);
+  const [, forceRender] = useState(0);
+  const cardStates = useRef<Record<string, Record<string, unknown>>>({});
+  const seen = useRef(new Set<string>());
+  const lessonXp = useRef(0);
+  const wheelLock = useRef(0);
+
+  const card = deck[cardIndex];
+  const stKey = (c: LearnCard) => `${note.id}:${c.type}:${c._i}`;
+  const getState = (c: LearnCard) => cardStates.current[stKey(c)] || {};
+  const setState = (c: LearnCard, v: Record<string, unknown>) => { cardStates.current[stKey(c)] = v; forceRender(x => x + 1); };
+
+  useEffect(() => {
+    if (!card) return;
+    const k = stKey(card);
+    if (seen.current.has(k)) return;
+    seen.current.add(k);
+    const xpFor: Record<string, number> = { hook: 3, teach: 4, insight: 4, podcast: 6, recap: 5 };
+    if (xpFor[card.type]) { onAward(xpFor[card.type]); lessonXp.current += xpFor[card.type]; }
+  }, [card]);
+
+  const goNext = useCallback(() => {
+    if (cardIndex < deck.length - 1) setCardIndex(i => i + 1);
+    else onComplete();
+  }, [cardIndex, deck.length, onComplete]);
+
+  const goPrev = useCallback(() => {
+    if (cardIndex > 0) setCardIndex(i => i - 1);
+    else onPrevNode?.();
+  }, [cardIndex, onPrevNode]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement | null)?.tagName;
+      if (['INPUT', 'TEXTAREA'].includes(tag || '')) return;
+      if (['ArrowDown', 'ArrowRight', 'PageDown'].includes(e.key)) { e.preventDefault(); goNext(); }
+      else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); goPrev(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [goNext, goPrev]);
+
+  const touch = useRef<number | null>(null);
+
+  function renderCard(c: LearnCard, i: number) {
+    const active = i === cardIndex;
+    switch (c.type) {
+      case 'hook': return <HookCard card={c} catById={catById} onNext={goNext} />;
+      case 'teach': return <TeachCard card={c} />;
+      case 'insight': return <InsightCard card={c} catById={catById} />;
+      case 'flash': return <FlashCard card={c} state={getState(c)} setState={v => setState(c, v)}
+        onRate={r => { const xp = r === 'again' ? 3 : r === 'good' ? 8 : 10; onAward(xp); lessonXp.current += xp; setState(c, { ...getState(c), rated: r }); goNext(); }} />;
+      case 'quiz': return <QuizCard card={c} state={getState(c)} setState={v => setState(c, v)}
+        onAnswer={ok => { const xp = ok ? 15 : 4; onAward(xp); lessonXp.current += xp; }} onNext={goNext} />;
+      case 'podcast': return <PodcastCard card={c} active={active} hosts={HOSTS} />;
+      case 'recap': return <RecapCard card={c} isLast={isLast} earned={lessonXp.current} onContinue={onComplete} />;
+      default: return null;
+    }
+  }
+
+  return (
+    <>
+      <div className="learn-stage"
+        onWheel={e => {
+          if (Math.abs(e.deltaY) < 24) return;
+          const now = Date.now();
+          if (now - wheelLock.current < 620) return;
+          wheelLock.current = now;
+          e.deltaY > 0 ? goNext() : goPrev();
+        }}
+        onTouchStart={e => {
+          if ((e.target as HTMLElement).closest('button, .qopt, .flip, .pod-controls, .pod-prog')) { touch.current = null; return; }
+          touch.current = e.touches[0].clientY;
+        }}
+        onTouchEnd={e => {
+          if (touch.current == null) return;
+          const dy = e.changedTouches[0].clientY - touch.current;
+          if (Math.abs(dy) > 56) (dy < 0 ? goNext() : goPrev());
+          touch.current = null;
+        }}
+      >
+        <div className="lcard-track">
+          {deck.map((c, i) => (
+            <div className="lcard-holder" key={stKey(c)}
+              style={{
+                position: 'absolute', left: 0, right: 0, top: 0, height: '100%',
+                transform: `translateY(${(i - cardIndex) * 100}%)`,
+                transition: 'transform 440ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                pointerEvents: i === cardIndex ? 'auto' : 'none',
+              }}>
+              {renderCard(c, i)}
+            </div>
+          ))}
+        </div>
+        <div className="learn-plan-rail">
+          {planIds.map((id, i) => (
+            <div key={id} className={`lpr-node${i < nodeIndex || progress.mastery[id] === 'mastered' ? ' done' : ''}${i === nodeIndex ? ' cur' : ''}`} />
+          ))}
+        </div>
+      </div>
+      <div className="learn-foot">
+        <button className="nav-btn" onClick={goPrev} disabled={nodeIndex === 0 && cardIndex === 0}>↑</button>
+        <div className="learn-dots">
+          {deck.map((c, i) => <span key={i} className={`dot2${i < cardIndex ? ' done' : ''}${i === cardIndex ? ' cur' : ''}`} />)}
+        </div>
+        <span className="ff-hint"><kbd>↑</kbd><kbd>↓</kbd> or swipe · <kbd>esc</kbd> exit</span>
+        <button className="nav-btn" onClick={goNext}>↓</button>
+      </div>
+    </>
+  );
+}
+
+/* ────────── podcast stage ────────── */
+function Waveform({ playing, color, bars = 26 }: { playing: boolean; color: string; bars?: number }) {
+  return (
+    <div className={`pod-wave${playing ? ' on' : ''}`} aria-hidden="true">
+      {Array.from({ length: bars }).map((_, i) => (
+        <span key={i} style={{ background: color, animationDelay: `${(i % 7) * 0.11 + i * 0.013}s` }} />
+      ))}
+    </div>
+  );
+}
+
+function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, onAward, onComplete, catColor, catName }: {
+  note: NoteForLearn;
+  ctx: LearnCtx;
+  catById: Record<string, UiCategory>;
+  planIds: string[];
+  nodeIndex: number;
+  progress: LearnProgress;
+  onAward: (xp: number) => void;
+  onComplete: () => void;
+  catColor: string;
+  catName: string;
+}) {
+  const program = useMemo(() => buildPodcastProgram(note, ctx), [note.id]);
+  const segs = program.segments;
+
+  const [segIndex, setSegIndex] = useState(0);
+  const [lineIndex, setLineIndex] = useState(0);
+  const [tick, setTick] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [ov, setOv] = useState<Record<string, unknown>>({});
+  const awarded = useRef(new Set<string>());
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const seg = segs[segIndex] || segs[segs.length - 1];
+  const isTalk = seg && seg.type === 'talk';
+  const isCheck = seg && (seg.type === 'flash' || seg.type === 'quiz');
+
+  const talkTotal = useMemo(() => segs.filter(s => s.type === 'talk').reduce((a, s) => {
+    if (s.type !== 'talk') return a;
+    return a + (s as { type: 'talk'; lines: PodLine[] }).lines.reduce((x, l) => x + l.dur, 0);
+  }, 0), [segs]);
+
+  const elapsed = useMemo(() => {
+    let e = 0;
+    for (let i = 0; i < segIndex && i < segs.length; i++) {
+      const s = segs[i];
+      if (s.type === 'talk') e += (s as { type: 'talk'; lines: PodLine[] }).lines.reduce((x, l) => x + l.dur, 0);
+    }
+    if (isTalk && seg.type === 'talk') {
+      const talkSeg = seg as { type: 'talk'; lines: PodLine[] };
+      for (let j = 0; j < lineIndex; j++) e += talkSeg.lines[j].dur;
+      e += tick * talkSeg.lines[lineIndex].dur;
+    }
+    return e;
+  }, [segIndex, lineIndex, tick, isTalk]);
+
+  const markers = useMemo(() => {
+    const out: { pct: number; kind: string; idx: number }[] = [];
+    let acc = 0;
+    segs.forEach((s, idx) => {
+      if (s.type === 'talk') acc += (s as { type: 'talk'; lines: PodLine[] }).lines.reduce((x, l) => x + l.dur, 0);
+      else out.push({ pct: talkTotal ? (acc / talkTotal) * 100 : 0, kind: s.type, idx });
+    });
+    return out;
+  }, [segs, talkTotal]);
+
+  useEffect(() => {
+    if (!isTalk) return;
+    const k = `${segIndex}:${lineIndex}`;
+    if (awarded.current.has(k)) return;
+    awarded.current.add(k); onAward(2);
+  }, [segIndex, lineIndex, isTalk]);
+
+  useEffect(() => {
+    if (timer.current) clearInterval(timer.current);
+    if (!isTalk || !playing || seg.type !== 'talk') return;
+    const talkSeg = seg as { type: 'talk'; lines: PodLine[] };
+    const dur = talkSeg.lines[lineIndex].dur;
+    const start = Date.now();
+    setTick(0);
+    timer.current = setInterval(() => {
+      const p = (Date.now() - start) / dur;
+      if (p >= 1) {
+        if (timer.current) clearInterval(timer.current);
+        if (lineIndex < talkSeg.lines.length - 1) { setLineIndex(i => i + 1); setTick(0); }
+        else nextSegment();
+      } else setTick(p);
+    }, 55);
+    return () => { if (timer.current) clearInterval(timer.current); };
+  }, [isTalk, playing, lineIndex, segIndex]);
+
+  function nextSegment() {
+    const n = segIndex + 1;
+    if (n >= segs.length) { onComplete(); return; }
+    setOv({}); setLineIndex(0); setTick(0); setSegIndex(n);
+    setPlaying(segs[n].type === 'talk');
+  }
+  function resolveCheck(xp: number) { if (xp) onAward(xp); nextSegment(); }
+
+  const line = isTalk && seg.type === 'talk' ? (seg as { type: 'talk'; lines: PodLine[] }).lines[lineIndex] : null;
+  const liveHost = line ? HOSTS.find(h => h.id === line.who) || HOSTS[0] : null;
+  const fmt = (ms: number) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+  const flashCard = isCheck && seg.type === 'flash' ? (seg as { type: 'flash'; card: LearnCard }).card as LearnCard & { type: 'flash' } : null;
+  const quizCard = isCheck && seg.type === 'quiz' ? (seg as { type: 'quiz'; card: LearnCard }).card as LearnCard & { type: 'quiz' } : null;
+
+  return (
+    <div className="podcast-stage" style={{ '--pc': catColor } as React.CSSProperties}>
+      <div className="pod-amb" />
+      <div className="pod-amb b" />
+      <div className="pod-core">
+        <div className="pod-now">On air · {catName}</div>
+        <div className="pod-hosts big">
+          {HOSTS.map(h => {
+            const live = isTalk && line && h.id === line.who;
+            return (
+              <div key={h.id} className={`pod-host${live ? ' live' : ''}`} style={{ color: h.color }}>
+                <div className="av" style={{ background: h.color }}>{h.initial}</div>
+                <div className="nm">{h.name}</div>
+              </div>
+            );
+          })}
+        </div>
+        <Waveform playing={playing && isTalk} color={catColor} />
+        <div className="pod-caption big" key={`${segIndex}-${lineIndex}`}>
+          {isTalk && liveHost ? (
+            <>
+              <span className="who" style={{ color: liveHost.color }}>{liveHost.name}</span>
+              {line?.text}
+            </>
+          ) : (
+            <span className="who" style={{ color: catColor }}>— paused for a quick check —</span>
+          )}
+        </div>
+      </div>
+
+      <div className="pod-transport">
+        <button className="pod-play" disabled={!!isCheck} onClick={() => setPlaying(p => !p)} title={playing ? 'Pause' : 'Play'}>
+          {playing && isTalk ? '❚❚' : '▶'}
+        </button>
+        <div className="pod-track">
+          <div className="pod-track-fill" style={{ width: `${talkTotal ? Math.min(100, (elapsed / talkTotal) * 100) : 0}%` }} />
+          {markers.map((m, i) => (
+            <span key={i} className={`pod-mark ${m.kind}${m.idx < segIndex ? ' done' : ''}${m.idx === segIndex ? ' active' : ''}`}
+              style={{ left: `${m.pct}%` }} title={m.kind === 'quiz' ? 'Pop quiz' : 'Flashcard'}>
+              {m.kind === 'quiz' ? '?' : '✦'}
+            </span>
+          ))}
+        </div>
+        <span className="pod-time">{fmt(elapsed)} / {fmt(talkTotal)}</span>
+      </div>
+
+      <div className="learn-plan-rail">
+        {planIds.map((id, i) => (
+          <div key={id} className={`lpr-node${i < nodeIndex || progress.mastery[id] === 'mastered' ? ' done' : ''}${i === nodeIndex ? ' cur' : ''}`} />
+        ))}
+      </div>
+
+      {isCheck && (
+        <div className="pod-sheet-wrap">
+          <div className="pod-sheet">
+            {flashCard && (
+              <div className="pod-check">
+                <div className="pc-tag"><span className="dot-pulse" /> The hosts paused — quick recall</div>
+                <div className={`flip${ov.flipped ? ' flipped' : ''}`} onClick={() => setOv({ ...ov, flipped: true })}>
+                  <div className="flip-inner">
+                    <div className="flip-face flip-front">
+                      <div className="ff-label">Prompt</div>
+                      <div className="ff-text">{flashCard.front}</div>
+                    </div>
+                    <div className="flip-face flip-back">
+                      <div className="ff-label">Answer</div>
+                      <div className="ff-text">{flashCard.back}</div>
+                    </div>
+                  </div>
+                </div>
+                {!ov.flipped
+                  ? <div className="flip-hint">Tap to reveal · then rate yourself</div>
+                  : (
+                    <div className="flash-rate">
+                      <button className="again" onClick={() => resolveCheck(3)}>Again<span className="sub">resume</span></button>
+                      <button className="good" onClick={() => resolveCheck(8)}>Good<span className="sub">resume</span></button>
+                      <button className="easy" onClick={() => resolveCheck(10)}>Easy<span className="sub">resume</span></button>
+                    </div>
+                  )}
+              </div>
+            )}
+            {quizCard && (
+              <div className="pod-check">
+                <div className="pc-tag"><span className="dot-pulse" /> Pop quiz — pause &amp; answer</div>
+                <div className="q-prompt">{quizCard.prompt}</div>
+                <div className="q-opts">
+                  {quizCard.options.map((opt, i) => {
+                    const isCorrect = opt === quizCard.answer;
+                    let cls = 'qopt';
+                    if (ov.picked != null) { cls += ' locked'; if (isCorrect) cls += ' correct'; else if (opt === ov.picked) cls += ' wrong'; else cls += ' dimmed'; }
+                    return (
+                      <button key={i} className={cls} disabled={ov.picked != null}
+                        onClick={() => { if (ov.picked != null) return; setOv({ picked: opt }); onAward(opt === quizCard.answer ? 15 : 4); }}>
+                        <span className="key">{KEYS[i]}</span><span>{opt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {ov.picked != null && (
+                  <>
+                    <div className={`q-feedback${ov.picked === quizCard.answer ? ' ok' : ''}`}>
+                      {ov.picked === quizCard.answer ? quizCard.feedback : `Not quite. ${quizCard.feedback}`}
+                    </div>
+                    <button className="l-cta" onClick={() => resolveCheck(0)}>Resume show ▶</button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ────────── learn session shell ────────── */
+function LearnSession({ planIds, notes, categories, progress, onAward, onMaster, onExit, initialFormat }: {
+  planIds: string[];
+  notes: NoteForLearn[];
+  categories: UiCategory[];
+  progress: LearnProgress;
+  onAward: (xp: number) => void;
+  onMaster: (noteId: string) => void;
+  onExit: () => void;
+  initialFormat: 'slides' | 'podcast';
+}) {
+  const byId = useMemo(() => Object.fromEntries(notes.map(n => [n.id, n])), [notes]);
+  const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
+
+  const [nodeIndex, setNodeIndex] = useState(0);
+  const [format, setFormat] = useState(initialFormat);
+  const [mode, setMode] = useState('all');
+  const [done, setDone] = useState(false);
+  const xpStart = useRef(progress.xp);
+
+  const nodeId = planIds[nodeIndex];
+  const note = byId[nodeId];
+  const cat = note ? catById[note.category] || null : null;
+  const catColor = CAT_TINT[cat?.name?.toLowerCase() || ''] || '#b8553e';
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onExit(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onExit]);
+
+  function completeNode() {
+    onMaster(nodeId);
+    if (nodeIndex < planIds.length - 1) setNodeIndex(i => i + 1);
+    else setDone(true);
+  }
+  const prevNode = useCallback(() => { if (nodeIndex > 0) setNodeIndex(i => i - 1); }, [nodeIndex]);
+
+  const ctx: LearnCtx = useMemo(() => ({ notes, byId, catById }), [notes, byId, catById]);
+
+  if (done) {
+    const earned = progress.xp - xpStart.current;
+    return (
+      <div className="learn-view">
+        <div className="learn-top">
+          <button className="lt-x" onClick={onExit}>← Back to the weave</button>
+          <span className="lt-spacer" />
+          <div className="lt-stats"><StreakChip streak={progress.streak} /><XpChip xp={progress.xp} /><GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} /></div>
+        </div>
+        <div className="learn-stage">
+          <div className="lcard complete">
+            <div className="lcard-inner" style={{ alignItems: 'center' }}>
+              <div className="l-eyebrow" style={{ justifyContent: 'center' }}><span className="kind">Plan complete ✦</span></div>
+              <h1 className="l-title">Woven in.</h1>
+              <p className="l-sub">You worked through {planIds.length} connected idea{planIds.length !== 1 ? 's' : ''}, in prerequisite order.</p>
+              <div className="complete-stats">
+                <div className="complete-stat"><div className="v">{planIds.length}</div><div className="k">Nodes mastered</div></div>
+                <div className="complete-stat"><div className="v">+{earned}</div><div className="k">XP earned</div></div>
+                <div className="complete-stat"><div className="v">{progress.streak}</div><div className="k">Day streak</div></div>
+              </div>
+              <button className="l-cta" onClick={onExit}>See it on the graph →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!note) return null;
+
+  const SLIDE_MODES: [string, string][] = [['all', 'Lesson'], ['read', 'Read'], ['cards', 'Cards'], ['quiz', 'Quiz']];
+
+  return (
+    <div className="learn-view">
+      <div className="learn-top">
+        <button className="lt-x" onClick={onExit}>✕ Exit</button>
+        <span className="lt-crumb">Node <b>{nodeIndex + 1}</b>/{planIds.length} · {cat?.name || note.category}</span>
+        <div className="format-seg">
+          <button className={format === 'slides' ? 'active' : ''} onClick={() => setFormat('slides')}><span className="glyph">▤</span> Slides</button>
+          <button className={format === 'podcast' ? 'active' : ''} onClick={() => setFormat('podcast')}><span className="glyph">◉</span> Podcast</button>
+        </div>
+        {format === 'slides' && (
+          <div className="learn-modes">
+            {SLIDE_MODES.map(([m, label]) => (
+              <button key={m} className={`lmode${mode === m ? ' active' : ''}`} onClick={() => setMode(m)}>{label}</button>
+            ))}
+          </div>
+        )}
+        <span className="lt-spacer" />
+        <div className="lt-stats">
+          <StreakChip streak={progress.streak} />
+          <XpChip xp={progress.xp} />
+          <GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} />
+        </div>
+      </div>
+
+      {format === 'slides' ? (
+        <SlideStage
+          key={`${nodeId}:${mode}`}
+          note={note} ctx={ctx} mode={mode} catById={catById}
+          planIds={planIds} nodeIndex={nodeIndex} progress={progress}
+          onAward={onAward} onComplete={completeNode} onPrevNode={prevNode}
+          isLast={nodeIndex === planIds.length - 1}
+        />
+      ) : (
+        <PodcastStage
+          key={`${nodeId}:pod`}
+          note={note} ctx={ctx} catById={catById}
+          planIds={planIds} nodeIndex={nodeIndex} progress={progress}
+          onAward={onAward} onComplete={completeNode}
+          catColor={catColor} catName={cat?.name || note.category}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ────────── main page: body loading + routing ────────── */
+export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
+  notes: KnowledgeNote[];
+  categories: UiCategory[];
+  seedNoteId?: string;
+  onExit: () => void;
+}) {
+  const [bodiesById, setBodiesById] = useState<Record<string, NoteForLearn>>({});
+  const [loading, setLoading] = useState(true);
+  const [showPlanner, setShowPlanner] = useState(false);
+  const [sessionPlanIds, setSessionPlanIds] = useState<string[] | null>(null);
+  const [format, setFormat] = useState<'slides' | 'podcast'>('slides');
+  const [progress, setProgress] = useState<LearnProgress>({ xp: 0, todayXp: 0, dailyGoalXp: 100, streak: 0, mastery: {} });
+
+  // load progress
+  useEffect(() => {
+    fetch('/api/learn-progress', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setProgress(d); })
+      .catch(() => {});
+  }, []);
+
+  // load all note bodies (lazy — fetch as needed, but for plan we need them upfront)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBodies() {
+      setLoading(true);
+      const results: Record<string, NoteForLearn> = {};
+      // fetch in parallel, up to 6 at a time
+      const chunks: KnowledgeNote[][] = [];
+      for (let i = 0; i < notes.length; i += 6) chunks.push(notes.slice(i, i + 6));
+      for (const chunk of chunks) {
+        if (cancelled) break;
+        await Promise.all(chunk.map(async n => {
+          try {
+            const md = await fetchNoteMarkdown(n.id);
+            results[n.id] = { ...n, body: parseBodyBlocks(md) };
+          } catch {
+            results[n.id] = { ...n, body: [] };
+          }
+        }));
+      }
+      if (!cancelled) { setBodiesById(results); setLoading(false); }
+    }
+    loadBodies();
+    return () => { cancelled = true; };
+  }, [notes]);
+
+  const enrichedNotes = useMemo((): NoteForLearn[] =>
+    notes.map(n => bodiesById[n.id] || { ...n, body: [] }),
+    [notes, bodiesById]
+  );
+
+  const award = useCallback(async (xp: number) => {
+    if (xp <= 0) return;
+    setProgress(p => ({ ...p, xp: p.xp + xp, todayXp: p.todayXp + xp }));
+    try {
+      const r = await fetch('/api/learn-progress/award', {
+        method: 'POST', credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ xp }),
+      });
+      if (r.ok) setProgress(await r.json());
+    } catch { /* noop */ }
+  }, []);
+
+  const master = useCallback(async (noteId: string) => {
+    setProgress(p => ({ ...p, mastery: { ...p.mastery, [noteId]: 'mastered' } }));
+    try {
+      const r = await fetch(`/api/learn-progress/master/${encodeURIComponent(noteId)}`, {
+        method: 'POST', credentials: 'include',
+      });
+      if (r.ok) setProgress(await r.json());
+    } catch { /* noop */ }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="learn-view" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          Loading notes…
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionPlanIds) {
+    return (
+      <LearnSession
+        planIds={sessionPlanIds}
+        notes={enrichedNotes}
+        categories={categories}
+        progress={progress}
+        onAward={award}
+        onMaster={master}
+        onExit={onExit}
+        initialFormat={format}
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="learn-view" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
+            ◷ Learn
+          </div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 500, marginBottom: 8, color: 'var(--ink)' }}>
+            {enrichedNotes.length} notes ready to learn
+          </div>
+          <div style={{ fontSize: 15, color: 'var(--ink-2)', marginBottom: 28 }}>
+            Build a learning plan from your knowledge vault.
+          </div>
+          <div className="lt-stats" style={{ justifyContent: 'center', marginBottom: 24 }}>
+            <StreakChip streak={progress.streak} />
+            <XpChip xp={progress.xp} />
+            <GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} />
+          </div>
+          <button className="l-cta" onClick={() => setShowPlanner(true)}>
+            Plan a session →
+          </button>
+          <button className="l-cta ghost" style={{ marginLeft: 10 }} onClick={onExit}>
+            Back
+          </button>
+        </div>
+      </div>
+      {showPlanner && (
+        <PlanBuilder
+          notes={enrichedNotes}
+          categories={categories}
+          seedNodeId={seedNoteId}
+          progress={progress}
+          onStart={(ids, fmt) => { setShowPlanner(false); setSessionPlanIds(ids); setFormat(fmt as 'slides' | 'podcast'); }}
+          onClose={() => setShowPlanner(false)}
+        />
+      )}
+    </>
+  );
+}

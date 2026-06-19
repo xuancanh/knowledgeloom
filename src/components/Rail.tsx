@@ -77,6 +77,8 @@ export default function Rail({
   onActivity,
   onFlashcards,
   onQuiz,
+  onGraph,
+  onLearn,
   onSettings,
   openCategory,
   openTag,
@@ -100,6 +102,8 @@ export default function Rail({
   onActivity: () => void;
   onFlashcards: () => void;
   onQuiz: () => void;
+  onGraph: () => void;
+  onLearn: () => void;
   onSettings: () => void;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
@@ -116,6 +120,8 @@ export default function Rail({
   const isFlashcards = path.startsWith('/flashcards');
   const isQuiz = path.startsWith('/quiz');
   const isSettings = path === '/settings';
+  const isGraph = path === '/graph';
+  const isLearn = path === '/learn';
   const activeCategoryId = path.startsWith('/categories/')
     ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
     : null;
@@ -180,6 +186,12 @@ export default function Rail({
           <button className={`nav-item${isQuiz ? ' active' : ''}`} onClick={() => { onQuiz(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>?</span> {t('nav.quiz')}
             <span className="count">{quizCount}</span>
+          </button>
+          <button className={`nav-item${isGraph ? ' active' : ''}`} onClick={() => { onGraph(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◈</span> {t('nav.graph')}
+          </button>
+          <button className={`nav-item${isLearn ? ' active' : ''}`} onClick={() => { onLearn(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Learn
           </button>
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> {t('nav.settings')}

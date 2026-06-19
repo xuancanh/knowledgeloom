@@ -9,6 +9,7 @@ import {
   fetchKnowledge,
   fetchReminders,
   fetchStatus,
+  patchNote,
   submitLearning,
   updateNote,
   updateReminder,
@@ -222,6 +223,43 @@ export function useKnowledge() {
 
   const openAllCategories = useCallback(() => navigate('/categories'), [navigate]);
   const openAllTags = useCallback(() => navigate('/tags'), [navigate]);
+  const openGraph = useCallback(() => navigate('/graph'), [navigate]);
+  const openLearn = useCallback(() => navigate('/learn'), [navigate]);
+
+  async function graphAddLink(fromId: string, toId: string) {
+    const note = state.notes.find((n) => n.id === fromId);
+    if (!note) return;
+    const result = await patchNote(fromId, { links: [...new Set([...note.links, toId])] });
+    setState(result.state);
+  }
+
+  async function graphRemoveLink(fromId: string, toId: string) {
+    const note = state.notes.find((n) => n.id === fromId);
+    if (!note) return;
+    const result = await patchNote(fromId, { links: note.links.filter((l) => l !== toId) });
+    setState(result.state);
+  }
+
+  async function graphCreateNote(title: string): Promise<string> {
+    const result = await submitLearning({ mode: 'write', title, body: `# ${title}\n\n` });
+    if (result.state) setState(result.state);
+    return result.note?.id ?? '';
+  }
+
+  async function graphDeleteNote(id: string) {
+    const result = await deleteNote(id);
+    setState(result.state);
+  }
+
+  async function graphRenameNote(id: string, title: string) {
+    const result = await patchNote(id, { title });
+    setState(result.state);
+  }
+
+  async function graphSetCategory(id: string, category: string) {
+    const result = await patchNote(id, { category });
+    setState(result.state);
+  }
 
   async function handleDelete(note: KnowledgeNote) {
     if (!window.confirm(`Delete "${note.title}"? This removes the markdown source file.`)) return;
@@ -312,6 +350,14 @@ export function useKnowledge() {
     openQuiz,
     openAllCategories,
     openAllTags,
+    openGraph,
+    openLearn,
+    graphAddLink,
+    graphRemoveLink,
+    graphCreateNote,
+    graphDeleteNote,
+    graphRenameNote,
+    graphSetCategory,
     handleDelete,
     handleSaveNote,
     handleAssistNote,
