@@ -43,6 +43,7 @@ import { ImagesModule } from './images/images.module';
 import { RagModule } from './rag/rag.module';
 import { QuizModule } from './quiz/quiz.module';
 import { SettingsModule } from './settings/settings.module';
+import { LearnProgressModule } from './learn-progress/learn-progress.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { SettingsModule } from './settings/settings.module';
     RagModule,
     QuizModule,
     SettingsModule,
+    LearnProgressModule,
   ],
 })
 export class AppModule {}
