@@ -137,6 +137,21 @@ main { background: var(--surface); }
   }
 }
 
+/* Graph page: fill the full column without padding or width cap */
+main.graph-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+}
+.graph-slot {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 @media (max-width: 760px) {
   .app,
   .app.no-right,

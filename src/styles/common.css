@@ -286,11 +286,34 @@
   transition: border-color 100ms, color 100ms;
 }
 .selected-link-chip:hover { border-color: var(--rust); color: var(--rust); }
+.selected-link-chip-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
 .selected-link-remove {
   color: var(--muted);
   font-size: 14px;
   line-height: 1;
 }
+.link-dir-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 100ms, color 100ms;
+  flex-shrink: 0;
+}
+.link-dir-btn:hover { border-color: var(--accent); color: var(--accent); }
+.link-dir-bi { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
 .link-empty {
   padding: 10px;
