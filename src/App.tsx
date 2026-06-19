@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { useKnowledge, themeLabels, fontStyleLabels, type Theme } from './hooks/useKnowledge';
 import { useAuth } from './hooks/useAuth';
 import ActivityPage from './components/activity/ActivityPage';
@@ -19,6 +19,8 @@ import ContextPanel from './components/ContextPanel';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { LandingPage } from './components/landing/LandingPage';
 import { LoginPage } from './components/auth/LoginPage';
+import GraphPage from './components/graph/GraphPage';
+import LearnPage from './components/learn/LearnPage';
 
 export default function App() {
   const { authenticated, loading: authLoading } = useAuth();
@@ -38,6 +40,9 @@ export default function App() {
 }
 
 function AuthenticatedApp() {
+  const location = useLocation();
+  const isGraph = location.pathname === '/graph';
+  const isLearn = location.pathname === '/learn';
   const [themeDropOpen, setThemeDropOpen] = useState(false);
 
   const {
@@ -46,13 +51,15 @@ function AuthenticatedApp() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, handleDelete, handleSaveNote,
+    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn,
+    graphAddLink, graphRemoveLink, graphCreateNote, graphDeleteNote, graphRenameNote, graphSetCategory,
+    handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
     handleDeleteReminder,
   } = useKnowledge();
 
   return (
-    <div className={`app${showContextPanel ? '' : ' no-right'}${compactMode ? ' dense' : ''}`}>
+    <div className={`app${(showContextPanel && !isGraph && !isLearn) ? '' : ' no-right'}${compactMode ? ' dense' : ''}`}>
 
       <Rail
         categories={categories}
@@ -71,6 +78,8 @@ function AuthenticatedApp() {
         onActivity={openActivity}
         onFlashcards={openFlashcards}
         onQuiz={openQuiz}
+        onGraph={openGraph}
+        onLearn={openLearn}
         onSettings={openSettings}
         openCategory={openCategory}
         openTag={openTag}
@@ -81,8 +90,8 @@ function AuthenticatedApp() {
 
       {railOpen && <div className="rail-backdrop" onClick={() => setRailOpen(false)} />}
 
-      <main>
-        <div className="utility">
+      <main className={isGraph || isLearn ? 'graph-main' : ''}>
+        {!isGraph && !isLearn && <div className="utility">
           <button className="rail-toggle" onClick={() => setRailOpen(true)} aria-label="Open menu">
             <span>☰</span>
           </button>
@@ -127,9 +136,9 @@ function AuthenticatedApp() {
               <span className="util-label">Desk</span>
             </button>
           </div>
-        </div>
+        </div>}
 
-        <div className="main">
+        <div className={isGraph || isLearn ? 'graph-slot' : 'main'}>
           <Routes>
             <Route path="/home" element={
               <Home
@@ -226,6 +235,26 @@ function AuthenticatedApp() {
                 categories={categories}
                 onSubmit={submitCapture}
                 readOnly={readOnly}
+              />
+            } />
+            <Route path="/graph" element={
+              <GraphPage
+                state={state}
+                categories={categories}
+                tagCounts={tagCounts}
+                onAddLink={graphAddLink}
+                onRemoveLink={graphRemoveLink}
+                onAddNote={graphCreateNote}
+                onDeleteNote={graphDeleteNote}
+                onRenameNote={graphRenameNote}
+                onSetCategory={graphSetCategory}
+              />
+            } />
+            <Route path="/learn" element={
+              <LearnPage
+                notes={state.notes}
+                categories={categories}
+                onExit={goHome}
               />
             } />
             <Route path="/settings" element={

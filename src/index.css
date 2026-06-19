@@ -1,4 +1,5 @@
 @import './styles/base.css';
+@import './styles/graph.css';
 @import './styles/rail.css';
 @import './styles/utility-bar.css';
 @import './styles/activity.css';
@@ -12,3 +13,4 @@
 @import './styles/editor.css';
 @import './styles/meta-fields.css';
 @import './styles/note-detail.css';
+@import './styles/learn.css';
