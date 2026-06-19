@@ -108,12 +108,29 @@ export class KnowledgeService {
       await this.noteRepo.writeCategoryFiles(userId, categories);
     }
 
-    // Graph edges only include links that resolve to an existing note.
+    // Graph edges include mono (links) and bi-directional (bilinks) connections.
     // Broken links remain in source markdown but are excluded from the graph.
     const noteIds = new Set(notes.map((n) => n.id));
+    const targetMap = new Map<string, Map<string, 'mono' | 'bi'>>();
+    for (const note of notes) {
+      targetMap.set(note.id, new Map());
+    }
+    for (const note of notes) {
+      const entry = targetMap.get(note.id)!;
+      for (const id of note.links) {
+        if (noteIds.has(id)) entry.set(id, 'mono');
+      }
+      for (const id of note.bilinks ?? []) {
+        if (!noteIds.has(id)) continue;
+        entry.set(id, 'bi');
+        // Ensure reverse direction is also present
+        const reverseEntry = targetMap.get(id);
+        if (reverseEntry) reverseEntry.set(note.id, 'bi');
+      }
+    }
     const graph = notes.map((note) => ({
       source: note.id,
-      targets: note.links.filter((t) => noteIds.has(t)),
+      targets: [...(targetMap.get(note.id)?.entries() ?? [])].map(([id, direction]) => ({ id, direction })),
     }));
 
     const { allCards: flashcards, reviews } = await this.flashcardsService.loadEnrichedData(userId, noteSources);

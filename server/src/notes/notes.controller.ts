@@ -22,6 +22,13 @@ import { WritableGuard } from '../common/guards/writable.guard';
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
+  @Post('backfill-bilinks')
+  @HttpCode(200)
+  @UseGuards(WritableGuard)
+  backfillBilinks(@CurrentUser() userId: string) {
+    return this.notesService.backfillBilinks(userId);
+  }
+
   @Get(':id')
   async getMarkdown(@CurrentUser() userId: string, @Param('id') id: string) {
     return { markdown: await this.notesService.getMarkdown(userId, id) };

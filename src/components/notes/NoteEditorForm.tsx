@@ -16,6 +16,7 @@ export interface NoteEditorFormProps {
   category: string;
   tags: string[];
   links: string[];
+  bilinks?: string[];
   initialBody: string;
   notes: KnowledgeNote[];
   categories: UiCategory[];
@@ -31,6 +32,7 @@ export interface NoteEditorFormProps {
   onCategoryChange: (v: string) => void;
   onTagsChange: (v: string[]) => void;
   onToggleLink: (id: string) => void;
+  onToggleBilink?: (id: string) => void;
   getDraft: () => NoteUpdate;
   onAiAssist?: (prompt: string, draft: NoteUpdate) => Promise<NoteUpdate>;
   onAiApplied?: (update: NoteUpdate) => void;
@@ -39,11 +41,11 @@ export interface NoteEditorFormProps {
 }
 
 export function NoteEditorForm({
-  noteId, title, summary, category, tags, links, initialBody,
+  noteId, title, summary, category, tags, links, bilinks, initialBody,
   notes, categories, editorRef,
   readOnly = false, saving = false, canSave = true,
   saveLabel, aiSuccess, saveError,
-  onTitleChange, onSummaryChange, onCategoryChange, onTagsChange, onToggleLink,
+  onTitleChange, onSummaryChange, onCategoryChange, onTagsChange, onToggleLink, onToggleBilink,
   getDraft, onAiAssist, onAiApplied, onCancel, onSave,
 }: NoteEditorFormProps) {
   const { t } = useTranslation();
@@ -115,7 +117,9 @@ export function NoteEditorForm({
             notes={notes}
             noteId={noteId}
             links={links}
+            bilinks={bilinks}
             onToggleLink={onToggleLink}
+            onToggleBilink={onToggleBilink}
           />
         </div>
         <div className="edit-footer-section">

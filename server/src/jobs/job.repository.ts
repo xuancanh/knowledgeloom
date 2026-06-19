@@ -55,6 +55,15 @@ export class JobRepository {
     return rows.map((row: any) => JSON.parse(row.payload));
   }
 
+  async getQueuedJobs(): Promise<Job[]> {
+    if (!this.db) return [];
+    const rows = await this.db
+      .select()
+      .from(this.jobsTable)
+      .where(eq(this.jobsTable.status, 'queued'));
+    return rows.map((row: any) => JSON.parse(row.payload));
+  }
+
   /** Upserts one job. Called after every state transition. */
   async save(job: Job): Promise<void> {
     if (!this.db) return;

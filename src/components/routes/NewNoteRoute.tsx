@@ -40,11 +40,12 @@ export function NewNoteRoute({
   const [category, setCategory] = useState(draft.category ?? '');
   const [tags, setTags] = useState<string[]>(draft.tags ?? []);
   const [links, setLinks] = useState<string[]>([]);
+  const [bilinks, setBilinks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [aiSuccess, setAiSuccess] = useState('');
 
   function currentDraft(): NoteUpdate {
-    return { title, category, summary, tags, links, body: editorRef.current?.getValue() ?? '' };
+    return { title, category, summary, tags, links, bilinks, body: editorRef.current?.getValue() ?? '' };
   }
 
   function applyAiUpdate(update: NoteUpdate) {
@@ -53,12 +54,17 @@ export function NewNoteRoute({
     setSummary(update.summary);
     setTags(update.tags);
     setLinks(update.links);
+    setBilinks(update.bilinks ?? []);
     editorRef.current?.setValue(update.body);
     setAiSuccess(t('notes.aiApplied'));
   }
 
   function toggleLink(id: string) {
     setLinks((prev) => prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]);
+  }
+
+  function toggleBilink(id: string) {
+    setBilinks((prev) => prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]);
   }
 
   function save() {
@@ -72,6 +78,7 @@ export function NewNoteRoute({
       summary: summary.trim(),
       tags,
       links,
+      bilinks,
     });
   }
 
@@ -91,6 +98,7 @@ export function NewNoteRoute({
         category={category}
         tags={tags}
         links={links}
+        bilinks={bilinks}
         initialBody={draft.body ?? ''}
         notes={notes}
         categories={categories}
@@ -105,6 +113,7 @@ export function NewNoteRoute({
         onCategoryChange={setCategory}
         onTagsChange={setTags}
         onToggleLink={toggleLink}
+        onToggleBilink={toggleBilink}
         getDraft={currentDraft}
         onAiAssist={async (prompt, d) => {
           const { update } = await assistDraft(
