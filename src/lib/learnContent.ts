@@ -13,7 +13,7 @@ export type LearnCard =
 
 export type PodLine = { who: string; text: string; dur: number };
 
-export type NoteForLearn = KnowledgeNote & { body: NoteBlock[] };
+export type NoteForLearn = KnowledgeNote & { body: NoteBlock[]; markdown: string };
 
 export type LearnCtx = {
   notes: NoteForLearn[];
