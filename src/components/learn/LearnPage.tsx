@@ -48,7 +48,7 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
   const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
   const [scope, setScope] = useState<'node' | 'category' | 'everything'>(seedNodeId ? 'node' : 'category');
   const [category, setCategory] = useState(
-    (seedNodeId && byId[seedNodeId]?.category) || categories[0]?.slug || ''
+    (seedNodeId && byId[seedNodeId]?.category) || categories[0]?.id || ''
   );
   const [includePrereqs, setIncludePrereqs] = useState(true);
   const [format, setFormat] = useState<'slides' | 'podcast'>('slides');
@@ -350,7 +350,7 @@ function RecapCard({ card, isLast, earned, onContinue }: {
 }
 
 /* ────────── slide stage (one node) ────────── */
-function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, onAward, onComplete, onPrevNode, isLast }: {
+function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, aiDeck, onAward, onComplete, onPrevNode, isLast }: {
   note: NoteForLearn;
   ctx: LearnCtx;
   mode: string;
@@ -358,12 +358,18 @@ function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, on
   planIds: string[];
   nodeIndex: number;
   progress: LearnProgress;
+  aiDeck: AiDeck | null | undefined;
   onAward: (xp: number) => void;
   onComplete: () => void;
   onPrevNode: () => void;
   isLast: boolean;
 }) {
-  const fullDeck = useMemo(() => note ? buildDeck(note, ctx) : [], [note]);
+  // Lock deck source at mount — avoids card-position reset if AI arrives mid-session
+  const lockedAiDeck = useRef(aiDeck);
+  const fullDeck = useMemo(() => {
+    if (lockedAiDeck.current) return aiDeckToCards(note, lockedAiDeck.current, ctx);
+    return buildDeck(note, ctx);
+  }, [note, ctx]);
   const deck = useMemo(() => filterDeck(fullDeck, mode), [fullDeck, mode]);
 
   const [cardIndex, setCardIndex] = useState(0);
@@ -489,19 +495,50 @@ function Waveform({ playing, color, bars = 26 }: { playing: boolean; color: stri
   );
 }
 
-function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, onAward, onComplete, catColor, catName }: {
+function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, aiDeck, onAward, onComplete, catColor, catName }: {
   note: NoteForLearn;
   ctx: LearnCtx;
   catById: Record<string, UiCategory>;
   planIds: string[];
   nodeIndex: number;
   progress: LearnProgress;
+  aiDeck: AiDeck | null | undefined;
   onAward: (xp: number) => void;
   onComplete: () => void;
   catColor: string;
   catName: string;
 }) {
-  const program = useMemo(() => buildPodcastProgram(note, ctx), [note.id]);
+  // Lock deck source at mount — same as SlideStage
+  const lockedAiDeck = useRef(aiDeck);
+  const program = useMemo(() => {
+    if (lockedAiDeck.current) {
+      // Use AI deck to build the program structure
+      const aiDeck = lockedAiDeck.current;
+      const aiCards = aiDeckToCards(note, aiDeck, ctx);
+      const pod = aiCards.find(c => c.type === 'podcast') as (LearnCard & { type: 'podcast' }) | undefined;
+      const flashes = aiCards.filter(c => c.type === 'flash');
+      const quizzes = aiCards.filter(c => c.type === 'quiz');
+      const recap = aiCards.find(c => c.type === 'recap') as (LearnCard & { type: 'recap' }) | undefined;
+      const lines = pod?.lines || [];
+      const checks: Array<{ type: 'flash'; card: LearnCard } | { type: 'quiz'; card: LearnCard }> = [];
+      if (flashes[0]) checks.push({ type: 'flash', card: flashes[0] });
+      if (quizzes[0]) checks.push({ type: 'quiz', card: quizzes[0] });
+      if (flashes[1]) checks.push({ type: 'flash', card: flashes[1] });
+      const parts = checks.length + 1;
+      const per = Math.max(1, Math.ceil(lines.length / parts));
+      const chunks: typeof lines[] = [];
+      for (let i = 0; i < lines.length; i += per) chunks.push(lines.slice(i, i + per));
+      const segments: Array<{ type: 'talk'; lines: typeof lines } | { type: 'flash'; card: LearnCard } | { type: 'quiz'; card: LearnCard }> = [];
+      const span = Math.max(parts, chunks.length);
+      for (let p = 0; p < span; p++) {
+        if (chunks[p]?.length) segments.push({ type: 'talk', lines: chunks[p] });
+        if (checks[p]) segments.push(checks[p]);
+      }
+      return { segments, title: note.title, category: note.category, tags: note.tags, takeaways: recap?.takeaways || [] };
+    }
+    return buildPodcastProgram(note, ctx);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note.id]); // lockedAiDeck.current is fixed at mount — safe to omit
   const segs = program.segments;
 
   const [segIndex, setSegIndex] = useState(0);
@@ -700,6 +737,46 @@ function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, onAwar
   );
 }
 
+/* ────────── AI deck types + assembly ────────── */
+type AiDeck = {
+  teach?: Array<{ head: string; paras: string[] }>;
+  insight?: { text: string };
+  flash?: Array<{ front: string; back: string }>;
+  quiz?: Array<{ prompt: string; options: string[]; answer: string; feedback: string }>;
+  podcast?: { lines: Array<{ who: string; text: string }> };
+  recap?: { takeaways: string[] };
+};
+
+function aiDeckToCards(note: NoteForLearn, ai: AiDeck, ctx: LearnCtx): LearnCard[] {
+  const deck: Omit<LearnCard, '_i'>[] = [];
+  deck.push({ type: 'hook', title: note.title, lede: note.summary, tags: note.tags, category: note.category });
+  (ai.teach || []).forEach(t => deck.push({ type: 'teach', head: t.head, paras: t.paras }));
+  if (ai.insight?.text) deck.push({ type: 'insight', text: ai.insight.text, attr: note.category });
+  (ai.flash || []).forEach(f => deck.push({ type: 'flash', front: f.front, back: f.back }));
+  if (ai.podcast?.lines?.length) {
+    const lines = ai.podcast.lines.map(l => ({
+      who: l.who, text: l.text,
+      dur: Math.max(2400, Math.min(7000, l.text.length * 46)),
+    }));
+    deck.push({ type: 'podcast', lines });
+  }
+  (ai.quiz || []).forEach(q => deck.push({ type: 'quiz', prompt: q.prompt, options: q.options, answer: q.answer, feedback: q.feedback }));
+  deck.push({ type: 'recap', title: note.title, takeaways: ai.recap?.takeaways?.length ? ai.recap.takeaways : [note.summary] });
+  return deck.map((c, i) => ({ ...c, _i: i })) as LearnCard[];
+}
+
+async function fetchAiDeck(note: NoteForLearn): Promise<AiDeck | null> {
+  try {
+    const r = await fetch('/api/learn-progress/generate-deck', {
+      method: 'POST', credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ noteId: note.id, title: note.title, category: note.category, summary: note.summary, tags: note.tags }),
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
 /* ────────── learn session shell ────────── */
 function LearnSession({ planIds, notes, categories, progress, onAward, onMaster, onExit, initialFormat }: {
   planIds: string[];
@@ -718,12 +795,35 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
   const [format, setFormat] = useState(initialFormat);
   const [mode, setMode] = useState('all');
   const [done, setDone] = useState(false);
+  const [aiDecks, setAiDecks] = useState<Record<string, AiDeck | null>>({});
+  const [generating, setGenerating] = useState(false);
   const xpStart = useRef(progress.xp);
 
   const nodeId = planIds[nodeIndex];
   const note = byId[nodeId];
   const cat = note ? catById[note.category] || null : null;
   const catColor = CAT_TINT[cat?.name?.toLowerCase() || ''] || '#b8553e';
+
+  // fetch AI deck for current node; prefetch next
+  useEffect(() => {
+    if (!note) return;
+    if (aiDecks[nodeId] !== undefined) return;
+    setGenerating(true);
+    setAiDecks(prev => ({ ...prev, [nodeId]: null })); // mark in-flight
+    fetchAiDeck(note).then(deck => {
+      setAiDecks(prev => ({ ...prev, [nodeId]: deck }));
+      setGenerating(false);
+    });
+  }, [nodeId, note]);
+
+  // prefetch next note in background
+  useEffect(() => {
+    const nextId = planIds[nodeIndex + 1];
+    const nextNote = nextId ? byId[nextId] : undefined;
+    if (!nextNote || aiDecks[nextId] !== undefined) return;
+    setAiDecks(prev => ({ ...prev, [nextId]: null }));
+    fetchAiDeck(nextNote).then(deck => setAiDecks(prev => ({ ...prev, [nextId]: deck })));
+  }, [nodeIndex, planIds, byId, aiDecks]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onExit(); } };
@@ -770,6 +870,7 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
 
   if (!note) return null;
 
+  const aiDeck = aiDecks[nodeId]; // null = in-flight or failed, undefined = not started
   const SLIDE_MODES: [string, string][] = [['all', 'Lesson'], ['read', 'Read'], ['cards', 'Cards'], ['quiz', 'Quiz']];
 
   return (
@@ -790,6 +891,7 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
         )}
         <span className="lt-spacer" />
         <div className="lt-stats">
+          {generating && <span className="generating-chip">✦ Generating…</span>}
           <StreakChip streak={progress.streak} />
           <XpChip xp={progress.xp} />
           <GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} />
@@ -801,6 +903,7 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
           key={`${nodeId}:${mode}`}
           note={note} ctx={ctx} mode={mode} catById={catById}
           planIds={planIds} nodeIndex={nodeIndex} progress={progress}
+          aiDeck={aiDeck}
           onAward={onAward} onComplete={completeNode} onPrevNode={prevNode}
           isLast={nodeIndex === planIds.length - 1}
         />
@@ -809,6 +912,7 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
           key={`${nodeId}:pod`}
           note={note} ctx={ctx} catById={catById}
           planIds={planIds} nodeIndex={nodeIndex} progress={progress}
+          aiDeck={aiDeck}
           onAward={onAward} onComplete={completeNode}
           catColor={catColor} catName={cat?.name || note.category}
         />
@@ -830,6 +934,7 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
   const [sessionPlanIds, setSessionPlanIds] = useState<string[] | null>(null);
   const [format, setFormat] = useState<'slides' | 'podcast'>('slides');
   const [progress, setProgress] = useState<LearnProgress>({ xp: 0, todayXp: 0, dailyGoalXp: 100, streak: 0, mastery: {} });
+  const loadedIds = useRef(new Set<string>());
 
   // load progress
   useEffect(() => {
@@ -839,31 +944,44 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
       .catch(() => {});
   }, []);
 
-  // load all note bodies (lazy — fetch as needed, but for plan we need them upfront)
+  // stable key — only changes when note IDs actually change, not on every poll
+  const noteIdsKey = useMemo(() => notes.map(n => n.id).sort().join(','), [notes]);
+
+  // load note bodies — only for missing IDs, no reset on poll-triggered re-renders
   useEffect(() => {
     let cancelled = false;
-    async function loadBodies() {
-      setLoading(true);
-      const results: Record<string, NoteForLearn> = {};
-      // fetch in parallel, up to 6 at a time
+    const missing = notes.filter(n => !loadedIds.current.has(n.id));
+    if (!missing.length) { setLoading(false); return; }
+
+    const isInitial = loadedIds.current.size === 0;
+    if (isInitial) setLoading(true);
+
+    async function loadMissing() {
       const chunks: KnowledgeNote[][] = [];
-      for (let i = 0; i < notes.length; i += 6) chunks.push(notes.slice(i, i + 6));
+      for (let i = 0; i < missing.length; i += 6) chunks.push(missing.slice(i, i + 6));
       for (const chunk of chunks) {
         if (cancelled) break;
         await Promise.all(chunk.map(async n => {
           try {
             const md = await fetchNoteMarkdown(n.id);
-            results[n.id] = { ...n, body: parseBodyBlocks(md) };
+            if (!cancelled) {
+              loadedIds.current.add(n.id);
+              setBodiesById(prev => ({ ...prev, [n.id]: { ...n, body: parseBodyBlocks(md), markdown: md } }));
+            }
           } catch {
-            results[n.id] = { ...n, body: [] };
+            if (!cancelled) {
+              loadedIds.current.add(n.id);
+              setBodiesById(prev => ({ ...prev, [n.id]: { ...n, body: [], markdown: '' } }));
+            }
           }
         }));
       }
-      if (!cancelled) { setBodiesById(results); setLoading(false); }
+      if (!cancelled) setLoading(false);
     }
-    loadBodies();
+    loadMissing();
     return () => { cancelled = true; };
-  }, [notes]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteIdsKey]);
 
   const enrichedNotes = useMemo((): NoteForLearn[] =>
     notes.map(n => bodiesById[n.id] || { ...n, body: [] }),
