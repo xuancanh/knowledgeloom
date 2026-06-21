@@ -8,7 +8,9 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "density": "balanced",
   "captureFloating": false,
   "jobStyle": "sidebar",
-  "showMiniGraph": true
+  "showMiniGraph": true,
+  "graphEdges": "curved",
+  "graphMinimap": true
 }/*EDITMODE-END*/;
 
 const ACCENT_PALETTES = {
@@ -94,6 +96,68 @@ function App() {
   const openNote = uC((id) => setView({ kind: 'note', id }), []);
   const openCategory = uC((id) => setView({ kind: 'category', id }), []);
   const goHome = uC(() => setView({ kind: 'home' }), []);
+  const openGraph = uC(() => setView({ kind: 'graph' }), []);
+
+  // ——— graph link + node editing (shared with note detail backlinks) ———
+  const addLink = uC((from, to) => setNotes(prev => prev.map(n =>
+    n.id === from && from !== to && !n.links.includes(to) ? { ...n, links: [...n.links, to] } : n)), []);
+  const removeLink = uC((from, to) => setNotes(prev => prev.map(n =>
+    n.id === from ? { ...n, links: n.links.filter(l => l !== to) } : n)), []);
+  const setNoteCategory = uC((id, cat) => setNotes(prev => prev.map(n => n.id === id ? { ...n, category: cat } : n)), []);
+  const renameNote = uC((id, title) => setNotes(prev => prev.map(n => n.id === id ? { ...n, title } : n)), []);
+  const deleteNote = uC((id) => setNotes(prev => prev
+    .filter(n => n.id !== id)
+    .map(n => n.links.includes(id) ? { ...n, links: n.links.filter(l => l !== id) } : n)), []);
+  const addNote = uC((title) => {
+    const id = 'k-' + Math.random().toString(36).slice(2, 7);
+    const today = new Date().toISOString().slice(0, 10);
+    setNotes(prev => [{
+      id, title, category: 'distributed-systems', tags: ['new'], created: today,
+      summary: 'New node — open to capture details, or drag the side handle to link it in.',
+      body: [{ type: 'p', text: 'Captured on the graph. Open to expand.' }], links: [],
+    }, ...prev]);
+    return id;
+  }, []);
+
+  // ——— Learning mode: progress + plan + session ———
+  const PROG_KEY = 'kl-learn-progress-v1';
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const [progress, setProgress] = uS(() => {
+    const base = { xp: 0, streak: 0, lastDay: null, todayXp: 0, dailyGoalXp: 120, mastery: {} };
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROG_KEY) || 'null');
+      if (!saved) return base;
+      const today = todayStr();
+      // reset today's XP if it's a new day; keep streak intact (it advances on activity)
+      if (saved.lastDay !== today) saved.todayXp = 0;
+      return { ...base, ...saved };
+    } catch (e) { return base; }
+  });
+  uE(() => { try { localStorage.setItem(PROG_KEY, JSON.stringify(progress)); } catch (e) {} }, [progress]);
+
+  const awardXp = uC((amount) => setProgress(p => {
+    const today = todayStr();
+    const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+    const isNewDay = p.lastDay !== today;
+    const streak = isNewDay ? (p.lastDay === y ? p.streak + 1 : 1) : (p.streak || 1);
+    const todayXp = (isNewDay ? 0 : p.todayXp) + amount;
+    return { ...p, xp: p.xp + amount, todayXp, streak, lastDay: today };
+  }), []);
+
+  const masterNode = uC((id) => {
+    setProgress(p => p.mastery[id] === 'mastered' ? p : { ...p, mastery: { ...p.mastery, [id]: 'mastered' } });
+    awardXp(20); // mastery bonus
+  }, [awardXp]);
+
+  // plan builder + active session
+  const [planSeed, setPlanSeed] = uS(null);    // node id seeding the builder (or null)
+  const [planOpen, setPlanOpen] = uS(false);
+  const [activePlan, setActivePlan] = uS(null); // array of node ids
+  const [learnFormat, setLearnFormat] = uS('slides');
+
+  const openPlanner = uC((seedNodeId) => { setPlanSeed(seedNodeId || null); setPlanOpen(true); }, []);
+  const startPlan = uC((ids, format) => { setPlanOpen(false); setActivePlan(ids); setLearnFormat(format || 'slides'); setView({ kind: 'learn' }); }, []);
+  const exitSession = uC(() => { setActivePlan(null); setView({ kind: 'graph' }); }, []);
 
   // ⌘K / etc keyboard shortcuts
   uE(() => {
@@ -106,6 +170,8 @@ function App() {
       }
       if (e.key === 'Escape') { setSearchOpen(false); return; }
       if (inField) return;
+      if (e.key === 'g' || e.key === 'G') { e.preventDefault(); setView({ kind: 'graph' }); return; }
+      if (e.key === 'l' || e.key === 'L') { e.preventDefault(); setPlanSeed(null); setPlanOpen(true); return; }
       // j/k nav for note rows in the current main listing
       if (e.key === 'j' || e.key === 'k') {
         e.preventDefault();
@@ -207,6 +273,14 @@ function App() {
             <span style={{width:14, color:'var(--accent)'}}>⌕</span> Search
             <span className="kbd">⌘K</span>
           </button>
+          <button className={"nav-item" + (view.kind === 'graph' ? ' active' : '')} onClick={openGraph}>
+            <span style={{width:14, color:'var(--accent)'}}>⊹</span> The Weave
+            <span className="kbd">G</span>
+          </button>
+          <button className={"nav-item" + (view.kind === 'learn' ? ' active' : '')} onClick={() => openPlanner(null)}>
+            <span style={{width:14, color:'var(--accent)'}}>▸</span> Learn
+            <span className="kbd">L</span>
+          </button>
 
           <div className="grp-label"><span>Categories</span><span>{CATEGORIES.length}</span></div>
           {CATEGORIES.map(c => {
@@ -262,6 +336,7 @@ function App() {
           </div>
         </div>
 
+        {view.kind !== 'graph' && view.kind !== 'learn' && (
         <div className="main">
           {view.kind === 'home' && (
             <Home
@@ -291,7 +366,49 @@ function App() {
             />
           )}
         </div>
+        )}
+        {view.kind === 'graph' && (
+          <GraphView
+            notes={notes}
+            categories={CATEGORIES}
+            onOpen={openNote}
+            onAddLink={addLink}
+            onRemoveLink={removeLink}
+            onAddNote={addNote}
+            onDeleteNote={deleteNote}
+            onSetCategory={setNoteCategory}
+            onRenameNote={renameNote}
+            edgeStyle={tweaks.graphEdges}
+            showMinimap={tweaks.graphMinimap}
+            progress={progress}
+            onLearn={openPlanner}
+          />
+        )}
+        {view.kind === 'learn' && activePlan && (
+          <LearnSession
+            planIds={activePlan}
+            notes={notes}
+            categories={CATEGORIES}
+            progress={progress}
+            onAward={awardXp}
+            onMaster={masterNode}
+            onExit={exitSession}
+            onOpenNote={openNote}
+            initialFormat={learnFormat}
+          />
+        )}
       </main>
+
+      {planOpen && (
+        <PlanBuilder
+          notes={notes}
+          categories={CATEGORIES}
+          seedNodeId={planSeed}
+          progress={progress}
+          onStart={startPlan}
+          onClose={() => setPlanOpen(false)}
+        />
+      )}
 
       {/* RIGHT CONTEXT PANEL (only on note detail) */}
       {showContextPanel && (
@@ -428,6 +545,20 @@ function App() {
               label="Mini graph in right rail"
               value={tweaks.showMiniGraph}
               onChange={v => setTweak('showMiniGraph', v)}
+            />
+          </TweakSection>
+
+          <TweakSection label="The Weave (graph)">
+            <TweakRadio
+              label="Edge style"
+              value={tweaks.graphEdges}
+              options={[{value:'curved', label:'Curved'}, {value:'straight', label:'Straight'}]}
+              onChange={v => setTweak('graphEdges', v)}
+            />
+            <TweakToggle
+              label="Minimap"
+              value={tweaks.graphMinimap}
+              onChange={v => setTweak('graphMinimap', v)}
             />
           </TweakSection>
         </TweaksPanel>
