@@ -172,3 +172,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 ::-webkit-scrollbar-thumb { background: var(--rule-2); border-radius: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 
+
+/* PWA / mobile: respect notches and home indicators in standalone mode. */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Comfortable touch targets on coarse pointers (phones/tablets). */
+@media (pointer: coarse) {
+  .today-rate, .today-btn, .today-choice, .fc-rate, .pod-play {
+    min-height: 44px;
+  }
+  .nav-item { min-height: 40px; }
+}

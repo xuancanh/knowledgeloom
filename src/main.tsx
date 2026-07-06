@@ -12,6 +12,14 @@ import { ee } from './lib/ee';
 const eeModules = import.meta.glob<{ register?: (api: typeof ee) => void }>('./extensions/register.{ts,tsx}', { eager: true });
 Object.values(eeModules).forEach((mod) => mod.register?.(ee));
 
+// PWA: offline shell + cached static assets (production builds only — the SW
+// would fight Vite's dev-server module graph otherwise).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
