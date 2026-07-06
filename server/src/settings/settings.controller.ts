@@ -6,11 +6,11 @@
  */
 import { Controller, Get, Patch, Body, UseGuards, HttpCode } from '@nestjs/common';
 import { UserSettingsRepository } from './user-settings.repository';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/settings')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class SettingsController {
   constructor(private readonly settingsRepo: UserSettingsRepository) {}
 

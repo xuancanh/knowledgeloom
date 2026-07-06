@@ -22,7 +22,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { ImagesService } from './images.service';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { WritableGuard } from '../common/guards/writable.guard';
 
 @Controller('api/images')
@@ -30,7 +30,7 @@ export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
   @Post()
-  @UseGuards(SupabaseAuthGuard, WritableGuard)
+  @UseGuards(ApiAuthGuard, WritableGuard)
   @UseInterceptors(FileInterceptor('file'))
   async upload(@UploadedFile() file: { originalname: string; buffer: Buffer; mimetype: string }) {
     if (!file) throw new BadRequestException('No file uploaded');

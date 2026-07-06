@@ -11,11 +11,11 @@
  */
 import { Controller, Get, Param, NotFoundException, UseGuards } from '@nestjs/common';
 import { JobsService } from './jobs.service';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/jobs')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 

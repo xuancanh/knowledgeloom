@@ -17,10 +17,14 @@ import { QuizRoute } from './components/routes/QuizRoute';
 import { NewNoteRoute } from './components/routes/NewNoteRoute';
 import ContextPanel from './components/ContextPanel';
 import { ChatPanel } from './components/chat/ChatPanel';
-import { LandingPage } from './components/landing/LandingPage';
-import { LoginPage } from './components/auth/LoginPage';
 import GraphPage from './components/graph/GraphPage';
 import LearnPage from './components/learn/LearnPage';
+import { ee } from './lib/ee';
+
+// Enterprise-only pages come from the EE registry; in OSS builds these are
+// undefined and the app boots straight into local mode at /home.
+const LandingPage = ee.component('LandingPage');
+const LoginPage = ee.component('LoginPage');
 
 export default function App() {
   const { authenticated, loading: authLoading } = useAuth();
@@ -29,8 +33,10 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={authenticated ? <Navigate to="/home" replace /> : <LoginPage />} />
+      <Route path="/" element={LandingPage ? <LandingPage /> : <Navigate to="/home" replace />} />
+      {LoginPage && (
+        <Route path="/login" element={authenticated ? <Navigate to="/home" replace /> : <LoginPage />} />
+      )}
       {authenticated
         ? <Route path="*" element={<AuthenticatedApp />} />
         : <Route path="*" element={<Navigate to="/" replace />} />

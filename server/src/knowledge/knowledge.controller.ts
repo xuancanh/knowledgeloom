@@ -10,11 +10,11 @@
  */
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { KnowledgeService } from './knowledge.service';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/knowledge')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class KnowledgeController {
   constructor(private readonly knowledgeService: KnowledgeService) {}
 

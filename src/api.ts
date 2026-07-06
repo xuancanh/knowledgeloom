@@ -4,17 +4,17 @@
  * Error handling: throws on non-2xx responses with status code in message.
  */
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope, ChatMessage } from './types';
-import { supabase } from './lib/supabase';
+import { ee } from './lib/ee';
 
-/** Returns Supabase auth headers if the client is available, or {} in local mode. */
+/** Returns auth headers from the EE auth adapter, or {} in local mode. */
 async function authHeaders(): Promise<Record<string, string>> {
-  if (!supabase) return {};
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const adapter = ee.authAdapter();
+  if (!adapter) return {};
+  const token = await adapter.getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function apiFetch(url: string, init: RequestInit = {}): Promise<Response> {
+export async function apiFetch(url: string, init: RequestInit = {}): Promise<Response> {
   const auth = await authHeaders();
   const headers = { ...auth, ...(init.headers as Record<string, string> | undefined) };
   return fetch(url, { ...init, headers });

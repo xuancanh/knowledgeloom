@@ -13,12 +13,12 @@
  */
 import { Controller, Get, Put, Patch, Delete, Post, Param, Body, HttpCode, UseGuards, BadRequestException } from '@nestjs/common';
 import { NotesService } from './notes.service';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 
 @Controller('api/notes')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 

@@ -70,7 +70,11 @@ export default () => {
     flashcardsPath: join(knowledgeDir, 'flashcards.json'),
     appDbPath: process.env.APP_DB_PATH || join(knowledgeDir, 'app.sqlite'),
     remindersDbPath: join(knowledgeDir, 'reminders.sqlite'),
-    // Supabase auth
+    // Auth — 'local' (default) or 'supabase' (requires enterprise ee/ modules)
+    authProvider: process.env.AUTH_PROVIDER || '',
+    // Optional bearer token for internet-exposed self-hosted instances (local provider)
+    authSecret: process.env.AUTH_SECRET || '',
+    // Supabase auth (enterprise; read by the ee/ Supabase strategy)
     supabaseUrl: process.env.SUPABASE_URL || '',
     supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET || '',
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',

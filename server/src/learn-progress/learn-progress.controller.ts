@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Param, Body, UseGuards, Inject, Logger, BadRequestException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { LearnProgressRepository } from './learn-progress.repository';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NotesService } from '../notes/notes.service';
@@ -11,7 +11,7 @@ import { AiDeck, parseAiJson, sanitizeAiDeck } from './deck-sanitizer';
 const DECK_CACHE_MAX = 200;
 
 @Controller('api/learn-progress')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class LearnProgressController {
   private readonly logger = new Logger(LearnProgressController.name);
   private readonly deckCache = new Map<string, AiDeck>();
