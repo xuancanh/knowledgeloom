@@ -45,6 +45,7 @@ import { QuizModule } from './quiz/quiz.module';
 import { SettingsModule } from './settings/settings.module';
 import { LearnProgressModule } from './learn-progress/learn-progress.module';
 import { UsageModule } from './usage/usage.module';
+import { StudyModule } from './study/study.module';
 
 const baseImports = [
     // Global providers — no need to import these in feature modules.
@@ -77,6 +78,7 @@ const baseImports = [
     QuizModule,
     SettingsModule,
     LearnProgressModule,
+    StudyModule,
 ];
 
 @Module({})
