@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE_DB, LEARN_PROGRESS_TABLE } from '../database/database.constants';
 import type { DrizzleDb } from '../database/database.module';
+import { applyDayRollover } from './progress-rollover';
 
 export interface LearnProgress {
   xp: number;
@@ -25,11 +26,18 @@ export class LearnProgressRepository {
     const row = rows[0];
     let mastery: Record<string, 'mastered'> = {};
     try { mastery = JSON.parse(row.mastery); } catch { /* ignore */ }
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const rolled = applyDayRollover(
+      { todayXp: row.todayXp ?? 0, streak: row.streak ?? 0, lastActiveDate: row.lastActiveDate ?? null },
+      today,
+      yesterday,
+    );
     return {
       xp: row.xp ?? 0,
-      todayXp: row.todayXp ?? 0,
+      todayXp: rolled.todayXp,
       dailyGoalXp: row.dailyGoalXp ?? 100,
-      streak: row.streak ?? 0,
+      streak: rolled.streak,
       mastery,
     };
   }

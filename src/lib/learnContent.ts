@@ -13,6 +13,9 @@ export type LearnCard =
 
 export type PodLine = { who: string; text: string; dur: number };
 
+/** Omit that distributes over unions — plain Omit collapses LearnCard to its common keys. */
+export type CardDraft = LearnCard extends infer T ? (T extends LearnCard ? Omit<T, '_i'> : never) : never;
+
 export type NoteForLearn = KnowledgeNote & { body: NoteBlock[]; markdown: string };
 
 export type LearnCtx = {
@@ -162,7 +165,7 @@ function recapCard(note: NoteForLearn): Omit<LearnCard & { type: 'recap' }, '_i'
 }
 
 export function buildDeck(note: NoteForLearn, ctx: LearnCtx): LearnCard[] {
-  const deck: Omit<LearnCard, '_i'>[] = [];
+  const deck: CardDraft[] = [];
   deck.push({ type: 'hook', title: note.title, lede: note.summary, tags: note.tags, category: note.category });
   const teach = teachCards(note);
   deck.push(teach[0]
