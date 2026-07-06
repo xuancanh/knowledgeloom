@@ -231,7 +231,7 @@ maybe('flashcards: user card create → update → review → delete', async () 
 
 // ── quiz ──────────────────────────────────────────────────────────────────────
 
-maybe('quiz: reviews schedule via the streak algorithm; hide/restore work', async () => {
+maybe('quiz: FSRS reviews keep the streak counter; hide/restore work', async () => {
   const qid = 'e2e-question-1';
   const first = await post(`/api/quiz/${qid}/review`, { rating: 'correct', noteId, currentStreak: 0 });
   assert.equal(first.status, 200);
@@ -242,6 +242,27 @@ maybe('quiz: reviews schedule via the streak algorithm; hide/restore work', asyn
 
   assert.ok((await del(`/api/quiz/${qid}`)).ok);            // hide
   assert.ok((await post(`/api/quiz/${qid}/restore`)).ok);   // restore
+});
+
+// ── study queue + retention analytics ────────────────────────────────────────
+
+maybe('study: today queue and retention stats reflect submitted reviews', async () => {
+  // A user card reviewed 'good' just above scheduled it into the future, so it
+  // must NOT be due; the review itself must show up in the stats log.
+  const { json: queue } = await get('/api/study/today');
+  assert.ok(Array.isArray(queue.flashcards));
+  assert.ok(Array.isArray(queue.quiz));
+  assert.ok(Array.isArray(queue.reminders));
+  assert.equal(typeof queue.counts.dueFlashcards, 'number');
+
+  const { status, json: stats } = await get('/api/study/stats?days=30');
+  assert.equal(status, 200);
+  assert.ok(stats.totals.reviews >= 3, `expected the flashcard+quiz reviews in the log, got ${stats.totals.reviews}`);
+  assert.ok(stats.totals.flashcardReviews >= 1);
+  assert.ok(stats.totals.quizReviews >= 2);
+  assert.ok(stats.totals.successRate > 0 && stats.totals.successRate <= 1);
+  assert.ok(Array.isArray(stats.weakestTopics));
+  assert.ok(Array.isArray(stats.categories));
 });
 
 // ── learn progress ────────────────────────────────────────────────────────────

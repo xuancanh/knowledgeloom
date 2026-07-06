@@ -6,9 +6,10 @@ import { UserFlashcardsRepository } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import { FlashcardsController } from './flashcards.controller';
 import { AiModule } from '../ai/ai.module';
+import { ReviewEventsModule } from '../study/review-events.module';
 
 @Module({
-  imports: [AiModule],
+  imports: [AiModule, ReviewEventsModule],
   controllers: [FlashcardsController],
   providers: [
     FlashcardsService,

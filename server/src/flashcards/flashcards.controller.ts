@@ -13,6 +13,7 @@ import { fsrsReview, seedFromLegacy, elapsedDaysBetween, type FsrsGrade } from '
 import { UserFlashcardsRepository } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import { FlashcardReviewsRepository } from './flashcard-reviews.repository';
+import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
@@ -24,6 +25,7 @@ export class FlashcardsController {
     private readonly userFlashcardsRepo: UserFlashcardsRepository,
     private readonly hiddenFlashcardsRepo: HiddenFlashcardsRepository,
     private readonly reviewsRepo: FlashcardReviewsRepository,
+    private readonly eventsRepo: ReviewEventsRepository,
   ) {}
 
   @Post()
@@ -98,6 +100,16 @@ export class FlashcardsController {
       stability: outcome.state.stability,
       difficulty: outcome.state.difficulty,
       lapses: outcome.state.lapses,
+    });
+    await this.eventsRepo.record(userId, {
+      itemId: cardId,
+      itemType: 'flashcard',
+      noteId: body.noteId || '',
+      rating: body.rating,
+      grade,
+      elapsedDays: elapsed,
+      stability: outcome.state.stability,
+      reviewedAt: new Date().toISOString(),
     });
     return { review };
   }

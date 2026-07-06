@@ -303,6 +303,26 @@ export async function fetchStudyToday(): Promise<StudyQueue> {
   return response.json();
 }
 
+export type StudyStats = {
+  windowDays: number;
+  totals: {
+    reviews: number;
+    flashcardReviews: number;
+    quizReviews: number;
+    successRate: number | null;
+    retention1d: number | null;
+    retention7d: number | null;
+  };
+  categories: { category: string; attempts: number; successRate: number }[];
+  weakestTopics: { noteId: string; title: string; category: string; attempts: number; successRate: number }[];
+};
+
+export async function fetchStudyStats(days = 30): Promise<StudyStats> {
+  const response = await apiFetch(`/api/study/stats?days=${days}`);
+  if (!response.ok) throw new Error(`Failed to load study stats: ${response.status}`);
+  return response.json();
+}
+
 /* ── Import ── */
 
 export async function importSource(input: {

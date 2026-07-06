@@ -267,3 +267,41 @@
 .import-status.error { color: #c0392b; }
 .import-status.done { color: #1e8449; }
 .import-open { align-self: flex-start; }
+
+/* Retention stats */
+
+.today-stats h3 { margin: 0 0 10px; font-size: 0.95rem; }
+.today-stats h4 { margin: 16px 0 8px; font-size: 0.85rem; color: var(--ink-soft, #777); }
+
+.today-stat-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.today-stat {
+  flex: 1 1 100px;
+  border: 1px solid var(--line, #eee);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+
+.today-stat-num { font-size: 1.3rem; font-weight: 700; }
+.today-stat-label { font-size: 0.72rem; color: var(--ink-soft, #999); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.today-weak-topic {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line, #eee);
+  padding: 8px 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.today-weak-rate { font-weight: 700; color: #c0392b; min-width: 42px; }
+.today-weak-title { color: var(--ink, #222); font-size: 0.92rem; }
+.today-weak-meta { margin-left: auto; font-size: 0.75rem; color: var(--ink-soft, #999); }
