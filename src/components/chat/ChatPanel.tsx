@@ -57,6 +57,7 @@ export function ChatPanel({ notes, categories }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [mode, setMode] = useState<'chat' | 'tutor'>('chat');
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -105,8 +106,8 @@ export function ChatPanel({ notes, categories }: Props) {
     if (!text || streaming) return;
     setInputValue('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    sendMessage(text, scope);
-  }, [inputValue, streaming, scope, sendMessage]);
+    sendMessage(text, scope, mode);
+  }, [inputValue, streaming, scope, mode, sendMessage]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -158,6 +159,32 @@ export function ChatPanel({ notes, categories }: Props) {
             )}
             <button className={styles.iconBtn} onClick={() => setOpen(false)} aria-label={t('chat.closeBtn')}>
               ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Mode selector: ask questions vs be quizzed Socratically */}
+        <div className={styles.scopeBar}>
+          <span className={styles.scopeKey}>Mode</span>
+          <div className={styles.scopeChips}>
+            <button
+              className={`${styles.chip}${mode === 'chat' ? ` ${styles.chipActive}` : ''}`}
+              onClick={() => setMode('chat')}
+              title="Ask questions about your notes"
+            >
+              Ask
+            </button>
+            <button
+              className={`${styles.chip}${mode === 'tutor' ? ` ${styles.chipActive}` : ''}`}
+              onClick={() => {
+                setMode('tutor');
+                if (!streaming && messages.length === 0) {
+                  sendMessage('Start quizzing me on this material.', scope, 'tutor');
+                }
+              }}
+              title="Socratic tutor: get quizzed with citations to your notes"
+            >
+              Tutor me
             </button>
           </div>
         </div>

@@ -90,6 +90,7 @@ const DECK_JSON = JSON.stringify({
 });
 
 const RAG_TOKENS = ['Vector ', 'clocks ', 'order ', 'events.'];
+const TUTOR_TOKENS = ['What do vector clocks capture? ', '[Note: "Vector Clocks"]'];
 
 const IMPORT_NOTE = `---
 title: "Spaced Repetition Evidence"
@@ -131,8 +132,10 @@ function startMockAi() {
         return;
       }
       if (body.stream) {
+        // Tutor mode is detected by its distinct system prompt.
+        const tokens = prompt.includes('Socratic tutor') ? TUTOR_TOKENS : RAG_TOKENS;
         res.writeHead(200, { 'content-type': 'text/event-stream' });
-        for (const token of RAG_TOKENS) {
+        for (const token of tokens) {
           res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: token } }] })}\n\n`);
         }
         res.write('data: [DONE]\n\n');
@@ -319,6 +322,23 @@ maybe('rag: streams provider tokens through to the client', async () => {
   const text = await res.text();
   assert.ok(res.ok, `rag stream failed: ${res.status} ${text.slice(0, 200)}`);
   assert.equal(text, RAG_TOKENS.join(''));
+});
+
+maybe('rag tutor mode: the Socratic system prompt drives the session', async () => {
+  const res = await fetch(`${BASE}/api/rag/stream`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ question: 'Quiz me.', scope: { type: 'all' }, history: [], mode: 'tutor' }),
+  });
+  const text = await res.text();
+  assert.ok(res.ok, `tutor stream failed: ${res.status}`);
+  assert.equal(text, TUTOR_TOKENS.join(''), 'tutor prompt selected the tutor branch of the mock');
+
+  // Plain chat must NOT hit the tutor branch.
+  const chat = await fetch(`${BASE}/api/rag/stream`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ question: 'What orders events?', scope: { type: 'all' }, history: [] }),
+  });
+  assert.equal(await chat.text(), RAG_TOKENS.join(''));
 });
 
 // ── import pipeline (text / PDF / audio) ──────────────────────────────────────
