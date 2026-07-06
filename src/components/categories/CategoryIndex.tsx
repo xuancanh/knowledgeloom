@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Flashcard, KnowledgeNote } from '../../types';
 import { categoryContains, categoryId, categoryLabel, formatCreated, type UiCategory } from '../../lib/view';
 import NoteList, { type ViewMode } from '../NoteList';
+import { createShare } from '../../api';
 import { NEW_NOTE_DRAFT_KEY } from '../routes/NewNoteRoute';
 import styles from './CategoryIndex.module.css';
 
@@ -46,6 +47,7 @@ export default function CategoryIndex({
   const [noteSearch, setNoteSearch] = useState('');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [shareState, setShareState] = useState<'idle' | 'working' | 'copied'>('idle');
 
   const readSet = useMemo(() => new Set(readNoteIds || []), [readNoteIds]);
 
@@ -152,6 +154,24 @@ export default function CategoryIndex({
             )}
             {totalLinks > 0 && <span className={styles.chip}>{t('categories.linksCount', { count: totalLinks })}</span>}
           </div>
+          <button
+            className={styles.newNoteBtn}
+            disabled={shareState === 'working'}
+            onClick={async () => {
+              setShareState('working');
+              try {
+                const share = await createShare({ category: category.name });
+                await navigator.clipboard.writeText(`${window.location.origin}${share.url}`).catch(() => {});
+                setShareState('copied');
+                setTimeout(() => setShareState('idle'), 2500);
+              } catch {
+                setShareState('idle');
+              }
+            }}
+            title="Create a public read-only link to this collection and its study deck"
+          >
+            {shareState === 'copied' ? 'Link copied ✓' : shareState === 'working' ? 'Sharing…' : 'Share'}
+          </button>
           <button className={styles.newNoteBtn} onClick={newNoteInCategory}>{t('categories.newNote')}</button>
         </div>
         {category.summary && category.summary !== 'No summary yet.' && (

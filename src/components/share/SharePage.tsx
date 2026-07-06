@@ -28,27 +28,61 @@ export default function SharePage() {
   }
   if (!share) return <div className="today-page share-page"><div className="today-empty">Loading…</div></div>;
 
-  const blocks = parseMarkdownBlocks(share.note.body);
+  const isCollection = share.kind === 'category';
+  const headerNote = share.note;
 
   return (
     <div className="today-page share-page">
       <header className="today-head">
-        <div className="share-badge">Shared note · read-only</div>
-        <h1>{share.note.title}</h1>
-        <div className="today-counts">
-          <span className="today-chip">{share.note.category}</span>
-          {share.note.tags.map((t) => <span key={t} className="today-chip">#{t}</span>)}
-        </div>
-        {share.note.summary && <p className="import-sub">{share.note.summary}</p>}
+        <div className="share-badge">{isCollection ? 'Shared collection · read-only' : 'Shared note · read-only'}</div>
+        {isCollection ? (
+          <>
+            <h1>{share.collection?.name}</h1>
+            <div className="today-counts">
+              <span className="today-chip">{share.collection?.noteCount} notes</span>
+              <span className="today-chip">{share.flashcards.length} flashcards</span>
+              <span className="today-chip">{share.quiz.length} quiz questions</span>
+            </div>
+          </>
+        ) : headerNote && (
+          <>
+            <h1>{headerNote.title}</h1>
+            <div className="today-counts">
+              <span className="today-chip">{headerNote.category}</span>
+              {headerNote.tags.map((t) => <span key={t} className="today-chip">#{t}</span>)}
+            </div>
+            {headerNote.summary && <p className="import-sub">{headerNote.summary}</p>}
+          </>
+        )}
       </header>
 
-      <section className="share-body">
-        {blocks.map((b, i) =>
-          b.type === 'h' ? <h3 key={i}>{b.text}</h3>
-          : b.type === 'q' ? <blockquote key={i}>{b.text}</blockquote>
-          : <p key={i}>{b.text}</p>,
-        )}
-      </section>
+      {isCollection ? (
+        <section>
+          {(share.notes || []).map((n, ni) => (
+            <details key={ni} className="share-collection-note">
+              <summary>
+                <strong>{n.title}</strong>
+                {n.summary && <span className="share-note-summary"> — {n.summary}</span>}
+              </summary>
+              <div className="share-body">
+                {parseMarkdownBlocks(n.body).map((b, i) =>
+                  b.type === 'h' ? <h3 key={i}>{b.text}</h3>
+                  : b.type === 'q' ? <blockquote key={i}>{b.text}</blockquote>
+                  : <p key={i}>{b.text}</p>,
+                )}
+              </div>
+            </details>
+          ))}
+        </section>
+      ) : headerNote && (
+        <section className="share-body">
+          {parseMarkdownBlocks(headerNote.body).map((b, i) =>
+            b.type === 'h' ? <h3 key={i}>{b.text}</h3>
+            : b.type === 'q' ? <blockquote key={i}>{b.text}</blockquote>
+            : <p key={i}>{b.text}</p>,
+          )}
+        </section>
+      )}
 
       {share.flashcards.length > 0 && (
         <section>

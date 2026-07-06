@@ -9,10 +9,14 @@ import { randomBytes } from 'node:crypto';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, SHARES_TABLE } from '../database/database.constants';
 
+export type ShareKind = 'note' | 'category';
+
 export interface ShareRow {
   id: string;
   userId: string;
+  /** Target: a note id (kind='note') or a category path (kind='category'). */
   noteId: string;
+  kind: ShareKind;
   createdAt: string;
   revokedAt: string | null;
 }
@@ -29,11 +33,12 @@ export class SharesRepository {
     return this.config.get<string>('databaseDialect') || 'sqlite';
   }
 
-  async create(userId: string, noteId: string): Promise<ShareRow> {
+  async create(userId: string, target: string, kind: ShareKind = 'note'): Promise<ShareRow> {
     const row: ShareRow = {
       id: randomBytes(16).toString('base64url'), // 128 bits, unguessable
       userId,
-      noteId,
+      noteId: target,
+      kind,
       createdAt: new Date().toISOString(),
       revokedAt: null,
     };

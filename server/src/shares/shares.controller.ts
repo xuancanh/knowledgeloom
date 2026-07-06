@@ -1,16 +1,19 @@
 /**
- * Share links — publish a note + its study deck at an unguessable URL.
+ * Share links — publish a note or a whole category (collection) plus its
+ * study deck at an unguessable URL.
  *
  * Authenticated (owner) routes:
- *   POST   /api/shares        { noteId } → { id, url }
+ *   POST   /api/shares        { noteId } | { category } → { id, url, kind }
  *   GET    /api/shares        → active shares for the user
  *   DELETE /api/shares/:id    → revoke
  *
  * Public route (NO auth — anyone with the link):
- *   GET /api/shares/:id/public → { note, flashcards, quiz }
+ *   GET /api/shares/:id/public
+ *     kind='note'     → { kind, note, flashcards, quiz }
+ *     kind='category' → { kind, collection, notes, flashcards, quiz }
  *
- * The public payload is read-only and self-contained: note content plus its
- * generated cards, no vault ids, links, or account information.
+ * Public payloads are read-only and self-contained: content plus generated
+ * cards, no vault link ids or account information.
  */
 import {
   Controller, Get, Post, Delete, Body, Param, HttpCode, UseGuards,
@@ -25,23 +28,50 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { basename } from 'node:path';
 
+/** Category shares include at most this many notes, newest first. */
+const COLLECTION_NOTE_CAP = 50;
+
+const slimCard = (c: any) => ({ prompt: c.prompt, lesson: c.lesson, kind: c.kind, noteTitle: c.noteTitle });
+const slimQuiz = (q: any) => ({
+  type: q.type,
+  question: q.question,
+  answer: q.answer,
+  choices: q.choices,
+  correctIndex: q.correctIndex,
+  explanation: q.explanation,
+  noteTitle: q.noteTitle,
+});
+
 @Controller('api/shares')
 @UseGuards(ApiAuthGuard)
 export class SharesController {
   constructor(
     private readonly shares: SharesRepository,
     private readonly noteRepo: NoteFileRepository,
+    private readonly knowledgeService: KnowledgeService,
   ) {}
 
   @Post()
   @UseGuards(WritableGuard)
-  async create(@CurrentUser() userId: string, @Body() body: { noteId?: string }) {
+  async create(@CurrentUser() userId: string, @Body() body: { noteId?: string; category?: string }) {
+    const category = typeof body?.category === 'string' ? body.category.trim() : '';
+
+    if (category) {
+      const state = await this.knowledgeService.getState(userId);
+      const hasNotes = state.notes.some(
+        (n) => n.category === category || n.category.startsWith(`${category}/`),
+      );
+      if (!hasNotes) throw new NotFoundException('category has no notes');
+      const share = await this.shares.create(userId, category, 'category');
+      return { id: share.id, url: `/share/${share.id}`, kind: 'category', target: category };
+    }
+
     const noteId = basename(String(body?.noteId || '').trim());
-    if (!noteId) throw new BadRequestException('noteId is required');
+    if (!noteId) throw new BadRequestException('noteId or category is required');
     const file = await this.noteRepo.findById(userId, noteId);
     if (!file) throw new NotFoundException('note not found');
-    const share = await this.shares.create(userId, noteId);
-    return { id: share.id, url: `/share/${share.id}`, noteId };
+    const share = await this.shares.create(userId, noteId, 'note');
+    return { id: share.id, url: `/share/${share.id}`, kind: 'note', target: noteId };
   }
 
   @Get()
@@ -74,7 +104,10 @@ export class PublicSharesController {
   async read(@Param('id') id: string) {
     const share = await this.shares.findActive(basename(id));
     if (!share) throw new NotFoundException('share not found');
+    return share.kind === 'category' ? this.readCategory(share) : this.readNote(share);
+  }
 
+  private async readNote(share: { userId: string; noteId: string; createdAt: string }) {
     let markdown: string;
     try {
       markdown = await this.noteRepo.readMarkdown(share.userId, share.noteId);
@@ -82,25 +115,10 @@ export class PublicSharesController {
       throw new NotFoundException('shared note no longer exists');
     }
     const note = parseNote(`${share.noteId}.md`, markdown);
-
-    // Cards come from the owner's enriched state; strip review data and ids
-    // down to study content only.
     const state = await this.knowledgeService.getState(share.userId);
-    const flashcards = (state.flashcards || [])
-      .filter((c: any) => c.noteId === share.noteId)
-      .map((c: any) => ({ prompt: c.prompt, lesson: c.lesson, kind: c.kind }));
-    const quiz = (state.quizQuestions || [])
-      .filter((q: any) => q.noteId === share.noteId)
-      .map((q: any) => ({
-        type: q.type,
-        question: q.question,
-        answer: q.answer,
-        choices: q.choices,
-        correctIndex: q.correctIndex,
-        explanation: q.explanation,
-      }));
 
     return {
+      kind: 'note' as const,
       note: {
         title: note.title,
         category: note.category,
@@ -109,8 +127,39 @@ export class PublicSharesController {
         body: stripFrontmatter(markdown),
         createdAt: note.createdAt,
       },
-      flashcards,
-      quiz,
+      flashcards: (state.flashcards || []).filter((c: any) => c.noteId === share.noteId).map(slimCard),
+      quiz: (state.quizQuestions || []).filter((q: any) => q.noteId === share.noteId).map(slimQuiz),
+      sharedAt: share.createdAt,
+    };
+  }
+
+  private async readCategory(share: { userId: string; noteId: string; createdAt: string }) {
+    const category = share.noteId; // target column holds the category path
+    const state = await this.knowledgeService.getState(share.userId);
+    const inCategory = (c: string) => c === category || c.startsWith(`${category}/`);
+    const notes = state.notes
+      .filter((n) => inCategory(n.category))
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      .slice(0, COLLECTION_NOTE_CAP);
+    if (!notes.length) throw new NotFoundException('shared collection no longer exists');
+
+    const noteIds = new Set(notes.map((n) => n.id));
+    const fullNotes = await Promise.all(
+      notes.map(async (n) => {
+        let body = '';
+        try {
+          body = stripFrontmatter(await this.noteRepo.readMarkdown(share.userId, n.id));
+        } catch { /* skip body when unreadable */ }
+        return { title: n.title, category: n.category, summary: n.summary, tags: n.tags, body, createdAt: n.createdAt };
+      }),
+    );
+
+    return {
+      kind: 'category' as const,
+      collection: { name: category, noteCount: fullNotes.length },
+      notes: fullNotes,
+      flashcards: (state.flashcards || []).filter((c: any) => noteIds.has(c.noteId)).map(slimCard),
+      quiz: (state.quizQuestions || []).filter((q: any) => noteIds.has(q.noteId)).map(slimQuiz),
       sharedAt: share.createdAt,
     };
   }

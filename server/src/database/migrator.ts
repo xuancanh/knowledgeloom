@@ -340,6 +340,14 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    // 'note' shares target one note id; 'category' shares target a category
+    // path (stored in the same noteId column, treated as an opaque target).
+    id: '0010_share_kinds',
+    run(db) {
+      addIfMissing(db, 'shares', 'kind', "TEXT NOT NULL DEFAULT 'note'");
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -638,6 +646,12 @@ const PG_MIGRATIONS: PgMigration[] = [
         );
         CREATE INDEX IF NOT EXISTS idx_shares_user ON shares("userId");
       `);
+    },
+  },
+  {
+    id: '0010_share_kinds_pg',
+    async run(pool) {
+      await pgAddIfMissing(pool, 'shares', 'kind', "TEXT NOT NULL DEFAULT 'note'");
     },
   },
 ];
