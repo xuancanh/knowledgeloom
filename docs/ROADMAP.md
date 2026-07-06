@@ -104,16 +104,20 @@ MCP clients.
 8. ✅ **Deck sharing** — `/share/:id` public read-only note + deck pages,
    128-bit ids, revocable, no vault internals in the payload.
 
-### Later (2027) — expand
+### Later — expand (pulled forward; shipped July 2026 unless noted)
 
-9. **Mobile capture + review app** (or PWA hardening): review queues are a
-   phone habit; capture-on-the-go feeds the vault.
-10. **Classroom/team spaces** (Atelier/Guild): shared vaults, instructor
-    dashboards on top of the existing admin console + seat billing.
-11. **Handwriting/image and lecture-video ingestion**; browser-clipper for
-    link mode.
-12. **Marketplace/community decks** with quality signals — long-term moat vs
-    disposable AI-generated cards.
+9. ✅ **Deck + collection sharing and marketplace** — category shares
+   (`/share/:id` collections), `/marketplace` publish/browse/import with
+   decks seeded on import (no AI re-billing). Quality signals (ratings,
+   curation) remain future work.
+10. ✅ **Richer ingestion** — image/handwriting via vision extraction,
+    video via transcription, bookmarklet web clipper (`/clip`).
+11. ✅ **PWA hardening** — installable manifest, offline-shell service
+    worker, safe-area + touch-target polish. A native mobile app remains
+    future work.
+12. **Classroom/team spaces** (Atelier/Guild): shared vaults, instructor
+    dashboards on top of the existing admin console + seat billing —
+    still open.
 
 ### Explicit non-goals
 
