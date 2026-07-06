@@ -88,6 +88,18 @@ maybe('AUTH_SECRET mode: API requires the bearer token', async () => {
     body: JSON.stringify({ mode: 'write', title: 'Authed', body: '# A', category: 'T', summary: '', tags: [] }),
   });
   assert.ok(write.ok);
+  const created = await write.json();
+
+  // Share management requires auth, but the public share URL must stay open:
+  // the whole point of a share link is that the recipient has no account.
+  assert.equal((await fetch(`${base}/api/shares`, { method: 'POST' })).status, 401);
+  const share = await (await fetch(`${base}/api/shares`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', Authorization: 'Bearer modes-secret' },
+    body: JSON.stringify({ noteId: created.note.id }),
+  })).json();
+  const pub = await fetch(`${base}/api/shares/${share.id}/public`);
+  assert.equal(pub.status, 200, 'public share readable without the bearer token');
 });
 
 maybe('audio import without transcription config → 501 with a clear message', async () => {

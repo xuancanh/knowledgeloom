@@ -325,6 +325,21 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0009_shares',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS shares (
+          id        TEXT PRIMARY KEY,
+          userId    TEXT NOT NULL DEFAULT '',
+          noteId    TEXT NOT NULL,
+          createdAt TEXT NOT NULL,
+          revokedAt TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_shares_user ON shares(userId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -607,6 +622,21 @@ const PG_MIGRATIONS: PgMigration[] = [
           "reviewedAt"  TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_review_events_user_time ON review_events("userId", "reviewedAt");
+      `);
+    },
+  },
+  {
+    id: '0009_shares_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS shares (
+          id          TEXT PRIMARY KEY,
+          "userId"    TEXT NOT NULL DEFAULT '',
+          "noteId"    TEXT NOT NULL,
+          "createdAt" TEXT NOT NULL,
+          "revokedAt" TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_shares_user ON shares("userId");
       `);
     },
   },

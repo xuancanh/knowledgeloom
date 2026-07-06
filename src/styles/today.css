@@ -344,3 +344,40 @@
 
 .today-exam-day-count { font-weight: 700; font-size: 0.9rem; }
 .today-exam-day-date { color: var(--ink-soft, #999); }
+
+/* Public share page */
+
+.share-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent, #7c5cff);
+  border: 1px solid var(--accent, #7c5cff);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-bottom: 8px;
+}
+
+.share-body p { line-height: 1.65; margin: 0 0 12px; }
+.share-body h3 { margin: 20px 0 8px; }
+.share-body blockquote {
+  border-left: 3px solid var(--accent, #7c5cff);
+  margin: 0 0 12px;
+  padding: 4px 14px;
+  color: var(--ink-soft, #666);
+}
+
+.share-section-title { margin: 0 0 10px; font-size: 1rem; }
+.share-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.share-flash { min-height: 120px; padding: 18px; }
+.share-quiz { margin-bottom: 12px; cursor: default; }
+
+.share-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line, #eee);
+  font-size: 0.8rem;
+  color: var(--ink-soft, #999);
+  text-align: center;
+}

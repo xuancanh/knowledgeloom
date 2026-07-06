@@ -284,6 +284,36 @@ maybe('study: exam plan lays out passes toward the exam date', async () => {
   assert.equal(bad.status, 400);
 });
 
+// ── share links ──────────────────────────────────────────────────────────────
+
+maybe('shares: create → public read (no auth) → revoke → 404', async () => {
+  const { status, json: share } = await post('/api/shares', { noteId });
+  assert.equal(status, 201, JSON.stringify(share));
+  assert.ok(share.id.length >= 20, 'unguessable id');
+  assert.equal(share.url, `/share/${share.id}`);
+
+  // Public payload is readable without credentials and contains no vault internals.
+  const pub = await get(`/api/shares/${share.id}/public`);
+  assert.equal(pub.status, 200);
+  assert.equal(pub.json.note.title, 'Updated E2E Note');
+  assert.ok(pub.json.note.body.length > 0);
+  assert.ok(Array.isArray(pub.json.flashcards));
+  assert.ok(Array.isArray(pub.json.quiz));
+  assert.equal(pub.json.note.links, undefined, 'no vault link ids in public payload');
+
+  // Owner sees it listed; revocation kills the public URL.
+  const { json: listed } = await get('/api/shares');
+  assert.ok(listed.shares.some((sh) => sh.id === share.id));
+  assert.equal((await del(`/api/shares/${share.id}`)).status, 200);
+  assert.equal((await get(`/api/shares/${share.id}/public`)).status, 404);
+
+  // Unknown ids 404 rather than leaking anything.
+  assert.equal((await get('/api/shares/definitely-not-a-real-id/public')).status, 404);
+
+  // Sharing a nonexistent note is rejected.
+  assert.equal((await post('/api/shares', { noteId: 'no-such-note' })).status, 404);
+});
+
 // ── learn progress ────────────────────────────────────────────────────────────
 
 maybe('learn progress: award accumulates XP and starts a streak', async () => {

@@ -267,6 +267,23 @@ export const pgReviewEvents = pgTable('review_events', {
   reviewedAt: pgText('reviewedAt').notNull(),
 });
 
+/** Public share links: an unguessable id maps to one note + its study deck. */
+export const sqliteShares = sqliteTable('shares', {
+  id: sqliteText('id').primaryKey(),
+  userId: sqliteText('userId').notNull().default(''),
+  noteId: sqliteText('noteId').notNull(),
+  createdAt: sqliteText('createdAt').notNull(),
+  revokedAt: sqliteText('revokedAt'),
+});
+
+export const pgShares = pgTable('shares', {
+  id: pgText('id').primaryKey(),
+  userId: pgText('userId').notNull().default(''),
+  noteId: pgText('noteId').notNull(),
+  createdAt: pgText('createdAt').notNull(),
+  revokedAt: pgText('revokedAt'),
+});
+
 export const pgLearnProgress = pgTable('learn_progress', {
   userId: pgText('userId').primaryKey(),
   xp: pgInteger('xp').notNull().default(0),
