@@ -1,0 +1,56 @@
+# Self-hosted production stack (VM / any Docker host).
+# Cloud deployment on Cloudflare + Supabase is documented in docs/DEPLOYMENT.md;
+# this compose file is the single-box alternative.
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      # Cloud mode: Supabase auth + Postgres + R2 (see .env.production.example).
+      # Omit these to run fully local against the mounted volume.
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET:-}
+      DATABASE_DIALECT: ${DATABASE_DIALECT:-sqlite}
+      DATABASE_URL: ${DATABASE_URL:-}
+      NOTE_STORAGE: ${NOTE_STORAGE:-local}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      REDIS_HOST: redis
+      SEARCH_PROVIDER: ${SEARCH_PROVIDER:-inmemory}
+      AI_PROVIDER: ${AI_PROVIDER:-openrouter}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_API_BASE_URL: ${AI_API_BASE_URL:-https://openrouter.ai/api/v1}
+      AI_MODEL: ${AI_MODEL:-}
+      TTS_API_KEY: ${TTS_API_KEY:-}
+      TRANSCRIBE_API_KEY: ${TRANSCRIBE_API_KEY:-}
+      VISION_API_KEY: ${VISION_API_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      AUTH_SECRET: ${AUTH_SECRET:-}
+    volumes:
+      - loom-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - loom-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  loom-data:
+  loom-redis:
