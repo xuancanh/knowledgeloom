@@ -111,6 +111,18 @@ const TRANSCRIPT = 'Welcome to the lecture. Today we cover the spacing effect: d
 
 function startMockAi() {
   const server = createServer((req, res) => {
+    // OpenAI-compatible speech synthesis: returns fake MP3 bytes derived from
+    // the requested voice so the test can verify per-host voice mapping.
+    if (req.url?.includes('/audio/speech')) {
+      let raw = '';
+      req.on('data', (d) => { raw += d; });
+      req.on('end', () => {
+        const { voice } = JSON.parse(raw || '{}');
+        res.writeHead(200, { 'content-type': 'audio/mpeg' });
+        res.end(Buffer.from(`MP3:${voice};`));
+      });
+      return;
+    }
     // Whisper-compatible transcription endpoint (multipart body ignored).
     if (req.url?.includes('/audio/transcriptions')) {
       req.resume();
@@ -187,6 +199,8 @@ test.before(async () => {
       SEARCH_PROVIDER: 'inmemory',
       TRANSCRIBE_API_BASE: `http://127.0.0.1:${MOCK_PORT}/v1`,
       TRANSCRIBE_API_KEY: 'test-key',
+      TTS_API_BASE: `http://127.0.0.1:${MOCK_PORT}/v1`,
+      TTS_API_KEY: 'test-key',
       EE_SEED_DEMO: '0',
       EE_QUOTA_PREFIX: `ai-itest:${process.pid}`,
     },
@@ -339,6 +353,37 @@ maybe('rag tutor mode: the Socratic system prompt drives the session', async () 
     body: JSON.stringify({ question: 'What orders events?', scope: { type: 'all' }, history: [] }),
   });
   assert.equal(await chat.text(), RAG_TOKENS.join(''));
+});
+
+maybe('tts: podcast dialogue renders per-host voices into one audio stream', async () => {
+  const { json: cfg } = await api('GET', '/api/tts/config');
+  assert.equal(cfg.enabled, true);
+
+  const lines = [
+    { who: 'maya', text: 'Welcome back to the show.' },
+    { who: 'theo', text: 'Today: vector clocks.' },
+    { who: 'maya', text: 'Let us dive in.' },
+  ];
+  const res = await fetch(`${BASE}/api/tts/podcast`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ lines }),
+  });
+  const bytes = Buffer.from(await res.arrayBuffer());
+  assert.equal(res.status, 201, bytes.toString().slice(0, 200));
+  assert.equal(res.headers.get('content-type'), 'audio/mpeg');
+  const body = bytes.toString();
+  assert.equal(body, 'MP3:nova;MP3:onyx;MP3:nova;', 'maya→voice A, theo→voice B, concatenated in order');
+
+  // Replay hits the cache and returns identical bytes.
+  const again = await fetch(`${BASE}/api/tts/podcast`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ lines }),
+  });
+  assert.equal(Buffer.from(await again.arrayBuffer()).toString(), body);
+
+  // Empty input is rejected.
+  const bad = await api('POST', '/api/tts/podcast', { lines: [] });
+  assert.equal(bad.status, 400);
 });
 
 // ── import pipeline (text / PDF / audio) ──────────────────────────────────────

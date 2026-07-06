@@ -8,7 +8,7 @@ import {
   clip,
 } from '../../lib/learnContent';
 import type { NoteForLearn, LearnCtx, LearnCard, PodLine, CardDraft } from '../../lib/learnContent';
-import { fetchNoteMarkdown, generateLearnDeck } from '../../api';
+import { fetchNoteMarkdown, generateLearnDeck, fetchTtsConfig, fetchPodcastAudio } from '../../api';
 
 const KEYS = ['A', 'B', 'C', 'D', 'E'];
 const CAT_TINT: Record<string, string> = {
@@ -557,6 +557,18 @@ function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, aiDeck
   const awarded = useRef(new Set<string>());
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Real voice (server TTS). Available only when the backend has a TTS key;
+  // audio plays per talk segment alongside the caption timing.
+  const [voiceAvailable, setVoiceAvailable] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    fetchTtsConfig().then((c) => setVoiceAvailable(c.enabled));
+    return () => {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    };
+  }, []);
+
   const seg = segs[segIndex] || segs[segs.length - 1];
   const isTalk = seg && seg.type === 'talk';
   const isCheck = seg && (seg.type === 'flash' || seg.type === 'quiz');
@@ -614,6 +626,32 @@ function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, aiDeck
     }, 55);
     return () => { if (timer.current) clearInterval(timer.current); };
   }, [isTalk, playing, lineIndex, segIndex]);
+
+  // Fetch + play the current talk segment's audio when voice is on.
+  useEffect(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (!voiceOn || !isTalk || seg.type !== 'talk') return;
+    let cancelled = false;
+    const lines = (seg as { type: 'talk'; lines: PodLine[] }).lines.map((l) => ({ who: l.who, text: l.text }));
+    fetchPodcastAudio(lines).then((url) => {
+      if (!url) return;
+      if (cancelled) { URL.revokeObjectURL(url); return; }
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      if (playing) void audio.play().catch(() => {});
+    });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceOn, segIndex, isTalk]);
+
+  // Pause/resume follows the transport button.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) void audio.play().catch(() => {});
+    else audio.pause();
+  }, [playing]);
 
   function nextSegment() {
     const n = segIndex + 1;
@@ -674,6 +712,15 @@ function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, aiDeck
           ))}
         </div>
         <span className="pod-time">{fmt(elapsed)} / {fmt(talkTotal)}</span>
+        {voiceAvailable && (
+          <button
+            className={`pod-voice${voiceOn ? ' on' : ''}`}
+            onClick={() => setVoiceOn((v) => !v)}
+            title={voiceOn ? 'Voice on (AI speech)' : 'Voice off (captions only)'}
+          >
+            {voiceOn ? '🔊' : '🔇'}
+          </button>
+        )}
       </div>
 
       <div className="learn-plan-rail">

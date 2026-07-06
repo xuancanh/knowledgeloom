@@ -115,6 +115,15 @@ export default () => {
     // CLI template; {file} is replaced with the audio path. Must print the transcript to stdout.
     transcribeCommand: process.env.TRANSCRIBE_COMMAND || '',
 
+    // Text-to-speech for podcast audio: 'openai' (any /audio/speech-compatible
+    // API) or 'none' (podcast stays text + browser timing).
+    ttsProvider: process.env.TTS_PROVIDER || (process.env.TTS_API_KEY ? 'openai' : 'none'),
+    ttsApiBase: process.env.TTS_API_BASE || 'https://api.openai.com/v1',
+    ttsApiKey: process.env.TTS_API_KEY || '',
+    ttsModel: process.env.TTS_MODEL || 'gpt-4o-mini-tts',
+    ttsVoiceA: process.env.TTS_VOICE_A || 'nova',   // maya
+    ttsVoiceB: process.env.TTS_VOICE_B || 'onyx',   // theo
+
     // AI provider selection: 'codex' (default) or 'openrouter'
     aiProvider: process.env.AI_PROVIDER || 'codex',
     aiApiKey: process.env.AI_API_KEY || '',

@@ -477,3 +477,15 @@
 .pod-check .flip-front .ff-text { font-size: 22px; }
 .pod-check .q-prompt { font-family: var(--font-serif); font-size: 21px; font-weight: 500; line-height: 1.3; margin: 0 0 16px; }
 .pod-check .l-cta { margin-top: 16px; }
+
+/* Podcast voice toggle (server TTS) */
+.pod-voice {
+  border: 1px solid var(--line, rgba(255,255,255,0.2));
+  background: none;
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+.pod-voice.on { opacity: 1; border-color: var(--pc, #7c5cff); }
