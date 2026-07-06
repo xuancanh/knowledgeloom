@@ -73,20 +73,23 @@ engine labeling, streak-logic unification.
 
 ## 3. Roadmap
 
-### Now (Q3 2026) — close the learning loop
+### Now (Q3 2026) — close the learning loop — ✅ shipped July 2026
 
-1. **Unified "Today" study queue.** One screen merging due flashcards, due quiz
-   questions, and reminders across the vault. This is the single most-used
-   surface in every successful study app and we don't have it yet.
-2. **Multimodal import: PDF → notes + deck.** The market's table stakes in
-   2026. Start with PDF/pasted-text; lecture-audio transcription next.
-   Pipes into the existing research-note + deck generation path.
-3. **FSRS-style adaptive scheduling (upgrade from SM-2).** Open-source FSRS
-   personalizes intervals to the learner; quiz scheduler currently caps at
-   14 days — unify both on one scheduler with per-user memory parameters.
-4. **Retention analytics.** Day-7/day-30 recall rates per category; "weakest
-   topics" panel feeding the learn plan builder. (EE usage tables already
-   give us the event spine.)
+1. ✅ **Unified "Today" study queue** — `/today` + `GET /api/study/today`:
+   due flashcards, due quiz, capped new items, reminders, inline review.
+2. ✅ **Multimodal import: PDF / text / audio → notes + deck** —
+   `POST /api/import` with PDF parsing and pluggable Whisper-compatible or
+   local-CLI transcription; imports flow into the note → flashcards → quiz
+   pipeline automatically.
+3. ✅ **FSRS-4.5 adaptive scheduling** (default weights; per-user weight
+   optimization remains future work) — unified across flashcards and quiz,
+   legacy SM-2 state seeded over.
+4. ✅ **Retention analytics** — append-only review-event log; 1d+/7d+ recall
+   rates, per-category success, weakest-topics panel on Today.
+
+Also shipped alongside Q3: an **MCP server** (stdio, read-only by default —
+docs/MCP.md) exposing search/read/capture/study-queue to Claude and other
+MCP clients.
 
 ### Next (Q4 2026) — differentiate
 
