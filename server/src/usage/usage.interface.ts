@@ -12,6 +12,7 @@
  *   - POST /api/rag/stream                      → feature 'ai.rag'
  *   - POST /api/notes/assist-draft, :id/assist  → feature 'ai.assist'
  *   - POST /api/notes/:id/regenerate            → feature 'ai.regenerate'
+ *   - POST /api/tts/podcast                     → feature 'ai.podcast'
  *
  * Non-AI events (e.g. 'note.created') may also be tracked for product
  * analytics; only AI_FEATURES count toward the quota.
@@ -19,7 +20,7 @@
 export const USAGE_SERVICE = 'USAGE_SERVICE';
 
 /** Features that consume the per-plan monthly AI quota. */
-export const AI_FEATURES = ['codex.research', 'ai.deck', 'ai.rag', 'ai.assist', 'ai.regenerate'];
+export const AI_FEATURES = ['codex.research', 'ai.deck', 'ai.rag', 'ai.assist', 'ai.regenerate', 'ai.podcast'];
 
 export interface UsageService {
   /**

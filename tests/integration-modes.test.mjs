@@ -98,6 +98,15 @@ maybe('audio import without transcription config → 501 with a clear message', 
   assert.equal(res.status, 501);
   const json = await res.json();
   assert.match(json.error, /transcription is not configured/);
+
+  // TTS is likewise dark without a key: config says so, endpoint 501s.
+  const cfg = await (await fetch(`${base}/api/tts/config`)).json();
+  assert.equal(cfg.enabled, false);
+  const tts = await fetch(`${base}/api/tts/podcast`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ lines: [{ who: 'maya', text: 'hello' }] }),
+  });
+  assert.equal(tts.status, 501);
 });
 
 maybe('read-only mode: reads succeed, writes are rejected', async () => {

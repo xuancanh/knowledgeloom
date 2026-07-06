@@ -380,6 +380,34 @@ export async function importSource(input: {
   return response.json();
 }
 
+/* ── Podcast text-to-speech ── */
+
+export async function fetchTtsConfig(): Promise<{ enabled: boolean }> {
+  try {
+    const response = await apiFetch('/api/tts/config');
+    if (!response.ok) return { enabled: false };
+    return response.json();
+  } catch {
+    return { enabled: false };
+  }
+}
+
+/** Returns an object URL for the synthesized dialogue, or null when TTS is unavailable/failed. */
+export async function fetchPodcastAudio(lines: Array<{ who: string; text: string }>): Promise<string | null> {
+  try {
+    const response = await apiFetch('/api/tts/podcast', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ lines }),
+    });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
+}
+
 /* ── Learn progress ── */
 
 export type LearnProgressDto = {
