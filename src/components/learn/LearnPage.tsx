@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
+import { useLearnProgress } from '../../hooks/useLearnProgress';
 import type { LearnProgress } from '../../hooks/useLearnProgress';
 import {
   HOSTS, parseBodyBlocks, buildDeck, filterDeck, buildPlan, estimateCards, buildPodcastProgram,
   clip,
 } from '../../lib/learnContent';
-import type { NoteForLearn, LearnCtx, LearnCard, PodLine } from '../../lib/learnContent';
-import { fetchNoteMarkdown } from '../../api';
+import type { NoteForLearn, LearnCtx, LearnCard, PodLine, CardDraft } from '../../lib/learnContent';
+import { fetchNoteMarkdown, generateLearnDeck } from '../../api';
 
 const KEYS = ['A', 'B', 'C', 'D', 'E'];
 const CAT_TINT: Record<string, string> = {
@@ -20,7 +21,8 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   const r = 9, c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, goal ? value / goal : 0));
   return (
-    <svg className="goal-ring" width="26" height="26" viewBox="0 0 26 26" title={`Daily goal · ${value}/${goal} XP`}>
+    <svg className="goal-ring" width="26" height="26" viewBox="0 0 26 26">
+      <title>{`Daily goal · ${value}/${goal} XP`}</title>
       <circle cx="13" cy="13" r={r} fill="none" stroke="var(--rule)" strokeWidth="3.2" />
       <circle cx="13" cy="13" r={r} fill="none" stroke="var(--moss)" strokeWidth="3.2"
         strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct)}
@@ -364,15 +366,21 @@ function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, ai
   onPrevNode: () => void;
   isLast: boolean;
 }) {
-  // Lock deck source at mount — avoids card-position reset if AI arrives mid-session
-  const lockedAiDeck = useRef(aiDeck);
+  const [cardIndex, setCardIndex] = useState(0);
+  // Adopt the AI deck if it arrives while the user is still on the hook card
+  // (identical in both decks); once past it, lock the source so card positions
+  // don't reset mid-lesson.
+  const [deckSrc, setDeckSrc] = useState<AiDeck | null>(aiDeck ?? null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot deck adoption, guarded
+    if (!deckSrc && aiDeck && cardIndex === 0) setDeckSrc(aiDeck);
+  }, [aiDeck, cardIndex, deckSrc]);
   const fullDeck = useMemo(() => {
-    if (lockedAiDeck.current) return aiDeckToCards(note, lockedAiDeck.current, ctx);
+    if (deckSrc) return aiDeckToCards(note, deckSrc, ctx);
     return buildDeck(note, ctx);
-  }, [note, ctx]);
+  }, [note, ctx, deckSrc]);
   const deck = useMemo(() => filterDeck(fullDeck, mode), [fullDeck, mode]);
 
-  const [cardIndex, setCardIndex] = useState(0);
   const [, forceRender] = useState(0);
   const cardStates = useRef<Record<string, Record<string, unknown>>>({});
   const seen = useRef(new Set<string>());
@@ -748,7 +756,7 @@ type AiDeck = {
 };
 
 function aiDeckToCards(note: NoteForLearn, ai: AiDeck, ctx: LearnCtx): LearnCard[] {
-  const deck: Omit<LearnCard, '_i'>[] = [];
+  const deck: CardDraft[] = [];
   deck.push({ type: 'hook', title: note.title, lede: note.summary, tags: note.tags, category: note.category });
   (ai.teach || []).forEach(t => deck.push({ type: 'teach', head: t.head, paras: t.paras }));
   if (ai.insight?.text) deck.push({ type: 'insight', text: ai.insight.text, attr: note.category });
@@ -766,16 +774,14 @@ function aiDeckToCards(note: NoteForLearn, ai: AiDeck, ctx: LearnCtx): LearnCard
 }
 
 async function fetchAiDeck(note: NoteForLearn): Promise<AiDeck | null> {
-  try {
-    const r = await fetch('/api/learn-progress/generate-deck', {
-      method: 'POST', credentials: 'include',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ noteId: note.id, title: note.title, category: note.category, summary: note.summary, tags: note.tags }),
-    });
-    if (!r.ok) return null;
-    return await r.json();
-  } catch { return null; }
+  const deck = await generateLearnDeck({
+    noteId: note.id, title: note.title, category: note.category, summary: note.summary, tags: note.tags,
+  });
+  return deck && typeof deck === 'object' ? (deck as AiDeck) : null;
 }
+
+/** Deck fetch lifecycle per note: absent = not started, pending = in flight, done = resolved (deck may be null on failure). */
+type AiDeckEntry = { status: 'pending' | 'done'; deck: AiDeck | null };
 
 /* ────────── learn session shell ────────── */
 function LearnSession({ planIds, notes, categories, progress, onAward, onMaster, onExit, initialFormat }: {
@@ -795,8 +801,8 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
   const [format, setFormat] = useState(initialFormat);
   const [mode, setMode] = useState('all');
   const [done, setDone] = useState(false);
-  const [aiDecks, setAiDecks] = useState<Record<string, AiDeck | null>>({});
-  const [generating, setGenerating] = useState(false);
+  const [aiDecks, setAiDecks] = useState<Record<string, AiDeckEntry>>({});
+  const [startedAnyway, setStartedAnyway] = useState<Record<string, boolean>>({});
   const xpStart = useRef(progress.xp);
 
   const nodeId = planIds[nodeIndex];
@@ -806,13 +812,10 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
 
   // fetch AI deck for current node; prefetch next
   useEffect(() => {
-    if (!note) return;
-    if (aiDecks[nodeId] !== undefined) return;
-    setGenerating(true);
-    setAiDecks(prev => ({ ...prev, [nodeId]: null })); // mark in-flight
+    if (!note || aiDecks[nodeId]) return;
+    setAiDecks(prev => ({ ...prev, [nodeId]: { status: 'pending', deck: null } }));
     fetchAiDeck(note).then(deck => {
-      setAiDecks(prev => ({ ...prev, [nodeId]: deck }));
-      setGenerating(false);
+      setAiDecks(prev => ({ ...prev, [nodeId]: { status: 'done', deck } }));
     });
   }, [nodeId, note]);
 
@@ -820,9 +823,9 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
   useEffect(() => {
     const nextId = planIds[nodeIndex + 1];
     const nextNote = nextId ? byId[nextId] : undefined;
-    if (!nextNote || aiDecks[nextId] !== undefined) return;
-    setAiDecks(prev => ({ ...prev, [nextId]: null }));
-    fetchAiDeck(nextNote).then(deck => setAiDecks(prev => ({ ...prev, [nextId]: deck })));
+    if (!nextNote || aiDecks[nextId]) return;
+    setAiDecks(prev => ({ ...prev, [nextId]: { status: 'pending', deck: null } }));
+    fetchAiDeck(nextNote).then(deck => setAiDecks(prev => ({ ...prev, [nextId]: { status: 'done', deck } })));
   }, [nodeIndex, planIds, byId, aiDecks]);
 
   useEffect(() => {
@@ -870,7 +873,9 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
 
   if (!note) return null;
 
-  const aiDeck = aiDecks[nodeId]; // null = in-flight or failed, undefined = not started
+  const deckEntry = aiDecks[nodeId];
+  const generating = deckEntry?.status === 'pending';
+  const aiDeck = deckEntry?.deck ?? null;
   const SLIDE_MODES: [string, string][] = [['all', 'Lesson'], ['read', 'Read'], ['cards', 'Cards'], ['quiz', 'Quiz']];
 
   return (
@@ -907,6 +912,18 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
           onAward={onAward} onComplete={completeNode} onPrevNode={prevNode}
           isLast={nodeIndex === planIds.length - 1}
         />
+      ) : generating && !startedAnyway[nodeId] ? (
+        <div className="learn-stage">
+          <div className="lcard podcast">
+            <div className="lcard-inner" style={{ alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
+              <div className="l-eyebrow"><span className="kind">✦ Preparing your episode…</span></div>
+              <p className="l-sub">The hosts are reading “{clip(note.title, 60)}”.</p>
+              <button className="l-cta ghost" onClick={() => setStartedAnyway(s => ({ ...s, [nodeId]: true }))}>
+                Start now with the instant version →
+              </button>
+            </div>
+          </div>
+        </div>
       ) : (
         <PodcastStage
           key={`${nodeId}:pod`}
@@ -933,16 +950,8 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
   const [showPlanner, setShowPlanner] = useState(false);
   const [sessionPlanIds, setSessionPlanIds] = useState<string[] | null>(null);
   const [format, setFormat] = useState<'slides' | 'podcast'>('slides');
-  const [progress, setProgress] = useState<LearnProgress>({ xp: 0, todayXp: 0, dailyGoalXp: 100, streak: 0, mastery: {} });
+  const { progress, award, master } = useLearnProgress();
   const loadedIds = useRef(new Set<string>());
-
-  // load progress
-  useEffect(() => {
-    fetch('/api/learn-progress', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setProgress(d); })
-      .catch(() => {});
-  }, []);
 
   // stable key — only changes when note IDs actually change, not on every poll
   const noteIdsKey = useMemo(() => notes.map(n => n.id).sort().join(','), [notes]);
@@ -987,29 +996,6 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
     notes.map(n => bodiesById[n.id] || { ...n, body: [] }),
     [notes, bodiesById]
   );
-
-  const award = useCallback(async (xp: number) => {
-    if (xp <= 0) return;
-    setProgress(p => ({ ...p, xp: p.xp + xp, todayXp: p.todayXp + xp }));
-    try {
-      const r = await fetch('/api/learn-progress/award', {
-        method: 'POST', credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ xp }),
-      });
-      if (r.ok) setProgress(await r.json());
-    } catch { /* noop */ }
-  }, []);
-
-  const master = useCallback(async (noteId: string) => {
-    setProgress(p => ({ ...p, mastery: { ...p.mastery, [noteId]: 'mastered' } }));
-    try {
-      const r = await fetch(`/api/learn-progress/master/${encodeURIComponent(noteId)}`, {
-        method: 'POST', credentials: 'include',
-      });
-      if (r.ok) setProgress(await r.json());
-    } catch { /* noop */ }
-  }, []);
 
   if (loading) {
     return (

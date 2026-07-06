@@ -1,13 +1,21 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards, Inject, Logger, BadRequestException } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { LearnProgressRepository } from './learn-progress.repository';
 import { SupabaseAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NotesService } from '../notes/notes.service';
+import { AiDeck, parseAiJson, sanitizeAiDeck } from './deck-sanitizer';
+
+/** Generated decks are cached per note content so replaying a lesson does not re-bill the AI provider. */
+const DECK_CACHE_MAX = 200;
 
 @Controller('api/learn-progress')
 @UseGuards(SupabaseAuthGuard)
 export class LearnProgressController {
+  private readonly logger = new Logger(LearnProgressController.name);
+  private readonly deckCache = new Map<string, AiDeck>();
+
   constructor(
     private readonly repo: LearnProgressRepository,
     private readonly notes: NotesService,
@@ -33,22 +41,40 @@ export class LearnProgressController {
   @Post('generate-deck')
   async generateDeck(
     @CurrentUser() userId: string,
-    @Body() body: { noteId: string; title: string; category: string; summary: string; tags: string[] },
-  ) {
-    const { noteId, title, category, summary, tags } = body;
+    @Body() body: { noteId?: string; title?: string; category?: string; summary?: string; tags?: string[] },
+  ): Promise<AiDeck | null> {
+    const noteId = typeof body?.noteId === 'string' ? body.noteId.trim() : '';
+    if (!noteId) throw new BadRequestException('noteId is required');
+    const title = typeof body?.title === 'string' ? body.title : '';
+    const category = typeof body?.category === 'string' ? body.category : '';
+    const summary = typeof body?.summary === 'string' ? body.summary : '';
+    const tags = Array.isArray(body?.tags) ? body.tags.filter((t): t is string => typeof t === 'string') : [];
+
     let markdown = '';
     try {
       markdown = await this.notes.getMarkdown(userId, noteId);
     } catch { /* use empty if note unreadable */ }
 
+    const cacheKey = `${userId}:${noteId}:${createHash('sha1').update(markdown || title + summary).digest('hex')}`;
+    const cached = this.deckCache.get(cacheKey);
+    if (cached) return cached;
+
     const prompt = buildDeckPrompt({ title, category, summary, tags, markdown });
     try {
       const raw = await this.ai.complete(prompt, { outputFormat: 'json' });
-      const jsonStr = raw.match(/```json\s*([\s\S]+?)\s*```/)?.[1]
-        ?? raw.match(/```\s*([\s\S]+?)\s*```/)?.[1]
-        ?? raw;
-      return JSON.parse(jsonStr.trim());
-    } catch {
+      const deck = sanitizeAiDeck(parseAiJson(raw));
+      if (!deck) {
+        this.logger.warn(`generate-deck: AI response for note ${noteId} had no usable sections`);
+        return null;
+      }
+      this.deckCache.set(cacheKey, deck);
+      if (this.deckCache.size > DECK_CACHE_MAX) {
+        const oldest = this.deckCache.keys().next().value;
+        if (oldest) this.deckCache.delete(oldest);
+      }
+      return deck;
+    } catch (err) {
+      this.logger.warn(`generate-deck failed for note ${noteId}: ${err instanceof Error ? err.message : err}`);
       return null;
     }
   }

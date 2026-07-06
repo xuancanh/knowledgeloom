@@ -283,3 +283,53 @@ export async function* streamRagAnswer(
     yield decoder.decode(value, { stream: true });
   }
 }
+
+/* ── Learn progress ── */
+
+export type LearnProgressDto = {
+  xp: number;
+  todayXp: number;
+  dailyGoalXp: number;
+  streak: number;
+  mastery: Record<string, 'mastered'>;
+};
+
+export async function fetchLearnProgress(): Promise<LearnProgressDto> {
+  const response = await apiFetch('/api/learn-progress');
+  if (!response.ok) throw new Error(`Failed to load learn progress: ${response.status}`);
+  return response.json();
+}
+
+export async function awardLearnXp(xp: number): Promise<LearnProgressDto> {
+  const response = await apiFetch('/api/learn-progress/award', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ xp }),
+  });
+  if (!response.ok) throw new Error(`Failed to award XP: ${response.status}`);
+  return response.json();
+}
+
+export async function masterLearnNote(noteId: string): Promise<LearnProgressDto> {
+  const response = await apiFetch(`/api/learn-progress/master/${encodeURIComponent(noteId)}`, { method: 'POST' });
+  if (!response.ok) throw new Error(`Failed to mark mastered: ${response.status}`);
+  return response.json();
+}
+
+/** Returns the AI-generated deck, or null when generation failed (caller falls back to the heuristic deck). */
+export async function generateLearnDeck(payload: {
+  noteId: string; title: string; category: string; summary: string; tags: string[];
+}): Promise<unknown | null> {
+  try {
+    const response = await apiFetch('/api/learn-progress/generate-deck', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) return null;
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
+}
