@@ -26,3 +26,6 @@ knowledge/reminders.sqlite-wal
 # never committed to the public tree
 src/extensions/
 server/src/extensions/
+knowledge/ee.sqlite
+knowledge/ee.sqlite-shm
+knowledge/ee.sqlite-wal

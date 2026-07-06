@@ -19,12 +19,13 @@
  *
  * All routes require authentication.
  */
-import { Controller, Post, Body, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, BadRequestException, Inject } from '@nestjs/common';
 import { NotesService } from '../notes/notes.service';
 import { JobsService } from '../jobs/jobs.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
+import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 
 @Controller('api/learn')
 @UseGuards(ApiAuthGuard)
@@ -32,6 +33,7 @@ export class LearnController {
   constructor(
     private readonly notesService: NotesService,
     private readonly jobsService: JobsService,
+    @Inject(USAGE_SERVICE) private readonly usage: UsageService,
   ) {}
 
   @Post()
@@ -59,12 +61,17 @@ export class LearnController {
       if (!draftBody) throw new BadRequestException('body is required for direct notes');
       const result = await this.notesService.createFromDraft(userId, { ...b, title: topic, body: draftBody });
       const job = await this.jobsService.recordCompleted(userId, { ...b, mode, topic, title: topic }, result);
+      await this.usage.track(userId, 'note.created', { mode });
       return { jobId: job.id, job, ...result };
     }
 
     if (mode === 'polish' && !draftBody) {
       throw new BadRequestException('body is required for polish mode');
     }
+
+    // AI modes consume the plan's monthly research quota (enforced in extensions builds).
+    await this.usage.checkQuota(userId, 'codex.research');
+    await this.usage.track(userId, 'codex.research', { mode });
 
     const job = await this.jobsService.enqueue(userId, {
       ...b,

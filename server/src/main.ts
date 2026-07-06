@@ -34,27 +34,35 @@ class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
+    let extra: Record<string, unknown> = {};
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const response = exception.getResponse();
-      message = typeof response === 'string' ? response : (response as any).message || message;
+      if (typeof response === 'string') {
+        message = response;
+      } else {
+        const r = response as Record<string, unknown>;
+        message = (r.message as string) || (r.error as string) || message;
+        // Preserve structured payloads (e.g. quota errors carry quota/used/plan).
+        extra = r;
+      }
     } else if (exception instanceof Error) {
       message = exception.message;
       status = (exception as any).status || HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
-    httpAdapter.reply(ctx.getResponse(), { error: message }, status);
+    httpAdapter.reply(ctx.getResponse(), { ...extra, error: message }, status);
   }
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { logger: ['log', 'warn', 'error'] });
+  const app = await NestFactory.create(await AppModule.forRoot(), { logger: ['log', 'warn', 'error'] });
 
   app.enableCors({
     origin: '*',
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    allowedHeaders: 'content-type',
+    allowedHeaders: 'content-type,authorization',
   });
 
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: false }));
