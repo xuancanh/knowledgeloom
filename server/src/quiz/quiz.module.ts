@@ -5,9 +5,10 @@ import { QuizReviewsRepository } from './quiz-reviews.repository';
 import { QuizHiddenRepository } from './quiz-hidden.repository';
 import { QuizController } from './quiz.controller';
 import { AiModule } from '../ai/ai.module';
+import { ReviewEventsModule } from '../study/review-events.module';
 
 @Module({
-  imports: [AiModule],
+  imports: [AiModule, ReviewEventsModule],
   controllers: [QuizController],
   providers: [
     QuizService,

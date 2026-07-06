@@ -236,6 +236,37 @@ export const sqliteLearnProgress = sqliteTable('learn_progress', {
   mastery: sqliteText('mastery').notNull().default('{}'),
 });
 
+/**
+ * Append-only review log — one row per flashcard/quiz rating. This is what
+ * retention analytics are computed from (current-state tables can't answer
+ * "how often do I remember after N days").
+ */
+export const sqliteReviewEvents = sqliteTable('review_events', {
+  id: sqliteInteger('id').primaryKey({ autoIncrement: true }),
+  userId: sqliteText('userId').notNull().default(''),
+  itemId: sqliteText('itemId').notNull(),
+  itemType: sqliteText('itemType').notNull(), // 'flashcard' | 'quiz'
+  noteId: sqliteText('noteId').notNull().default(''),
+  rating: sqliteText('rating').notNull(),     // again/hard/good | correct/wrong
+  grade: sqliteInteger('grade').notNull(),    // FSRS grade 1..4
+  elapsedDays: sqliteText('elapsedDays').notNull().default('0'),
+  stability: sqliteText('stability'),
+  reviewedAt: sqliteText('reviewedAt').notNull(),
+});
+
+export const pgReviewEvents = pgTable('review_events', {
+  id: pgInteger('id').primaryKey().generatedAlwaysAsIdentity(),
+  userId: pgText('userId').notNull().default(''),
+  itemId: pgText('itemId').notNull(),
+  itemType: pgText('itemType').notNull(),
+  noteId: pgText('noteId').notNull().default(''),
+  rating: pgText('rating').notNull(),
+  grade: pgInteger('grade').notNull(),
+  elapsedDays: pgText('elapsedDays').notNull().default('0'),
+  stability: pgText('stability'),
+  reviewedAt: pgText('reviewedAt').notNull(),
+});
+
 export const pgLearnProgress = pgTable('learn_progress', {
   userId: pgText('userId').primaryKey(),
   xp: pgInteger('xp').notNull().default(0),

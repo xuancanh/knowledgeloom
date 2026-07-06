@@ -26,7 +26,7 @@ import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
 import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
-import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE, LEARN_PROGRESS_TABLE } from './database.constants';
+import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE, LEARN_PROGRESS_TABLE, REVIEW_EVENTS_TABLE } from './database.constants';
 
 /**
  * Drizzle database instance covering both SQLite and PG backends.
@@ -180,6 +180,15 @@ const learnProgressTableProvider = {
   },
 };
 
+const reviewEventsTableProvider = {
+  provide: REVIEW_EVENTS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgReviewEvents : schema.sqliteReviewEvents;
+  },
+};
+
 @Global()
 @Module({
   providers: [
@@ -196,6 +205,7 @@ const learnProgressTableProvider = {
     noteReadsTableProvider,
     userSettingsTableProvider,
     learnProgressTableProvider,
+    reviewEventsTableProvider,
   ],
   exports: [
     DRIZZLE_DB,
@@ -211,6 +221,7 @@ const learnProgressTableProvider = {
     NOTE_READS_TABLE,
     USER_SETTINGS_TABLE,
     LEARN_PROGRESS_TABLE,
+    REVIEW_EVENTS_TABLE,
   ],
 })
 export class DatabaseModule implements OnModuleInit {

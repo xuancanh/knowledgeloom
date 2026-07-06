@@ -305,6 +305,26 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       addIfMissing(db, 'quiz_reviews', 'lapses', 'INTEGER NOT NULL DEFAULT 0');
     },
   },
+  {
+    id: '0008_review_events',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS review_events (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId      TEXT NOT NULL DEFAULT '',
+          itemId      TEXT NOT NULL,
+          itemType    TEXT NOT NULL,
+          noteId      TEXT NOT NULL DEFAULT '',
+          rating      TEXT NOT NULL,
+          grade       INTEGER NOT NULL,
+          elapsedDays TEXT NOT NULL DEFAULT '0',
+          stability   TEXT,
+          reviewedAt  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_review_events_user_time ON review_events(userId, reviewedAt);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -568,6 +588,26 @@ const PG_MIGRATIONS: PgMigration[] = [
       await pgAddIfMissing(pool, 'quiz_reviews', 'stability', 'TEXT');
       await pgAddIfMissing(pool, 'quiz_reviews', 'difficulty', 'TEXT');
       await pgAddIfMissing(pool, 'quiz_reviews', 'lapses', 'INTEGER NOT NULL DEFAULT 0');
+    },
+  },
+  {
+    id: '0008_review_events_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS review_events (
+          id            INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+          "userId"      TEXT NOT NULL DEFAULT '',
+          "itemId"      TEXT NOT NULL,
+          "itemType"    TEXT NOT NULL,
+          "noteId"      TEXT NOT NULL DEFAULT '',
+          rating        TEXT NOT NULL,
+          grade         INTEGER NOT NULL,
+          "elapsedDays" TEXT NOT NULL DEFAULT '0',
+          stability     TEXT,
+          "reviewedAt"  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_review_events_user_time ON review_events("userId", "reviewedAt");
+      `);
     },
   },
 ];

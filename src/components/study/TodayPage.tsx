@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Flashcard, QuizQuestion, Reminder } from '../../types';
-import { fetchStudyToday, reviewFlashcard, reviewQuiz, updateReminder, type StudyQueue } from '../../api';
+import { fetchStudyToday, fetchStudyStats, reviewFlashcard, reviewQuiz, updateReminder, type StudyQueue, type StudyStats } from '../../api';
 
 type Phase = 'loading' | 'ready' | 'error';
 
@@ -23,6 +23,7 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
   const [revealed, setRevealed] = useState(false);
   const [quizDone, setQuizDone] = useState(0);
   const [completedReminders, setCompletedReminders] = useState<Set<string>>(new Set());
+  const [stats, setStats] = useState<StudyStats | null>(null);
 
   const load = useCallback(async () => {
     setPhase('loading');
@@ -39,6 +40,7 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { fetchStudyStats(30).then(setStats).catch(() => {}); }, []);
 
   const cards = queue?.flashcards ?? [];
   const questions = queue?.quiz ?? [];
@@ -197,6 +199,42 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
           </div>
         </section>
       ) : null}
+
+      {stats && stats.totals.reviews > 0 && (
+        <section className="today-stats">
+          <h3>Last {stats.windowDays} days</h3>
+          <div className="today-stat-row">
+            <div className="today-stat">
+              <span className="today-stat-num">{stats.totals.reviews}</span>
+              <span className="today-stat-label">reviews</span>
+            </div>
+            <div className="today-stat">
+              <span className="today-stat-num">{stats.totals.successRate != null ? `${Math.round(stats.totals.successRate * 100)}%` : '—'}</span>
+              <span className="today-stat-label">overall success</span>
+            </div>
+            <div className="today-stat">
+              <span className="today-stat-num">{stats.totals.retention1d != null ? `${Math.round(stats.totals.retention1d * 100)}%` : '—'}</span>
+              <span className="today-stat-label">recall after 1d+</span>
+            </div>
+            <div className="today-stat">
+              <span className="today-stat-num">{stats.totals.retention7d != null ? `${Math.round(stats.totals.retention7d * 100)}%` : '—'}</span>
+              <span className="today-stat-label">recall after 7d+</span>
+            </div>
+          </div>
+          {stats.weakestTopics.length > 0 && (
+            <>
+              <h4>Weakest topics</h4>
+              {stats.weakestTopics.slice(0, 5).map((t) => (
+                <button key={t.noteId} className="today-weak-topic" onClick={() => onOpenNote(t.noteId)}>
+                  <span className="today-weak-rate">{Math.round(t.successRate * 100)}%</span>
+                  <span className="today-weak-title">{t.title}</span>
+                  <span className="today-weak-meta">{t.category} · {t.attempts} attempts</span>
+                </button>
+              ))}
+            </>
+          )}
+        </section>
+      )}
 
       {remaining.length > 0 && (
         <section className="today-reminders">

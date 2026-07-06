@@ -11,6 +11,7 @@ import { QuizService } from './quiz.service';
 import { fsrsReview, elapsedDaysBetween, type FsrsGrade } from '../scheduling/fsrs';
 import { QuizReviewsRepository } from './quiz-reviews.repository';
 import { QuizHiddenRepository } from './quiz-hidden.repository';
+import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
@@ -21,6 +22,7 @@ export class QuizController {
     private readonly quizService: QuizService,
     private readonly reviewsRepo: QuizReviewsRepository,
     private readonly hiddenRepo: QuizHiddenRepository,
+    private readonly eventsRepo: ReviewEventsRepository,
   ) {}
 
   @Post(':id/review')
@@ -59,6 +61,16 @@ export class QuizController {
       stability: outcome.state.stability,
       difficulty: outcome.state.difficulty,
       lapses: outcome.state.lapses,
+    });
+    await this.eventsRepo.record(userId, {
+      itemId: questionId,
+      itemType: 'quiz',
+      noteId: body.noteId || '',
+      rating: body.rating,
+      grade,
+      elapsedDays: elapsedDaysBetween(existing?.lastReviewAt),
+      stability: outcome.state.stability,
+      reviewedAt: new Date().toISOString(),
     });
     return { review: result };
   }
