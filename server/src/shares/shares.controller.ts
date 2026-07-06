@@ -20,27 +20,13 @@ import {
   NotFoundException, BadRequestException,
 } from '@nestjs/common';
 import { SharesRepository } from './shares.repository';
+import { SharePayloadService } from './share-payload.service';
 import { NoteFileRepository } from '../notes/note-file.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
-import { parseNote, stripFrontmatter } from '../common/note-parser.util';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { basename } from 'node:path';
-
-/** Category shares include at most this many notes, newest first. */
-const COLLECTION_NOTE_CAP = 50;
-
-const slimCard = (c: any) => ({ prompt: c.prompt, lesson: c.lesson, kind: c.kind, noteTitle: c.noteTitle });
-const slimQuiz = (q: any) => ({
-  type: q.type,
-  question: q.question,
-  answer: q.answer,
-  choices: q.choices,
-  correctIndex: q.correctIndex,
-  explanation: q.explanation,
-  noteTitle: q.noteTitle,
-});
 
 @Controller('api/shares')
 @UseGuards(ApiAuthGuard)
@@ -96,71 +82,13 @@ export class SharesController {
 export class PublicSharesController {
   constructor(
     private readonly shares: SharesRepository,
-    private readonly noteRepo: NoteFileRepository,
-    private readonly knowledgeService: KnowledgeService,
+    private readonly payloads: SharePayloadService,
   ) {}
 
   @Get(':id/public')
   async read(@Param('id') id: string) {
     const share = await this.shares.findActive(basename(id));
     if (!share) throw new NotFoundException('share not found');
-    return share.kind === 'category' ? this.readCategory(share) : this.readNote(share);
-  }
-
-  private async readNote(share: { userId: string; noteId: string; createdAt: string }) {
-    let markdown: string;
-    try {
-      markdown = await this.noteRepo.readMarkdown(share.userId, share.noteId);
-    } catch {
-      throw new NotFoundException('shared note no longer exists');
-    }
-    const note = parseNote(`${share.noteId}.md`, markdown);
-    const state = await this.knowledgeService.getState(share.userId);
-
-    return {
-      kind: 'note' as const,
-      note: {
-        title: note.title,
-        category: note.category,
-        summary: note.summary,
-        tags: note.tags,
-        body: stripFrontmatter(markdown),
-        createdAt: note.createdAt,
-      },
-      flashcards: (state.flashcards || []).filter((c: any) => c.noteId === share.noteId).map(slimCard),
-      quiz: (state.quizQuestions || []).filter((q: any) => q.noteId === share.noteId).map(slimQuiz),
-      sharedAt: share.createdAt,
-    };
-  }
-
-  private async readCategory(share: { userId: string; noteId: string; createdAt: string }) {
-    const category = share.noteId; // target column holds the category path
-    const state = await this.knowledgeService.getState(share.userId);
-    const inCategory = (c: string) => c === category || c.startsWith(`${category}/`);
-    const notes = state.notes
-      .filter((n) => inCategory(n.category))
-      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-      .slice(0, COLLECTION_NOTE_CAP);
-    if (!notes.length) throw new NotFoundException('shared collection no longer exists');
-
-    const noteIds = new Set(notes.map((n) => n.id));
-    const fullNotes = await Promise.all(
-      notes.map(async (n) => {
-        let body = '';
-        try {
-          body = stripFrontmatter(await this.noteRepo.readMarkdown(share.userId, n.id));
-        } catch { /* skip body when unreadable */ }
-        return { title: n.title, category: n.category, summary: n.summary, tags: n.tags, body, createdAt: n.createdAt };
-      }),
-    );
-
-    return {
-      kind: 'category' as const,
-      collection: { name: category, noteCount: fullNotes.length },
-      notes: fullNotes,
-      flashcards: (state.flashcards || []).filter((c: any) => noteIds.has(c.noteId)).map(slimCard),
-      quiz: (state.quizQuestions || []).filter((q: any) => noteIds.has(q.noteId)).map(slimQuiz),
-      sharedAt: share.createdAt,
-    };
+    return this.payloads.build(share);
   }
 }

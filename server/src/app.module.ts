@@ -49,6 +49,7 @@ import { StudyModule } from './study/study.module';
 import { ImportModule } from './import/import.module';
 import { TtsModule } from './tts/tts.module';
 import { SharesModule } from './shares/shares.module';
+import { MarketplaceModule } from './marketplace/marketplace.module';
 
 const baseImports = [
     // Global providers — no need to import these in feature modules.
@@ -85,6 +86,7 @@ const baseImports = [
     ImportModule,
     TtsModule,
     SharesModule,
+    MarketplaceModule,
 ];
 
 @Module({})

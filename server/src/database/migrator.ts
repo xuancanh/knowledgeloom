@@ -348,6 +348,27 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       addIfMissing(db, 'shares', 'kind', "TEXT NOT NULL DEFAULT 'note'");
     },
   },
+  {
+    id: '0011_marketplace_listings',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS marketplace_listings (
+          id            TEXT PRIMARY KEY,
+          shareId       TEXT NOT NULL,
+          userId        TEXT NOT NULL DEFAULT '',
+          title         TEXT NOT NULL,
+          description   TEXT NOT NULL DEFAULT '',
+          kind          TEXT NOT NULL DEFAULT 'note',
+          tags          TEXT NOT NULL DEFAULT '[]',
+          author        TEXT NOT NULL DEFAULT '',
+          imports       INTEGER NOT NULL DEFAULT 0,
+          publishedAt   TEXT NOT NULL,
+          unpublishedAt TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_marketplace_active ON marketplace_listings(unpublishedAt, publishedAt);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -652,6 +673,27 @@ const PG_MIGRATIONS: PgMigration[] = [
     id: '0010_share_kinds_pg',
     async run(pool) {
       await pgAddIfMissing(pool, 'shares', 'kind', "TEXT NOT NULL DEFAULT 'note'");
+    },
+  },
+  {
+    id: '0011_marketplace_listings_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS marketplace_listings (
+          id              TEXT PRIMARY KEY,
+          "shareId"       TEXT NOT NULL,
+          "userId"        TEXT NOT NULL DEFAULT '',
+          title           TEXT NOT NULL,
+          description     TEXT NOT NULL DEFAULT '',
+          kind            TEXT NOT NULL DEFAULT 'note',
+          tags            TEXT NOT NULL DEFAULT '[]',
+          author          TEXT NOT NULL DEFAULT '',
+          imports         INTEGER NOT NULL DEFAULT 0,
+          "publishedAt"   TEXT NOT NULL,
+          "unpublishedAt" TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_marketplace_active ON marketplace_listings("unpublishedAt", "publishedAt");
+      `);
     },
   },
 ];

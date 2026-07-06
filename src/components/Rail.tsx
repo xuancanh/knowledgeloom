@@ -81,6 +81,7 @@ export default function Rail({
   onLearn,
   onToday,
   onImport,
+  onMarketplace,
   onSettings,
   openCategory,
   openTag,
@@ -108,6 +109,7 @@ export default function Rail({
   onLearn: () => void;
   onToday: () => void;
   onImport: () => void;
+  onMarketplace: () => void;
   onSettings: () => void;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
@@ -128,6 +130,7 @@ export default function Rail({
   const isLearn = path === '/learn';
   const isToday = path === '/today';
   const isImport = path === '/import';
+  const isMarketplace = path === '/marketplace';
   const activeCategoryId = path.startsWith('/categories/')
     ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
     : null;
@@ -204,6 +207,9 @@ export default function Rail({
           </button>
           <button className={`nav-item${isImport ? ' active' : ''}`} onClick={() => { onImport(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⇪</span> Import
+          </button>
+          <button className={`nav-item${isMarketplace ? ' active' : ''}`} onClick={() => { onMarketplace(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⛁</span> Marketplace
           </button>
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> {t('nav.settings')}

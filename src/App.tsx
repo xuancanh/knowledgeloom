@@ -22,6 +22,7 @@ import LearnPage from './components/learn/LearnPage';
 import TodayPage from './components/study/TodayPage';
 import ImportPage from './components/import/ImportPage';
 import SharePage from './components/share/SharePage';
+import MarketplacePage from './components/marketplace/MarketplacePage';
 import { ee } from './lib/ee';
 
 // Enterprise-only pages come from the EE registry; in OSS builds these are
@@ -62,7 +63,7 @@ function AuthenticatedApp() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday, openImport,
+    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday, openImport, openMarketplace,
     graphAddLink, graphRemoveLink, graphCreateNote, graphDeleteNote, graphRenameNote, graphSetCategory,
     handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
@@ -93,6 +94,7 @@ function AuthenticatedApp() {
         onLearn={openLearn}
         onToday={openToday}
         onImport={openImport}
+        onMarketplace={openMarketplace}
         onSettings={openSettings}
         openCategory={openCategory}
         openTag={openTag}
@@ -275,6 +277,9 @@ function AuthenticatedApp() {
             } />
             <Route path="/import" element={
               <ImportPage onOpenNote={openNote} />
+            } />
+            <Route path="/marketplace" element={
+              <MarketplacePage onOpenNote={openNote} />
             } />
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />

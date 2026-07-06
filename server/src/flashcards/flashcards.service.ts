@@ -37,6 +37,19 @@ export class FlashcardsService {
   // Review scheduling moved to ../scheduling/fsrs.ts (FSRS-4.5); the
   // controller drives it directly with server-side prior state.
 
+  /**
+   * Seeds the generation cache for a note with pre-made cards (marketplace
+   * imports). The entry is keyed to the note's current content hash, so the
+   * next rebuild treats the deck as up-to-date instead of re-billing the AI.
+   */
+  async seedCache(userId: string, note: KnowledgeNote, markdown: string, rawCards: any[]): Promise<number> {
+    const cards = this.normalize(note, rawCards, 'large');
+    const cache = await this.cacheRepo.load(userId);
+    cache[note.id] = { hash: this.noteHash(note, markdown), cards, generatedAt: new Date().toISOString() };
+    await this.cacheRepo.replace(userId, cache);
+    return cards.length;
+  }
+
   async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<Flashcard[]> {
     const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;
