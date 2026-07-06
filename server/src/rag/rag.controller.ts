@@ -14,7 +14,7 @@ import { Controller, Post, Body, Res, UseGuards, Inject } from '@nestjs/common';
 import type { Response } from 'express';
 import { RagService, RagRequest } from './rag.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 
@@ -29,7 +29,7 @@ export class RagController {
   @Post('stream')
   @UseGuards(WritableGuard)
   async stream(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Body() body: RagRequest,
     @Res() res: Response,
   ): Promise<void> {

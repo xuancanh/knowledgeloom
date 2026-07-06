@@ -12,7 +12,7 @@
 import { Controller, Get, Param, NotFoundException, UseGuards } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 
 @Controller('api/jobs')
 @UseGuards(ApiAuthGuard)
@@ -20,12 +20,12 @@ export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @Get()
-  async listJobs(@CurrentUser() userId: string) {
+  async listJobs(@CurrentScope() userId: string) {
     return { jobs: await this.jobsService.listAll(userId) };
   }
 
   @Get(':id')
-  async getJob(@CurrentUser() userId: string, @Param('id') id: string) {
+  async getJob(@CurrentScope() userId: string, @Param('id') id: string) {
     const job = await this.jobsService.getJob(userId, id);
     if (!job) throw new NotFoundException('job not found');
     return job;

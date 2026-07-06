@@ -20,7 +20,7 @@ const usageServiceProvider = {
       new Logger('UsageModule').log('Usage tracking: extensions (quota enforcement active)');
       return new mod.ExtensionsUsageService(config);
     } catch {
-      return new NoopUsageService();
+      return new NoopUsageService(config.get<number>('maxSpaces') || 0);
     }
   },
 };

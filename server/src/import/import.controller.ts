@@ -19,7 +19,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JobsService } from '../jobs/jobs.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { TranscriptionService } from './transcription.service';
@@ -51,7 +51,7 @@ export class ImportController {
   @UseGuards(WritableGuard)
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_BYTES } }))
   async importSource(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @UploadedFile() file: { originalname: string; buffer: Buffer; mimetype: string } | undefined,
     @Body() body: any,
   ) {

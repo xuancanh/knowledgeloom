@@ -16,6 +16,12 @@ HTTP status. Structured errors keep extra fields (e.g. quota errors carry
 **Rate limits** — unauthenticated endpoints are limited per IP
 (`PUBLIC_RATE_LIMIT`, default 120 req/min → `429`).
 
+**Spaces** — every data route accepts an optional `x-space-id` header
+selecting one of the caller's spaces (isolated sub-workspaces). Omitted or
+`default` = the built-in default space. An unknown or foreign space id is a
+`404`, a malformed one a `400`. Settings and space management are per user
+and ignore the header.
+
 ## Status & knowledge
 
 | Method & path | Description |
@@ -95,6 +101,15 @@ HTTP status. Structured errors keep extra fields (e.g. quota errors carry
 | `POST /api/shares` | `{ noteId }` or `{ category }` → `{ id, url, kind }` (128-bit id) |
 | `GET /api/shares` · `DELETE /api/shares/:id` | List / revoke own shares |
 | `GET /api/shares/:id/public` *(public)* | Self-contained payload: note or collection + flashcards + quiz. Cached ~30s |
+
+## Spaces
+
+| Method & path | Description |
+|---|---|
+| `GET /api/spaces` | `{ spaces, limit }` — the caller's spaces (default first); `limit` is the plan's max space count (`null` = unlimited) |
+| `POST /api/spaces` | Create a space `{ name }` → `403` when the plan limit is reached (`MAX_SPACES` env self-hosted, subscription plan hosted) |
+| `PATCH /api/spaces/:id` | Rename (`400` for the default space) |
+| `DELETE /api/spaces/:id` | Delete the space **and all data inside it** (`400` for the default space) |
 
 ## Marketplace
 

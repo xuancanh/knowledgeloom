@@ -18,7 +18,7 @@ import { RemindersService } from '../reminders/reminders.service';
 import { ReviewEventsRepository } from './review-events.repository';
 import { UserFlashcardsRepository } from '../flashcards/user-flashcards.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 
 /** New (never-reviewed) items are throttled so day one isn't a 500-card wall. */
 const NEW_ITEMS_CAP = 20;
@@ -34,7 +34,7 @@ export class StudyController {
   ) {}
 
   @Get('today')
-  async today(@CurrentUser() userId: string, @Query('newCap') newCapRaw?: string) {
+  async today(@CurrentScope() userId: string, @Query('newCap') newCapRaw?: string) {
     const newCap = Math.max(0, Math.min(100, Number(newCapRaw) || NEW_ITEMS_CAP));
     const now = Date.now();
     const state = await this.knowledgeService.getState(userId);
@@ -98,7 +98,7 @@ export class StudyController {
    * Weakest topics rank notes by success rate (minimum 3 attempts).
    */
   @Get('stats')
-  async stats(@CurrentUser() userId: string, @Query('days') daysRaw?: string) {
+  async stats(@CurrentScope() userId: string, @Query('days') daysRaw?: string) {
     const days = Math.max(1, Math.min(365, Number(daysRaw) || 30));
     const since = new Date(Date.now() - days * 86_400_000).toISOString();
     const events = await this.eventsRepo.since(userId, since);
@@ -172,7 +172,7 @@ export class StudyController {
    */
   @Post('exam-plan')
   async examPlan(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Body() body: { examDate?: string; scope?: { category?: string; tag?: string; noteIds?: string[] } },
   ) {
     const examDate = typeof body?.examDate === 'string' ? body.examDate.trim() : '';

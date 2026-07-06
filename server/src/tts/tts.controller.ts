@@ -13,7 +13,7 @@ import {
 import type { Response } from 'express';
 import { TtsService, PodcastLine } from './tts.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 
 const MAX_LINES = 40;
@@ -34,7 +34,7 @@ export class TtsController {
 
   @Post('podcast')
   async podcast(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Body() body: { lines?: Array<{ who?: string; text?: string }> },
     @Res() res: Response,
   ) {

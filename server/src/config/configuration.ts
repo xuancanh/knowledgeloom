@@ -131,6 +131,10 @@ export default () => {
     ttsVoiceA: process.env.TTS_VOICE_A || 'nova',   // maya
     ttsVoiceB: process.env.TTS_VOICE_B || 'onyx',   // theo
 
+    // Max spaces per user, counting the default space (0 = unlimited).
+    // Hosted builds override this via the subscription plan instead.
+    maxSpaces: Number(process.env.MAX_SPACES || 0),
+
     // AI provider selection: 'codex' (default) or 'openrouter'
     aiProvider: process.env.AI_PROVIDER || 'codex',
     aiApiKey: process.env.AI_API_KEY || '',

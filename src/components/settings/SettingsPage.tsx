@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { patchSettings } from '../../api';
+import { patchSettings, fetchSpaces, createSpace, renameSpace, deleteSpace } from '../../api';
 import { getFeatures, DEFAULT_FEATURES, FEATURE_LABELS, type FeatureToggles } from '../../lib/features';
+import { currentSpaceId, switchSpace, DEFAULT_SPACE_ID, type Space } from '../../lib/spaces';
 import {
   addTemplate,
   deleteTemplate,
@@ -202,6 +203,109 @@ function FeatureTogglesSection({ userSettings }: { userSettings?: Record<string,
   );
 }
 
+// ── Spaces ────────────────────────────────────────────────────────────────────
+
+function SpacesSection() {
+  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [limit, setLimit] = useState<number | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [newName, setNewName] = useState('');
+  const [error, setError] = useState('');
+  const activeId = currentSpaceId();
+
+  const reload = () =>
+    fetchSpaces().then(({ spaces, limit }) => { setSpaces(spaces); setLimit(limit); }).catch(() => {});
+
+  useEffect(() => { void reload(); }, []);
+
+  const atLimit = limit !== null && spaces.length >= limit;
+
+  const run = async (action: () => Promise<unknown>) => {
+    setError('');
+    try { await action(); await reload(); }
+    catch (err) { setError(err instanceof Error ? err.message : 'operation failed'); }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {spaces.map((space) => (
+        <div key={space.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ width: 14, color: 'var(--accent)' }}>{space.id === activeId ? '✓' : ''}</span>
+          {renamingId === space.id ? (
+            <>
+              <input
+                autoFocus
+                value={renameDraft}
+                maxLength={60}
+                onChange={(e) => setRenameDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Escape') setRenamingId(null); }}
+                style={{ flex: 1, minWidth: 140, padding: '4px 8px' }}
+              />
+              <button onClick={() => void run(async () => { await renameSpace(space.id, renameDraft); setRenamingId(null); })}>Save</button>
+              <button onClick={() => setRenamingId(null)}>Cancel</button>
+            </>
+          ) : (
+            <>
+              <strong style={{ flex: 1 }}>
+                {space.name}
+                {space.builtin && <span style={{ fontWeight: 400, color: 'var(--ink-soft, #777)' }}> (default)</span>}
+              </strong>
+              {space.id !== activeId && (
+                <button onClick={() => switchSpace(space.id)}>Open</button>
+              )}
+              {!space.builtin && (
+                <button onClick={() => { setRenamingId(space.id); setRenameDraft(space.name); setConfirmDeleteId(null); }}>Rename</button>
+              )}
+              {!space.builtin && (confirmDeleteId === space.id ? (
+                <>
+                  <button
+                    style={{ color: 'var(--danger, #b3261e)', fontWeight: 600 }}
+                    onClick={() => void run(async () => {
+                      await deleteSpace(space.id);
+                      setConfirmDeleteId(null);
+                      if (space.id === activeId) switchSpace(DEFAULT_SPACE_ID);
+                    })}
+                  >
+                    Really delete — all notes in it are erased
+                  </button>
+                  <button onClick={() => setConfirmDeleteId(null)}>Keep</button>
+                </>
+              ) : (
+                <button style={{ color: 'var(--danger, #b3261e)' }} onClick={() => { setConfirmDeleteId(space.id); setRenamingId(null); }}>Delete</button>
+              ))}
+            </>
+          )}
+        </div>
+      ))}
+
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <input
+          placeholder={atLimit ? `Space limit reached (${limit} on your plan)` : 'New space name'}
+          value={newName}
+          maxLength={60}
+          disabled={atLimit}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && newName.trim()) {
+              void run(async () => { const s = await createSpace(newName); switchSpace(s.id); });
+            }
+          }}
+          style={{ flex: 1, minWidth: 180, padding: '4px 8px' }}
+        />
+        <button
+          disabled={atLimit || !newName.trim()}
+          onClick={() => void run(async () => { const s = await createSpace(newName); switchSpace(s.id); })}
+        >
+          Create space
+        </button>
+      </div>
+      {error && <div style={{ color: 'var(--danger, #b3261e)', fontSize: '0.85rem' }}>{error}</div>}
+    </div>
+  );
+}
+
 // ── Web clipper bookmarklet ───────────────────────────────────────────────────
 
 function ClipperBookmarklet() {
@@ -339,6 +443,21 @@ export default function SettingsPage({
           </div>
         </div>
         <FeatureTogglesSection userSettings={userSettings} />
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>Spaces</h2>
+            <p className={styles.sectionDesc}>
+              Spaces are fully separate workspaces — each has its own notes,
+              categories, tags, flashcards, and progress. Switch with the
+              dropdown at the top of the sidebar. Deleting a space permanently
+              erases everything inside it.
+            </p>
+          </div>
+        </div>
+        <SpacesSection />
       </section>
 
       <section className={styles.section}>

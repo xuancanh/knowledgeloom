@@ -504,6 +504,72 @@ maybe('errors: unknown note returns 404', async () => {
   assert.equal((await get('/api/notes/fake-id-99999')).status, 404);
 });
 
+// ── spaces ────────────────────────────────────────────────────────────────────
+
+async function apiIn(spaceId, method, path, body) {
+  const opts = { method, headers: { 'content-type': 'application/json', 'x-space-id': spaceId } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(`${BASE}${path}`, opts);
+  const text = await res.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch { json = { raw: text }; }
+  return { status: res.status, ok: res.ok, json };
+}
+
+let spaceId;
+
+maybe('spaces: list starts with the default space', async () => {
+  const { status, json } = await get('/api/spaces');
+  assert.equal(status, 200);
+  assert.equal(json.spaces[0].id, 'default');
+  assert.equal(json.spaces[0].builtin, true);
+});
+
+maybe('spaces: create, rename, and full isolation from the default space', async () => {
+  const created = await post('/api/spaces', { name: 'Med School' });
+  assert.equal(created.status, 201);
+  spaceId = created.json.id;
+  assert.ok(spaceId);
+
+  const renamed = await patch(`/api/spaces/${spaceId}`, { name: 'Medicine' });
+  assert.equal(renamed.status, 200);
+  assert.equal(renamed.json.name, 'Medicine');
+
+  // A note created inside the space...
+  const note = await apiIn(spaceId, 'POST', '/api/learn', {
+    mode: 'write', title: 'Anatomy Basics', body: '# Anatomy\n\nBones.',
+    category: 'Medicine', summary: 'Bones', tags: ['anatomy'],
+  });
+  assert.ok(note.ok);
+
+  // ...is visible in that space and invisible in the default space.
+  const inSpace = await apiIn(spaceId, 'GET', '/api/knowledge');
+  assert.ok(inSpace.json.notes.some((n) => n.title === 'Anatomy Basics'));
+  const inDefault = await get('/api/knowledge');
+  assert.ok(!inDefault.json.notes.some((n) => n.title === 'Anatomy Basics'));
+  // And default-space notes don't leak into the new space.
+  assert.ok(!inSpace.json.notes.some((n) => n.title === 'Updated E2E Note'));
+});
+
+maybe('spaces: forged or malformed x-space-id headers are rejected', async () => {
+  assert.equal((await apiIn('s0000000000', 'GET', '/api/knowledge')).status, 404);
+  assert.equal((await apiIn('../escape', 'GET', '/api/knowledge')).status, 400);
+});
+
+maybe('spaces: the default space cannot be renamed or deleted', async () => {
+  assert.equal((await patch('/api/spaces/default', { name: 'X' })).status, 400);
+  assert.equal((await del('/api/spaces/default')).status, 400);
+});
+
+maybe('spaces: delete erases the space and its data', async () => {
+  const { status } = await del(`/api/spaces/${spaceId}`);
+  assert.equal(status, 200);
+  const { json } = await get('/api/spaces');
+  assert.ok(!json.spaces.some((s) => s.id === spaceId));
+  // The scope is gone — requests against it now 404 at the guard.
+  assert.equal((await apiIn(spaceId, 'GET', '/api/knowledge')).status, 404);
+});
+
 // ── extensions smoke (only when extensions/ is linked; deep coverage lives in the
 //    knowledge-loom-private repo's own suites) ──────────────────────────────────────
 

@@ -8,7 +8,7 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { RemindersService } from './reminders.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 
 @Controller('api/reminders')
@@ -18,7 +18,7 @@ export class RemindersController {
 
   @Get()
   async list(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Query('noteId') noteId?: string,
     @Query('status') status?: string,
   ) {
@@ -27,19 +27,19 @@ export class RemindersController {
 
   @Post()
   @UseGuards(WritableGuard)
-  async create(@CurrentUser() userId: string, @Body() body: any) {
+  async create(@CurrentScope() userId: string, @Body() body: any) {
     return { reminder: await this.remindersService.create(userId, body || {}) };
   }
 
   @Patch(':id')
   @UseGuards(WritableGuard)
-  async patch(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: any) {
+  async patch(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
     return { reminder: await this.remindersService.patch(userId, id, body || {}) };
   }
 
   @Delete(':id')
   @UseGuards(WritableGuard)
-  async remove(@CurrentUser() userId: string, @Param('id') id: string) {
+  async remove(@CurrentScope() userId: string, @Param('id') id: string) {
     return this.remindersService.remove(userId, id);
   }
 }

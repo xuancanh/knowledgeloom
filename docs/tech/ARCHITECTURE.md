@@ -126,6 +126,18 @@ Note: reminders are stored in `knowledge/app.sqlite`, not in a separate `knowled
 
 **User settings**: Per-user preferences are stored in the `user_settings` table (one row per user, `settings` column is a JSON blob). `GET /api/settings` reads the blob; `PATCH /api/settings` does a shallow merge. `KnowledgeService.getState()` always overlays fresh settings from the DB onto every `/api/knowledge` response — this bypasses the 30-second rebuild cooldown so settings changes are visible immediately without waiting for a full rebuild.
 
+**Spaces (data scoping)**: every repository, file path, search index, and job
+payload is keyed by one opaque scope string. The default space uses the bare
+user id (pre-spaces data needs no migration); each additional space uses
+`userId~spaceId` (`server/src/spaces/scope.util.ts`). `ApiAuthGuard` resolves
+the `x-space-id` header into `request.scopeId` after verifying the space
+belongs to the caller, and controllers pass it down via `@CurrentScope()`.
+User-level concerns — settings, plan quotas, marketplace rating identity,
+space management itself — stay on `@CurrentUser()` / `ownerOf(scope)`.
+Deleting a space removes its files, per-scope DB rows, and search documents.
+The space count is limited via the usage seam (`MAX_SPACES` env self-hosted;
+subscription plan hosted).
+
 **Note read tracking**: `note_reads` table records when each user opens each note. `POST /api/notes/:id/read` increments the read count; it is called silently by `NoteRoute` on every note open. `KnowledgeState` includes `readNoteIds` (array of note IDs the user has read) and `readCounts` (map of note ID → read count) so the frontend can filter and display read state without an extra request.
 
 **Key invariants:**

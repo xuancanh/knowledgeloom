@@ -384,6 +384,20 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0013_spaces',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS spaces (
+          id        TEXT PRIMARY KEY,
+          userId    TEXT NOT NULL,
+          name      TEXT NOT NULL,
+          createdAt TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_spaces_user ON spaces(userId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -723,6 +737,20 @@ const PG_MIGRATIONS: PgMigration[] = [
           "createdAt" TEXT NOT NULL,
           PRIMARY KEY ("listingId", "userId")
         );
+      `);
+    },
+  },
+  {
+    id: '0013_spaces_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS spaces (
+          id          TEXT PRIMARY KEY,
+          "userId"    TEXT NOT NULL,
+          name        TEXT NOT NULL,
+          "createdAt" TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_spaces_user ON spaces("userId");
       `);
     },
   },

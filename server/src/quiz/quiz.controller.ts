@@ -13,7 +13,7 @@ import { QuizReviewsRepository } from './quiz-reviews.repository';
 import { QuizHiddenRepository } from './quiz-hidden.repository';
 import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 
 @Controller('api/quiz')
 @UseGuards(ApiAuthGuard)
@@ -28,7 +28,7 @@ export class QuizController {
   @Post(':id/review')
   @HttpCode(200)
   async review(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Param('id') questionId: string,
     @Body() body: { rating: 'correct' | 'wrong'; noteId: string; currentStreak?: number },
   ) {
@@ -77,14 +77,14 @@ export class QuizController {
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@CurrentUser() userId: string, @Param('id') questionId: string) {
+  async remove(@CurrentScope() userId: string, @Param('id') questionId: string) {
     await this.hiddenRepo.hide(userId, questionId);
     await this.reviewsRepo.delete(userId, questionId);
   }
 
   @Post(':id/restore')
   @HttpCode(200)
-  async restore(@CurrentUser() userId: string, @Param('id') questionId: string) {
+  async restore(@CurrentScope() userId: string, @Param('id') questionId: string) {
     await this.hiddenRepo.restore(userId, questionId);
     return { restored: questionId };
   }

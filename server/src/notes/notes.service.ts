@@ -22,6 +22,7 @@ import { CodexService } from '../codex/codex.service';
 import { JobsService } from '../jobs/jobs.service';
 import { UserSettingsRepository } from '../settings/user-settings.repository';
 import { getFeatureToggles } from '../settings/feature-toggles';
+import { ownerOf } from '../spaces/scope.util';
 import {
   parseNote,
   composeMarkdown,
@@ -170,7 +171,7 @@ export class NotesService {
     this.assertWritable();
     // Gate at enqueue time so a disabled feature is a clean 400 here, not a
     // failed job later (regenerateForNote enforces the same rule in-process).
-    const features = getFeatureToggles(await this.settingsRepo.get(userId));
+    const features = getFeatureToggles(await this.settingsRepo.get(ownerOf(userId)));
     if ((target === 'flashcards' && !features.flashcards) || (target === 'quiz' && !features.quiz)) {
       throw new BadRequestException(`${target} are disabled in settings`);
     }

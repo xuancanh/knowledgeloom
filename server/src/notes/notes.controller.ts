@@ -14,7 +14,7 @@
 import { Controller, Get, Put, Patch, Delete, Post, Param, Body, HttpCode, UseGuards, BadRequestException, Inject } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 
@@ -29,36 +29,36 @@ export class NotesController {
   @Post('backfill-bilinks')
   @HttpCode(200)
   @UseGuards(WritableGuard)
-  backfillBilinks(@CurrentUser() userId: string) {
+  backfillBilinks(@CurrentScope() userId: string) {
     return this.notesService.backfillBilinks(userId);
   }
 
   @Get(':id')
-  async getMarkdown(@CurrentUser() userId: string, @Param('id') id: string) {
+  async getMarkdown(@CurrentScope() userId: string, @Param('id') id: string) {
     return { markdown: await this.notesService.getMarkdown(userId, id) };
   }
 
   @Put(':id')
   @UseGuards(WritableGuard)
-  update(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: any) {
+  update(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
     return this.notesService.update(userId, id, body || {});
   }
 
   @Patch(':id')
   @UseGuards(WritableGuard)
-  patch(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: any) {
+  patch(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
     return this.notesService.update(userId, id, body || {});
   }
 
   @Delete(':id')
   @UseGuards(WritableGuard)
-  delete(@CurrentUser() userId: string, @Param('id') id: string) {
+  delete(@CurrentScope() userId: string, @Param('id') id: string) {
     return this.notesService.delete(userId, id);
   }
 
   @Post('assist-draft')
   @UseGuards(WritableGuard)
-  async assistDraft(@CurrentUser() userId: string, @Body() body: any) {
+  async assistDraft(@CurrentScope() userId: string, @Body() body: any) {
     const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
     if (!prompt) throw new BadRequestException('prompt is required');
     await this.usage.checkQuota(userId, 'ai.assist');
@@ -70,7 +70,7 @@ export class NotesController {
 
   @Post(':id/assist')
   @UseGuards(WritableGuard)
-  async assist(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: any) {
+  async assist(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
     const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
     if (!prompt) throw new BadRequestException('prompt is required');
     await this.usage.checkQuota(userId, 'ai.assist');
@@ -82,7 +82,7 @@ export class NotesController {
 
   @Post(':id/read')
   @HttpCode(200)
-  async markRead(@CurrentUser() userId: string, @Param('id') id: string) {
+  async markRead(@CurrentScope() userId: string, @Param('id') id: string) {
     await this.notesService.markRead(userId, id);
     return { ok: true };
   }
@@ -91,7 +91,7 @@ export class NotesController {
   @HttpCode(200)
   @UseGuards(WritableGuard)
   async regenerate(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Param('id') id: string,
     @Body() body: { target?: string; size?: string },
   ) {

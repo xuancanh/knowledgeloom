@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { categoryLabel, type CategoryTreeNode, type UiCategory } from '../lib/view';
 import LanguageSwitcher from './LanguageSwitcher';
+import SpaceSwitcher from './SpaceSwitcher';
 
 const CAT_INITIAL_LIMIT = 5;
 const TAG_INITIAL_LIMIT = 5;
@@ -171,6 +172,7 @@ export default function Rail({
         </div>
         <div className="rail-sub">{t('nav.tagline')}</div>
         <button className="rail-close" onClick={closeRail} aria-label={t('nav.closeMenu')}>✕</button>
+        <SpaceSwitcher />
       </div>
 
       <nav className="rail-nav">

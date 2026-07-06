@@ -11,7 +11,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { KnowledgeService } from './knowledge.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 
 @Controller('api/knowledge')
 @UseGuards(ApiAuthGuard)
@@ -19,7 +19,7 @@ export class KnowledgeController {
   constructor(private readonly knowledgeService: KnowledgeService) {}
 
   @Get()
-  getKnowledge(@CurrentUser() userId: string) {
+  getKnowledge(@CurrentScope() userId: string) {
     return this.knowledgeService.getState(userId);
   }
 }

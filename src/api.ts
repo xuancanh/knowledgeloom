@@ -5,6 +5,7 @@
  */
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope } from './types';
 import { ee } from './lib/ee';
+import { currentSpaceId, setCurrentSpaceId, DEFAULT_SPACE_ID, type Space } from './lib/spaces';
 
 /** Returns auth headers from the extensions auth adapter, or {} in local mode. */
 async function authHeaders(): Promise<Record<string, string>> {
@@ -16,8 +17,57 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 export async function apiFetch(url: string, init: RequestInit = {}): Promise<Response> {
   const auth = await authHeaders();
-  const headers = { ...auth, ...(init.headers as Record<string, string> | undefined) };
-  return fetch(url, { ...init, headers });
+  const spaceId = currentSpaceId();
+  const space: Record<string, string> = spaceId !== DEFAULT_SPACE_ID ? { 'x-space-id': spaceId } : {};
+  const headers = { ...auth, ...space, ...(init.headers as Record<string, string> | undefined) };
+  const response = await fetch(url, { ...init, headers });
+
+  // The stored space was deleted (possibly from another device): fall back to
+  // the default space instead of leaving the app wedged on 404s.
+  if (response.status === 404 && spaceId !== DEFAULT_SPACE_ID) {
+    const body = await response.clone().json().catch(() => null);
+    if (body && /space not found/i.test(String(body.message ?? ''))) {
+      setCurrentSpaceId(DEFAULT_SPACE_ID);
+      window.location.assign('/');
+    }
+  }
+  return response;
+}
+
+// --- Spaces ---
+
+export async function fetchSpaces(): Promise<{ spaces: Space[]; limit: number | null }> {
+  const response = await apiFetch('/api/spaces');
+  if (!response.ok) throw new Error(`Failed to load spaces: ${response.status}`);
+  return response.json();
+}
+
+export async function createSpace(name: string): Promise<Space> {
+  const response = await apiFetch('/api/spaces', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(String(body?.message ?? `Failed to create space: ${response.status}`));
+  }
+  return response.json();
+}
+
+export async function renameSpace(id: string, name: string): Promise<Space> {
+  const response = await apiFetch(`/api/spaces/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) throw new Error(`Failed to rename space: ${response.status}`);
+  return response.json();
+}
+
+export async function deleteSpace(id: string): Promise<void> {
+  const response = await apiFetch(`/api/spaces/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(`Failed to delete space: ${response.status}`);
 }
 
 export async function fetchStatus(): Promise<{ readOnly: boolean }> {

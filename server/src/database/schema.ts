@@ -337,6 +337,24 @@ export const pgMarketplaceRatings = pgTable('marketplace_ratings', {
   pk: pgPrimaryKey({ columns: [t.listingId, t.userId] }),
 }));
 
+/**
+ * User-created spaces (isolated sub-workspaces). The default space is
+ * implicit — it has no row here (see spaces/scope.util.ts).
+ */
+export const sqliteSpaces = sqliteTable('spaces', {
+  id: sqliteText('id').primaryKey(),
+  userId: sqliteText('userId').notNull(),
+  name: sqliteText('name').notNull(),
+  createdAt: sqliteText('createdAt').notNull(),
+});
+
+export const pgSpaces = pgTable('spaces', {
+  id: pgText('id').primaryKey(),
+  userId: pgText('userId').notNull(),
+  name: pgText('name').notNull(),
+  createdAt: pgText('createdAt').notNull(),
+});
+
 export const pgLearnProgress = pgTable('learn_progress', {
   userId: pgText('userId').primaryKey(),
   xp: pgInteger('xp').notNull().default(0),

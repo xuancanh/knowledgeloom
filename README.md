@@ -112,6 +112,9 @@ people's decks — imported notes arrive with flashcards and quizzes intact.
 
 ### And more
 
+- **Spaces** — fully separate workspaces (own notes, categories, flashcards,
+  progress) with a switcher at the top of the sidebar. Self-hosted instances
+  are unlimited by default (`MAX_SPACES` to cap).
 - **Learn sessions** — guided slide decks or a two-host podcast (with real
   TTS voices when a key is configured), XP, streaks, mastery.
 - **Ask & Tutor** — RAG chat over your notes, plus a Socratic tutor that

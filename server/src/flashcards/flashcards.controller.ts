@@ -15,7 +15,7 @@ import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import { FlashcardReviewsRepository } from './flashcard-reviews.repository';
 import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 
 @Controller('api/flashcards')
 @UseGuards(ApiAuthGuard)
@@ -30,7 +30,7 @@ export class FlashcardsController {
 
   @Post()
   async create(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Body() body: { noteId: string; prompt: string; lesson: string; kind: string },
   ) {
     const card = await this.userFlashcardsRepo.create(userId, body);
@@ -39,7 +39,7 @@ export class FlashcardsController {
 
   @Put(':id')
   async update(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Param('id') id: string,
     @Body() body: { prompt: string; lesson: string; kind: string },
   ) {
@@ -49,7 +49,7 @@ export class FlashcardsController {
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@CurrentUser() userId: string, @Param('id') id: string) {
+  async remove(@CurrentScope() userId: string, @Param('id') id: string) {
     await this.hiddenFlashcardsRepo.hide(userId, id);
     await this.reviewsRepo.delete(userId, id);
     await this.userFlashcardsRepo.delete(userId, id);
@@ -58,7 +58,7 @@ export class FlashcardsController {
   @Post(':id/review')
   @HttpCode(200)
   async review(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Param('id') cardId: string,
     @Body() body: { rating: 'again' | 'hard' | 'good'; noteId: string; isUserCard?: boolean },
   ) {

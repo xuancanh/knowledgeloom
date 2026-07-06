@@ -13,7 +13,7 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 
 @Controller('api/search')
 @UseGuards(ApiAuthGuard)
@@ -25,7 +25,7 @@ export class SearchController {
 
   @Get()
   async search(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Query('q') q = '',
     @Query('category') category = 'All',
   ) {

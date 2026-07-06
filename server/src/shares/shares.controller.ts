@@ -24,7 +24,7 @@ import { SharePayloadService } from './share-payload.service';
 import { NoteFileRepository } from '../notes/note-file.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { basename } from 'node:path';
 
@@ -39,7 +39,7 @@ export class SharesController {
 
   @Post()
   @UseGuards(WritableGuard)
-  async create(@CurrentUser() userId: string, @Body() body: { noteId?: string; category?: string }) {
+  async create(@CurrentScope() userId: string, @Body() body: { noteId?: string; category?: string }) {
     const category = typeof body?.category === 'string' ? body.category.trim() : '';
 
     if (category) {
@@ -61,13 +61,13 @@ export class SharesController {
   }
 
   @Get()
-  async list(@CurrentUser() userId: string) {
+  async list(@CurrentScope() userId: string) {
     return { shares: await this.shares.listByUser(userId) };
   }
 
   @Delete(':id')
   @HttpCode(200)
-  async revoke(@CurrentUser() userId: string, @Param('id') id: string) {
+  async revoke(@CurrentScope() userId: string, @Param('id') id: string) {
     const revoked = await this.shares.revoke(userId, id);
     if (!revoked) throw new NotFoundException('share not found');
     return { revoked: id };

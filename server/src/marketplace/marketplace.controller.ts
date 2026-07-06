@@ -33,6 +33,8 @@ import { QuizService } from '../quiz/quiz.service';
 import { composeMarkdown, parseNote, uniqueNoteSlug, noteRelativePath } from '../common/note-parser.util';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
+import { ownerOf } from '../spaces/scope.util';
 import { WritableGuard } from '../common/guards/writable.guard';
 
 const MAX_TAGS = 10;
@@ -70,7 +72,7 @@ export class MarketplaceController {
   @Post('publish')
   @UseGuards(WritableGuard)
   async publish(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Body() body: { shareId?: string; title?: string; description?: string; tags?: string[]; author?: string },
   ) {
     const shareId = String(body?.shareId || '').trim();
@@ -99,14 +101,19 @@ export class MarketplaceController {
 
   @Get('mine')
   async mine(@CurrentUser() userId: string) {
+    // Listings published from any of the user's spaces.
     const all = await this.listings.listActive();
-    return { listings: all.filter((l) => l.userId === userId).map((l) => publicListing(l)) };
+    return { listings: all.filter((l) => ownerOf(l.userId) === userId).map((l) => publicListing(l)) };
   }
 
   @Delete(':id')
   @HttpCode(200)
   async unpublish(@CurrentUser() userId: string, @Param('id') id: string) {
-    const ok = await this.listings.unpublish(userId, basename(id));
+    // Owner check is per user, not per space — you can unpublish a listing
+    // created in another of your spaces.
+    const listing = await this.listings.findActive(basename(id));
+    if (!listing || ownerOf(listing.userId) !== userId) throw new NotFoundException('listing not found');
+    const ok = await this.listings.unpublish(listing.userId, listing.id);
     if (!ok) throw new NotFoundException('listing not found');
     return { unpublished: id };
   }
@@ -122,7 +129,9 @@ export class MarketplaceController {
     if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new BadRequestException('stars must be 1–5');
     const listing = await this.listings.findActive(basename(id));
     if (!listing) throw new NotFoundException('listing not found');
-    if (listing.userId === userId) throw new BadRequestException('you cannot rate your own listing');
+    // Rating identity is the user, so publishing from another space doesn't
+    // allow self-rating.
+    if (ownerOf(listing.userId) === userId) throw new BadRequestException('you cannot rate your own listing');
 
     await this.ratings.rate(listing.id, userId, stars, String(body?.comment || '').trim().slice(0, 500));
     const agg = (await this.ratings.aggregates([listing.id])).get(listing.id);
@@ -132,7 +141,7 @@ export class MarketplaceController {
   @Post(':id/import')
   @HttpCode(200)
   @UseGuards(WritableGuard)
-  async importListing(@CurrentUser() userId: string, @Param('id') id: string) {
+  async importListing(@CurrentScope() userId: string, @Param('id') id: string) {
     const listing = await this.listings.findActive(basename(id));
     if (!listing) throw new NotFoundException('listing not found');
     const share = await this.shares.findActive(listing.shareId);

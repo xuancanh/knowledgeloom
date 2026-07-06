@@ -2,7 +2,7 @@ import { Controller, Get, Post, Param, Body, UseGuards, Inject, Logger, BadReque
 import { createHash } from 'node:crypto';
 import { LearnProgressRepository } from './learn-progress.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NotesService } from '../notes/notes.service';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
@@ -25,24 +25,24 @@ export class LearnProgressController {
   ) {}
 
   @Get()
-  get(@CurrentUser() userId: string) {
+  get(@CurrentScope() userId: string) {
     return this.repo.get(userId);
   }
 
   @Post('award')
-  award(@CurrentUser() userId: string, @Body() body: { xp: number }) {
+  award(@CurrentScope() userId: string, @Body() body: { xp: number }) {
     const amount = Math.max(0, Math.min(1000, Number(body?.xp) || 0));
     return this.repo.award(userId, amount);
   }
 
   @Post('master/:noteId')
-  master(@CurrentUser() userId: string, @Param('noteId') noteId: string) {
+  master(@CurrentScope() userId: string, @Param('noteId') noteId: string) {
     return this.repo.master(userId, noteId);
   }
 
   @Post('generate-deck')
   async generateDeck(
-    @CurrentUser() userId: string,
+    @CurrentScope() userId: string,
     @Body() body: { noteId?: string; title?: string; category?: string; summary?: string; tags?: string[] },
   ): Promise<AiDeck | null> {
     const noteId = typeof body?.noteId === 'string' ? body.noteId.trim() : '';

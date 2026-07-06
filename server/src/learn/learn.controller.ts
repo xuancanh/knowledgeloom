@@ -23,7 +23,7 @@ import { Controller, Post, Body, UseGuards, BadRequestException, Inject } from '
 import { NotesService } from '../notes/notes.service';
 import { JobsService } from '../jobs/jobs.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 
@@ -38,7 +38,7 @@ export class LearnController {
 
   @Post()
   @UseGuards(WritableGuard)
-  async learn(@CurrentUser() userId: string, @Body() body: any) {
+  async learn(@CurrentScope() userId: string, @Body() body: any) {
     const b = body || {};
     const mode = ['write', 'polish', 'research', 'link'].includes(b.mode) ? b.mode : 'research';
     const topic = typeof b.title === 'string' ? b.title.trim() : typeof b.topic === 'string' ? b.topic.trim() : '';

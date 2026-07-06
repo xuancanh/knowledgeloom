@@ -28,6 +28,7 @@ import { QuizService } from '../quiz/quiz.service';
 import { SearchService } from '../search/search.service';
 import { slugify, parseNote, noteRelativePath } from '../common/note-parser.util';
 import { getFeatureToggles } from '../settings/feature-toggles';
+import { ownerOf } from '../spaces/scope.util';
 import type { KnowledgeNote, NoteSource, CategoryEntry, KnowledgeState } from '../types';
 
 @Injectable()
@@ -74,8 +75,9 @@ export class KnowledgeService {
     }
 
     // Settings are always read fresh here (not part of the rebuild cycle) so
-    // they reflect the latest PATCH /api/settings immediately.
-    const userSettings = await this.settingsRepo.get(userId);
+    // they reflect the latest PATCH /api/settings immediately. Settings are
+    // per user, not per space — hence ownerOf().
+    const userSettings = await this.settingsRepo.get(ownerOf(userId));
 
     // If we have a cached snapshot, serve it immediately (background rebuild will update it).
     if (cached) return { ...cached, userSettings };
@@ -139,8 +141,9 @@ export class KnowledgeService {
     // Feature toggles: a disabled study feature contributes nothing to the
     // state AND skips its AI generation — turning quiz off means no quiz
     // prompts are ever sent for new notes. Caches are kept, so re-enabling
-    // restores previously generated material instantly.
-    const features = getFeatureToggles(await this.settingsRepo.get(userId));
+    // restores previously generated material instantly. Toggles are per user
+    // (ownerOf), applying across all spaces.
+    const features = getFeatureToggles(await this.settingsRepo.get(ownerOf(userId)));
 
     const { allCards: flashcards, reviews } = features.flashcards
       ? await this.flashcardsService.loadEnrichedData(userId, noteSources)
@@ -201,7 +204,7 @@ export class KnowledgeService {
    * note has changed since the last generation.
    */
   async regenerateForNote(userId: string, noteId: string, target: 'flashcards' | 'quiz' | 'all', size: import('../types').GenSize = 'small'): Promise<void> {
-    const features = getFeatureToggles(await this.settingsRepo.get(userId));
+    const features = getFeatureToggles(await this.settingsRepo.get(ownerOf(userId)));
     if ((target === 'flashcards' && !features.flashcards) || (target === 'quiz' && !features.quiz)) {
       const err: any = new Error(`${target} are disabled in settings`);
       err.status = 400;

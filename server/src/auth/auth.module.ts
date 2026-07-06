@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import { AUTH_STRATEGY } from './auth-strategy.interface';
 import { LocalAuthStrategy } from './local-auth.strategy';
 import { ApiAuthGuard } from './auth.guard';
+import { SpacesRepository } from '../spaces/spaces.repository';
 
 const authStrategyProvider = {
   provide: AUTH_STRATEGY,
@@ -50,7 +51,9 @@ const authStrategyProvider = {
 
 @Global()
 @Module({
-  providers: [authStrategyProvider, ApiAuthGuard],
-  exports: [AUTH_STRATEGY, ApiAuthGuard],
+  // SpacesRepository lives here (not in SpacesModule) because ApiAuthGuard
+  // needs it on every request to validate the x-space-id header.
+  providers: [authStrategyProvider, ApiAuthGuard, SpacesRepository],
+  exports: [AUTH_STRATEGY, ApiAuthGuard, SpacesRepository],
 })
 export class AuthModule {}
