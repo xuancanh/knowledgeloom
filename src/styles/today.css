@@ -441,3 +441,14 @@
 .mkt-publish { margin-bottom: 8px; }
 .mkt-publish h3 { margin: 0 0 10px; font-size: 0.95rem; }
 .mkt-publish-form { display: flex; flex-direction: column; gap: 8px; max-width: 480px; }
+
+/* Marketplace ratings */
+.mkt-stars { display: inline-flex; align-items: center; gap: 1px; }
+.mkt-star {
+  background: none; border: none; padding: 0 1px; font-size: 1rem;
+  color: var(--line, #ccc); cursor: default;
+}
+.mkt-star.filled { color: #e0a300; }
+.mkt-star.ratable { cursor: pointer; }
+.mkt-star.ratable:hover { color: #e0a300; }
+.mkt-star-count { font-size: 0.75rem; color: var(--ink-soft, #999); margin-left: 6px; }

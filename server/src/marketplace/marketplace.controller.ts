@@ -23,6 +23,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { join, basename } from 'node:path';
 import { MarketplaceRepository, ListingRow } from './marketplace.repository';
+import { MarketplaceRatingsRepository, RatingAggregate } from './marketplace-ratings.repository';
 import { SharesRepository } from '../shares/shares.repository';
 import { SharePayloadService, SharedNotePayload } from '../shares/share-payload.service';
 import { NoteFileRepository } from '../notes/note-file.repository';
@@ -36,7 +37,7 @@ import { WritableGuard } from '../common/guards/writable.guard';
 
 const MAX_TAGS = 10;
 
-function publicListing(l: ListingRow) {
+function publicListing(l: ListingRow, rating?: RatingAggregate) {
   return {
     id: l.id,
     title: l.title,
@@ -46,6 +47,8 @@ function publicListing(l: ListingRow) {
     author: l.author,
     imports: l.imports,
     publishedAt: l.publishedAt,
+    avgStars: rating?.avgStars ?? null,
+    ratingCount: rating?.ratingCount ?? 0,
   };
 }
 
@@ -54,6 +57,7 @@ function publicListing(l: ListingRow) {
 export class MarketplaceController {
   constructor(
     private readonly listings: MarketplaceRepository,
+    private readonly ratings: MarketplaceRatingsRepository,
     private readonly shares: SharesRepository,
     private readonly payloads: SharePayloadService,
     private readonly noteRepo: NoteFileRepository,
@@ -96,7 +100,7 @@ export class MarketplaceController {
   @Get('mine')
   async mine(@CurrentUser() userId: string) {
     const all = await this.listings.listActive();
-    return { listings: all.filter((l) => l.userId === userId).map(publicListing) };
+    return { listings: all.filter((l) => l.userId === userId).map((l) => publicListing(l)) };
   }
 
   @Delete(':id')
@@ -105,6 +109,24 @@ export class MarketplaceController {
     const ok = await this.listings.unpublish(userId, basename(id));
     if (!ok) throw new NotFoundException('listing not found');
     return { unpublished: id };
+  }
+
+  @Post(':id/rate')
+  @HttpCode(200)
+  async rate(
+    @CurrentUser() userId: string,
+    @Param('id') id: string,
+    @Body() body: { stars?: number; comment?: string },
+  ) {
+    const stars = Math.round(Number(body?.stars));
+    if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new BadRequestException('stars must be 1–5');
+    const listing = await this.listings.findActive(basename(id));
+    if (!listing) throw new NotFoundException('listing not found');
+    if (listing.userId === userId) throw new BadRequestException('you cannot rate your own listing');
+
+    await this.ratings.rate(listing.id, userId, stars, String(body?.comment || '').trim().slice(0, 500));
+    const agg = (await this.ratings.aggregates([listing.id])).get(listing.id);
+    return { rated: listing.id, stars, avgStars: agg?.avgStars ?? stars, ratingCount: agg?.ratingCount ?? 1 };
   }
 
   @Post(':id/import')
@@ -167,12 +189,13 @@ export class MarketplaceController {
 export class PublicMarketplaceController {
   constructor(
     private readonly listings: MarketplaceRepository,
+    private readonly ratings: MarketplaceRatingsRepository,
     private readonly shares: SharesRepository,
     private readonly payloads: SharePayloadService,
   ) {}
 
   @Get()
-  async browse(@Query('q') q = '', @Query('kind') kind = '') {
+  async browse(@Query('q') q = '', @Query('kind') kind = '', @Query('sort') sort = '') {
     let items = await this.listings.listActive();
     if (kind === 'note' || kind === 'category') items = items.filter((l) => l.kind === kind);
     const needle = q.trim().toLowerCase();
@@ -180,7 +203,17 @@ export class PublicMarketplaceController {
       items = items.filter((l) =>
         `${l.title} ${l.description} ${l.tags.join(' ')} ${l.author}`.toLowerCase().includes(needle));
     }
-    return { listings: items.slice(0, 50).map(publicListing) };
+
+    const aggs = await this.ratings.aggregates(items.map((l) => l.id));
+    let out = items.map((l) => publicListing(l, aggs.get(l.id)));
+    if (sort === 'rating') {
+      // Bayesian-ish tiebreak: unrated listings sink below rated ones.
+      out = out.sort((a, b) => (b.avgStars ?? 0) * Math.log1p(b.ratingCount)
+        - (a.avgStars ?? 0) * Math.log1p(a.ratingCount));
+    } else if (sort === 'imports') {
+      out = out.sort((a, b) => b.imports - a.imports);
+    }
+    return { listings: out.slice(0, 50) };
   }
 
   @Get(':id')
@@ -190,6 +223,8 @@ export class PublicMarketplaceController {
     const share = await this.shares.findActive(listing.shareId);
     if (!share) throw new NotFoundException('listing content is no longer available');
     const payload = await this.payloads.build(share);
-    return { listing: publicListing(listing), shareUrl: `/share/${share.id}`, payload };
+    const agg = (await this.ratings.aggregates([listing.id])).get(listing.id);
+    const comments = await this.ratings.comments(listing.id);
+    return { listing: publicListing(listing, agg), shareUrl: `/share/${share.id}`, payload, comments };
   }
 }

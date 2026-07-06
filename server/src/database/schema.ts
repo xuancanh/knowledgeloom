@@ -316,6 +316,27 @@ export const pgMarketplaceListings = pgTable('marketplace_listings', {
   unpublishedAt: pgText('unpublishedAt'),
 });
 
+/** One star rating per user per marketplace listing. */
+export const sqliteMarketplaceRatings = sqliteTable('marketplace_ratings', {
+  listingId: sqliteText('listingId').notNull(),
+  userId: sqliteText('userId').notNull(),
+  stars: sqliteInteger('stars').notNull(),
+  comment: sqliteText('comment').notNull().default(''),
+  createdAt: sqliteText('createdAt').notNull(),
+}, (t) => ({
+  pk: sqlitePrimaryKey({ columns: [t.listingId, t.userId] }),
+}));
+
+export const pgMarketplaceRatings = pgTable('marketplace_ratings', {
+  listingId: pgText('listingId').notNull(),
+  userId: pgText('userId').notNull(),
+  stars: pgInteger('stars').notNull(),
+  comment: pgText('comment').notNull().default(''),
+  createdAt: pgText('createdAt').notNull(),
+}, (t) => ({
+  pk: pgPrimaryKey({ columns: [t.listingId, t.userId] }),
+}));
+
 export const pgLearnProgress = pgTable('learn_progress', {
   userId: pgText('userId').primaryKey(),
   xp: pgInteger('xp').notNull().default(0),

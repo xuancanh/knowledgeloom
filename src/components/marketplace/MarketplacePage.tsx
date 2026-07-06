@@ -4,9 +4,29 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
-  browseMarketplace, fetchMyListings, fetchMyShares, publishListing, importListing, unpublishListing,
+  browseMarketplace, fetchMyListings, fetchMyShares, publishListing, importListing, unpublishListing, rateListing,
   type MarketplaceListing,
 } from '../../api';
+
+function Stars({ value, count, onRate }: { value: number | null; count: number; onRate?: (stars: number) => void }) {
+  const rounded = value != null ? Math.round(value) : 0;
+  return (
+    <span className="mkt-stars" title={value != null ? `${value} from ${count} rating${count === 1 ? '' : 's'}` : 'No ratings yet'}>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <button
+          key={s}
+          className={`mkt-star${s <= rounded ? ' filled' : ''}${onRate ? ' ratable' : ''}`}
+          disabled={!onRate}
+          onClick={() => onRate?.(s)}
+          aria-label={`Rate ${s} star${s === 1 ? '' : 's'}`}
+        >
+          ★
+        </button>
+      ))}
+      <span className="mkt-star-count">{value != null ? `${value} (${count})` : 'unrated'}</span>
+    </span>
+  );
+}
 
 export default function MarketplacePage({ onOpenNote }: { onOpenNote: (id: string) => void }) {
   const [tab, setTab] = useState<'browse' | 'mine'>('browse');
@@ -77,6 +97,15 @@ export default function MarketplacePage({ onOpenNote }: { onOpenNote: (id: strin
         <span className={`today-chip ${l.kind}`}>{l.kind === 'category' ? 'collection' : 'deck'}</span>
       </div>
       {l.description && <p className="mkt-desc">{l.description}</p>}
+      <Stars
+        value={l.avgStars}
+        count={l.ratingCount}
+        onRate={own ? undefined : (stars) => {
+          rateListing(l.id, stars)
+            .then(() => { setMessage(`Rated “${l.title}” ${stars}★.`); loadBrowse(); })
+            .catch((err) => setMessage(err instanceof Error ? err.message : 'Rating failed.'));
+        }}
+      />
       <div className="mkt-meta">
         {l.author && <span>by {l.author}</span>}
         <span>{l.imports} import{l.imports === 1 ? '' : 's'}</span>

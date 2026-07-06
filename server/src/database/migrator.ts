@@ -369,6 +369,21 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0012_marketplace_ratings',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS marketplace_ratings (
+          listingId TEXT NOT NULL,
+          userId    TEXT NOT NULL,
+          stars     INTEGER NOT NULL,
+          comment   TEXT NOT NULL DEFAULT '',
+          createdAt TEXT NOT NULL,
+          PRIMARY KEY (listingId, userId)
+        );
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -693,6 +708,21 @@ const PG_MIGRATIONS: PgMigration[] = [
           "unpublishedAt" TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_marketplace_active ON marketplace_listings("unpublishedAt", "publishedAt");
+      `);
+    },
+  },
+  {
+    id: '0012_marketplace_ratings_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS marketplace_ratings (
+          "listingId" TEXT NOT NULL,
+          "userId"    TEXT NOT NULL,
+          stars       INTEGER NOT NULL,
+          comment     TEXT NOT NULL DEFAULT '',
+          "createdAt" TEXT NOT NULL,
+          PRIMARY KEY ("listingId", "userId")
+        );
       `);
     },
   },
