@@ -21,6 +21,7 @@ import GraphPage from './components/graph/GraphPage';
 import LearnPage from './components/learn/LearnPage';
 import TodayPage from './components/study/TodayPage';
 import ImportPage from './components/import/ImportPage';
+import SharePage from './components/share/SharePage';
 import { ee } from './lib/ee';
 
 // Enterprise-only pages come from the EE registry; in OSS builds these are
@@ -35,6 +36,8 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Public share links work without any authentication. */}
+      <Route path="/share/:id" element={<SharePage />} />
       <Route path="/" element={LandingPage ? <LandingPage /> : <Navigate to="/home" replace />} />
       {LoginPage && (
         <Route path="/login" element={authenticated ? <Navigate to="/home" replace /> : <LoginPage />} />

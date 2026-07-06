@@ -380,6 +380,37 @@ export async function importSource(input: {
   return response.json();
 }
 
+/* ── Share links ── */
+
+export async function createShare(noteId: string): Promise<{ id: string; url: string; noteId: string }> {
+  const response = await apiFetch('/api/shares', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ noteId }),
+  });
+  if (!response.ok) throw new Error(`Failed to create share link: ${response.status}`);
+  return response.json();
+}
+
+export async function revokeShare(id: string): Promise<void> {
+  const response = await apiFetch(`/api/shares/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(`Failed to revoke share: ${response.status}`);
+}
+
+export type PublicShare = {
+  note: { title: string; category: string; summary: string; tags: string[]; body: string; createdAt: string };
+  flashcards: { prompt: string; lesson: string; kind: string }[];
+  quiz: { type: string; question: string; answer: string; choices?: string[]; correctIndex?: number; explanation?: string }[];
+  sharedAt: string;
+};
+
+/** Public — no auth; anyone with the link. */
+export async function fetchPublicShare(id: string): Promise<PublicShare> {
+  const response = await fetch(`/api/shares/${encodeURIComponent(id)}/public`);
+  if (!response.ok) throw new Error(response.status === 404 ? 'This share link does not exist or was revoked.' : `Failed to load share: ${response.status}`);
+  return response.json();
+}
+
 /* ── Podcast text-to-speech ── */
 
 export async function fetchTtsConfig(): Promise<{ enabled: boolean }> {

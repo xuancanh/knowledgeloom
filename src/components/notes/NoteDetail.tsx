@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { assistDraft, regenerateNote, type NoteUpdate } from '../../api';
+import { assistDraft, regenerateNote, createShare, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
   categoryId,
@@ -54,6 +54,7 @@ export default function NoteDetail({
 
   const { t } = useTranslation();
   const [showSource, setShowSource] = useState(false);
+  const [shareState, setShareState] = useState<'idle' | 'working' | 'copied'>('idle');
   const [editing, setEditing] = useState(false);
   const [reading, setReading] = useState(false);
   const [readTheme, setReadTheme] = useState<'light' | 'white' | 'dark' | 'midnight'>(() => {
@@ -249,6 +250,25 @@ export default function NoteDetail({
           <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? t('notes.exitRead') : editing ? t('notes.focusMode') : t('notes.readMode')}</button>
           <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? t('notes.cancelEdit') : t('notes.editNote')}</button>
           <button className="delete-inline" onClick={onDelete} disabled={readOnly}>{t('notes.deleteNote')}</button>
+          <button
+            className="read-inline"
+            disabled={readOnly || shareState === 'working'}
+            onClick={async () => {
+              setShareState('working');
+              try {
+                const share = await createShare(note.id);
+                const url = `${window.location.origin}${share.url}`;
+                await navigator.clipboard.writeText(url).catch(() => {});
+                setShareState('copied');
+                setTimeout(() => setShareState('idle'), 2500);
+              } catch {
+                setShareState('idle');
+              }
+            }}
+            title="Create a public read-only link to this note and its study deck"
+          >
+            {shareState === 'copied' ? 'Link copied ✓' : shareState === 'working' ? 'Sharing…' : 'Share'}
+          </button>
           {!readOnly && (
             <span className="regen-wrap">
               <button
