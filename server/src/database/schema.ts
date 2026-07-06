@@ -50,6 +50,9 @@ export const sqliteFlashcardReviews = sqliteTable('flashcard_reviews', {
   nextReviewAt: sqliteText('nextReviewAt'),
   lastReviewAt: sqliteText('lastReviewAt'),
   lastRating: sqliteText('lastRating'),
+  stability: sqliteText('stability'),
+  difficulty: sqliteText('difficulty'),
+  lapses: sqliteInteger('lapses').notNull().default(0),
 });
 export const sqliteFlashcardReviewsPg = pgTable('flashcard_reviews', {
   cardId: pgText('cardId').primaryKey(),
@@ -62,6 +65,9 @@ export const sqliteFlashcardReviewsPg = pgTable('flashcard_reviews', {
   nextReviewAt: pgText('nextReviewAt'),
   lastReviewAt: pgText('lastReviewAt'),
   lastRating: pgText('lastRating'),
+  stability: pgText('stability'),
+  difficulty: pgText('difficulty'),
+  lapses: pgInteger('lapses').notNull().default(0),
 });
 
 /** User-created flashcards linked to notes. */
@@ -155,6 +161,9 @@ export const sqliteQuizReviews = sqliteTable('quiz_reviews', {
   lastReviewAt: sqliteText('lastReviewAt'),
   lastRating: sqliteText('lastRating'),
   streak: sqliteInteger('streak').notNull().default(0),
+  stability: sqliteText('stability'),
+  difficulty: sqliteText('difficulty'),
+  lapses: sqliteInteger('lapses').notNull().default(0),
 });
 
 export const sqliteQuizHidden = sqliteTable('quiz_hidden', {
@@ -183,6 +192,9 @@ export const pgQuizReviews = pgTable('quiz_reviews', {
   lastReviewAt: pgText('lastReviewAt'),
   lastRating: pgText('lastRating'),
   streak: pgInteger('streak').notNull().default(0),
+  stability: pgText('stability'),
+  difficulty: pgText('difficulty'),
+  lapses: pgInteger('lapses').notNull().default(0),
 });
 
 export const pgQuizHidden = pgTable('quiz_hidden', {

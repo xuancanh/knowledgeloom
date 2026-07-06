@@ -15,6 +15,10 @@ export interface QuizReview {
   lastReviewAt: string | null;
   lastRating: 'correct' | 'wrong' | null;
   streak: number;
+  /** FSRS memory state; null on legacy rows until their next review. */
+  stability?: number | null;
+  difficulty?: number | null;
+  lapses?: number;
 }
 
 @Injectable()
@@ -35,7 +39,29 @@ export class QuizReviewsRepository {
       lastReviewAt: r.lastReviewAt ?? null,
       lastRating: (r.lastRating as 'correct' | 'wrong' | null) ?? null,
       streak: r.streak ?? 0,
+      stability: r.stability != null ? parseFloat(r.stability) : null,
+      difficulty: r.difficulty != null ? parseFloat(r.difficulty) : null,
+      lapses: r.lapses ?? 0,
     }]));
+  }
+
+  async find(userId: string, questionId: string): Promise<QuizReview | null> {
+    if (this.config.get<boolean>('readOnly') || !this.db) return null;
+    const rows = await this.db.select().from(this.table)
+      .where(and(eq(this.table.userId, userId), eq(this.table.questionId, questionId)));
+    const r: any = rows[0];
+    if (!r) return null;
+    return {
+      questionId: r.questionId,
+      noteId: r.noteId,
+      nextReviewAt: r.nextReviewAt ?? null,
+      lastReviewAt: r.lastReviewAt ?? null,
+      lastRating: (r.lastRating as 'correct' | 'wrong' | null) ?? null,
+      streak: r.streak ?? 0,
+      stability: r.stability != null ? parseFloat(r.stability) : null,
+      difficulty: r.difficulty != null ? parseFloat(r.difficulty) : null,
+      lapses: r.lapses ?? 0,
+    };
   }
 
   async upsert(userId: string, review: QuizReview): Promise<void> {
@@ -49,16 +75,28 @@ export class QuizReviewsRepository {
       lastReviewAt: review.lastReviewAt,
       lastRating: review.lastRating,
       streak: review.streak,
+      stability: review.stability != null ? review.stability.toFixed(4) : null,
+      difficulty: review.difficulty != null ? review.difficulty.toFixed(4) : null,
+      lapses: review.lapses ?? 0,
+    };
+    const set = {
+      nextReviewAt: values.nextReviewAt,
+      lastReviewAt: values.lastReviewAt,
+      lastRating: values.lastRating,
+      streak: values.streak,
+      stability: values.stability,
+      difficulty: values.difficulty,
+      lapses: values.lapses,
     };
     if (dialect === 'postgres') {
       await this.db.insert(this.table).values(values).onConflictDoUpdate({
         target: this.table.questionId,
-        set: { nextReviewAt: values.nextReviewAt, lastReviewAt: values.lastReviewAt, lastRating: values.lastRating, streak: values.streak },
+        set,
       });
     } else {
       this.db.insert(this.table).values(values).onConflictDoUpdate({
         target: this.table.questionId,
-        set: { nextReviewAt: values.nextReviewAt, lastReviewAt: values.lastReviewAt, lastRating: values.lastRating, streak: values.streak },
+        set,
       }).run();
     }
   }

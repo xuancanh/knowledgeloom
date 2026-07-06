@@ -34,51 +34,8 @@ export class FlashcardsService {
     private readonly config: ConfigService,
   ) {}
 
-  /**
-   * SM-2 spaced repetition algorithm.
-   * Rating mapping: again=1 (fail), hard=2 (barely), good=4 (perfect recall).
-   */
-  computeReview(rating: 'again' | 'hard' | 'good', current?: {
-    easeFactor: string;
-    interval: number;
-    repetitions: number;
-  }): ReviewOutcome {
-    const q = rating === 'again' ? 1 : rating === 'hard' ? 2 : 4;
-    const ef = current ? parseFloat(current.easeFactor) : 2.5;
-    const rep = current?.repetitions ?? 0;
-    const prevInterval = current?.interval ?? 0;
-
-    let newEf = ef + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
-    if (newEf < 1.3) newEf = 1.3;
-
-    let newInterval: number;
-    let newRep: number;
-
-    if (q < 3) {
-      newRep = 0;
-      newInterval = 1;
-    } else {
-      newRep = rep + 1;
-      if (newRep === 1) {
-        newInterval = 1;
-      } else if (newRep === 2) {
-        newInterval = 6;
-      } else {
-        newInterval = Math.round(prevInterval * newEf);
-      }
-    }
-
-    const nextReview = new Date();
-    nextReview.setDate(nextReview.getDate() + newInterval);
-    const nextReviewAt = nextReview.toISOString();
-
-    return {
-      easeFactor: newEf.toFixed(2),
-      interval: newInterval,
-      repetitions: newRep,
-      nextReviewAt,
-    };
-  }
+  // Review scheduling moved to ../scheduling/fsrs.ts (FSRS-4.5); the
+  // controller drives it directly with server-side prior state.
 
   async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<Flashcard[]> {
     const cache = await this.cacheRepo.load(userId);

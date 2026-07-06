@@ -292,6 +292,19 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    // FSRS scheduler state. Stored as TEXT like easeFactor; NULL means the
+    // row predates FSRS and is seeded from its SM-2 interval on next review.
+    id: '0007_fsrs_columns',
+    run(db) {
+      addIfMissing(db, 'flashcard_reviews', 'stability', 'TEXT');
+      addIfMissing(db, 'flashcard_reviews', 'difficulty', 'TEXT');
+      addIfMissing(db, 'flashcard_reviews', 'lapses', 'INTEGER NOT NULL DEFAULT 0');
+      addIfMissing(db, 'quiz_reviews', 'stability', 'TEXT');
+      addIfMissing(db, 'quiz_reviews', 'difficulty', 'TEXT');
+      addIfMissing(db, 'quiz_reviews', 'lapses', 'INTEGER NOT NULL DEFAULT 0');
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -544,6 +557,17 @@ const PG_MIGRATIONS: PgMigration[] = [
           mastery          TEXT    NOT NULL DEFAULT '{}'
         );
       `);
+    },
+  },
+  {
+    id: '0007_fsrs_columns_pg',
+    async run(pool) {
+      await pgAddIfMissing(pool, 'flashcard_reviews', 'stability', 'TEXT');
+      await pgAddIfMissing(pool, 'flashcard_reviews', 'difficulty', 'TEXT');
+      await pgAddIfMissing(pool, 'flashcard_reviews', 'lapses', 'INTEGER NOT NULL DEFAULT 0');
+      await pgAddIfMissing(pool, 'quiz_reviews', 'stability', 'TEXT');
+      await pgAddIfMissing(pool, 'quiz_reviews', 'difficulty', 'TEXT');
+      await pgAddIfMissing(pool, 'quiz_reviews', 'lapses', 'INTEGER NOT NULL DEFAULT 0');
     },
   },
 ];

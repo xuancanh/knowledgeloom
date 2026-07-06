@@ -25,24 +25,7 @@ export class QuizService {
     private readonly config: ConfigService,
   ) {}
 
-  /**
-   * Compute next review date based on correctness and streak.
-   * Simple streak-based schedule (not full SM-2).
-   */
-  computeReview(rating: 'correct' | 'wrong', currentStreak: number): {
-    nextReviewAt: string;
-    streak: number;
-  } {
-    const newStreak = rating === 'correct' ? currentStreak + 1 : 0;
-    const daysUntilNext =
-      rating === 'wrong' ? 1
-      : newStreak === 1 ? 3
-      : newStreak === 2 ? 7
-      : 14;
-    const next = new Date();
-    next.setDate(next.getDate() + daysUntilNext);
-    return { nextReviewAt: next.toISOString(), streak: newStreak };
-  }
+  // Review scheduling moved to ../scheduling/fsrs.ts (FSRS-4.5).
 
   async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<QuizQuestion[]> {
     const cache = await this.cacheRepo.load(userId);
