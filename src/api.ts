@@ -318,6 +318,29 @@ export type StudyStats = {
   weakestTopics: { noteId: string; title: string; category: string; attempts: number; successRate: number }[];
 };
 
+export type ExamPlanDto = {
+  examDate: string;
+  daysUntilExam: number;
+  totalItems: number;
+  totalReviews: number;
+  days: { date: string; focus: 'learn' | 'consolidate' | 'final-review' | 'exam'; items: { id: string; type: string; noteId: string }[] }[];
+};
+
+export async function createExamPlan(examDate: string, scope?: { category?: string; tag?: string }): Promise<ExamPlanDto> {
+  const response = await apiFetch('/api/study/exam-plan', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ examDate, scope }),
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    let detail = text;
+    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
+    throw new Error(detail || `Failed to build exam plan: ${response.status}`);
+  }
+  return response.json();
+}
+
 export async function fetchStudyStats(days = 30): Promise<StudyStats> {
   const response = await apiFetch(`/api/study/stats?days=${days}`);
   if (!response.ok) throw new Error(`Failed to load study stats: ${response.status}`);

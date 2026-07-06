@@ -11,10 +11,12 @@
  * already consumes, so review data and hidden-card filtering are consistent
  * with the flashcards/quiz pages.
  */
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, BadRequestException } from '@nestjs/common';
+import { buildExamPlan, type ExamItem } from './exam-plan';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { RemindersService } from '../reminders/reminders.service';
 import { ReviewEventsRepository } from './review-events.repository';
+import { UserFlashcardsRepository } from '../flashcards/user-flashcards.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
@@ -28,6 +30,7 @@ export class StudyController {
     private readonly knowledgeService: KnowledgeService,
     private readonly remindersService: RemindersService,
     private readonly eventsRepo: ReviewEventsRepository,
+    private readonly userFlashcardsRepo: UserFlashcardsRepository,
   ) {}
 
   @Get('today')
@@ -159,5 +162,71 @@ export class StudyController {
       weakestTopics,
       generatedAt: new Date().toISOString(),
     };
+  }
+
+  /**
+   * POST /api/study/exam-plan — date-targeted study schedule.
+   * Body: { examDate: 'YYYY-MM-DD', scope?: { category?, tag?, noteIds? } }
+   * Scope filters the vault's flashcards + quiz questions; the plan builder
+   * lays them out learning → consolidation → final weakest-items review.
+   */
+  @Post('exam-plan')
+  async examPlan(
+    @CurrentUser() userId: string,
+    @Body() body: { examDate?: string; scope?: { category?: string; tag?: string; noteIds?: string[] } },
+  ) {
+    const examDate = typeof body?.examDate === 'string' ? body.examDate.trim() : '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(examDate)) throw new BadRequestException('examDate must be YYYY-MM-DD');
+    if (Date.parse(`${examDate}T23:59:59Z`) < Date.now()) throw new BadRequestException('examDate is in the past');
+
+    const scope = body?.scope || {};
+    const state = await this.knowledgeService.getState(userId);
+    const noteIds = Array.isArray(scope.noteIds) ? new Set(scope.noteIds) : null;
+    const noteById = new Map(state.notes.map((n) => [n.id, n]));
+
+    const inScope = (noteId: string) => {
+      const note = noteById.get(noteId);
+      if (!note) return false;
+      if (noteIds) return noteIds.has(noteId);
+      if (scope.category) return note.category === scope.category || note.category.startsWith(`${scope.category}/`);
+      if (scope.tag) return note.tags.includes(scope.tag);
+      return true;
+    };
+
+    // The cached state can lag just-created user cards (stale-while-revalidate),
+    // so merge them in directly from their repository.
+    const stateCardIds = new Set((state.flashcards || []).map((c: any) => c.id));
+    const freshUserCards = (await this.userFlashcardsRepo.loadAll(userId))
+      .filter((uc) => !stateCardIds.has(uc.id))
+      .map((uc) => ({ id: uc.id, noteId: uc.noteId, reviewData: null }));
+
+    const items: ExamItem[] = [
+      ...freshUserCards.filter((c) => inScope(c.noteId)).map((c) => ({
+        id: c.id,
+        type: 'flashcard' as const,
+        noteId: c.noteId,
+        stability: null,
+        lapses: 0,
+      })),
+      ...(state.flashcards || []).filter((c: any) => inScope(c.noteId)).map((c: any) => ({
+        id: c.id,
+        type: 'flashcard' as const,
+        noteId: c.noteId,
+        noteTitle: c.noteTitle,
+        stability: c.reviewData ? c.reviewData.interval ?? null : null,
+        lapses: 0,
+      })),
+      ...(state.quizQuestions || []).filter((q: any) => inScope(q.noteId)).map((q: any) => ({
+        id: q.id,
+        type: 'quiz' as const,
+        noteId: q.noteId,
+        noteTitle: q.noteTitle,
+        stability: q.reviewData ? 1 : null,
+        lapses: 0,
+      })),
+    ];
+    if (!items.length) throw new BadRequestException('no study material in the selected scope');
+
+    return buildExamPlan(items, examDate);
   }
 }
