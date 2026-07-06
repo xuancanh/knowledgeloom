@@ -47,6 +47,9 @@ export class ImagesController {
     if (!path) throw new NotFoundException('Image not found');
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    // User-uploaded SVG can embed scripts; a no-script CSP neutralizes it
+    // when the file is opened directly (same-origin XSS vector otherwise).
+    res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'");
     res.sendFile(path);
   }
 }

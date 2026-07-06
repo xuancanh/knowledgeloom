@@ -42,15 +42,33 @@ const slimQuiz = (q: any) => ({
   noteTitle: q.noteTitle,
 });
 
+/** Public payloads are cached briefly — building a collection reads up to 50
+ *  note files, and the endpoint is unauthenticated. 30s staleness is fine for
+ *  read-only share pages. */
+const PAYLOAD_TTL_MS = 30_000;
+const PAYLOAD_CACHE_MAX = 200;
+
 @Injectable()
 export class SharePayloadService {
+  private readonly cache = new Map<string, { at: number; payload: SharePayload }>();
+
   constructor(
     private readonly noteRepo: NoteFileRepository,
     private readonly knowledgeService: KnowledgeService,
   ) {}
 
   async build(share: Pick<ShareRow, 'userId' | 'noteId' | 'kind' | 'createdAt'>): Promise<SharePayload> {
-    return share.kind === 'category' ? this.buildCategory(share) : this.buildNote(share);
+    const key = `${share.userId}|${share.kind}|${share.noteId}`;
+    const hit = this.cache.get(key);
+    if (hit && Date.now() - hit.at < PAYLOAD_TTL_MS) return hit.payload;
+
+    const payload = share.kind === 'category' ? await this.buildCategory(share) : await this.buildNote(share);
+    this.cache.set(key, { at: Date.now(), payload });
+    if (this.cache.size > PAYLOAD_CACHE_MAX) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest) this.cache.delete(oldest);
+    }
+    return payload;
   }
 
   private async buildNote(share: Pick<ShareRow, 'userId' | 'noteId' | 'createdAt'>): Promise<SharePayload> {

@@ -63,10 +63,45 @@ async function bootstrap() {
   // verify payload signatures — e.g. payment-provider webhooks in extensions builds.
   const app = await NestFactory.create(await AppModule.forRoot(), { logger: ['log', 'warn', 'error'], rawBody: true });
 
+  // CORS_ORIGIN restricts browser callers in production (default * preserves
+  // local-dev behaviour where Vite proxies /api anyway).
   app.enableCors({
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || '*',
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     allowedHeaders: 'content-type,authorization',
+  });
+
+  // Baseline security headers (no framework dependency needed for these).
+  app.use((_req: any, res: any, next: any) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+  });
+
+  // Public endpoints (share links, marketplace browsing) are unauthenticated
+  // by design; a per-IP fixed-window limiter keeps them from becoming a free
+  // file-read amplifier. Authenticated routes are not limited here.
+  const RATE_LIMIT = Number(process.env.PUBLIC_RATE_LIMIT || 120); // req/min/ip
+  const hits = new Map<string, { count: number; windowStart: number }>();
+  app.use((req: any, res: any, next: any) => {
+    const isPublic = /^\/api\/(shares\/[^/]+\/public|marketplace(\/|$))/.test(req.path)
+      && req.method === 'GET';
+    if (!isPublic) return next();
+    const now = Date.now();
+    const key = req.ip || req.socket?.remoteAddress || 'unknown';
+    const entry = hits.get(key);
+    if (!entry || now - entry.windowStart > 60_000) {
+      hits.set(key, { count: 1, windowStart: now });
+      if (hits.size > 10_000) hits.clear(); // crude memory bound
+      return next();
+    }
+    entry.count += 1;
+    if (entry.count > RATE_LIMIT) {
+      res.status(429).json({ error: 'rate limit exceeded — try again shortly' });
+      return;
+    }
+    next();
   });
 
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: false }));

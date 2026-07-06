@@ -128,6 +128,25 @@ maybe('audio import without transcription config → 501 with a clear message', 
   assert.match((await img.json()).error, /image import is not configured/);
 });
 
+maybe('public endpoints: security headers set, per-IP rate limit enforced', async () => {
+  const base = await bootServer(9361 + (process.pid % 40), { PUBLIC_RATE_LIMIT: '5' });
+
+  const res = await fetch(`${base}/api/status`);
+  assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(res.headers.get('x-frame-options'), 'DENY');
+
+  // Authenticated/API routes are never limited…
+  for (let i = 0; i < 10; i++) assert.equal((await fetch(`${base}/api/status`)).status, 200);
+
+  // …but public marketplace browsing hits the window after PUBLIC_RATE_LIMIT.
+  let limited = 0;
+  for (let i = 0; i < 10; i++) {
+    const r = await fetch(`${base}/api/marketplace`);
+    if (r.status === 429) limited++;
+  }
+  assert.ok(limited >= 4, `expected 429s after the limit, got ${limited}`);
+});
+
 maybe('read-only mode: reads succeed, writes are rejected', async () => {
   const base = await bootServer(9281 + (process.pid % 40), { KNOWLEDGE_READ_ONLY: '1' });
 
