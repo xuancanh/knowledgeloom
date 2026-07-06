@@ -134,3 +134,21 @@ itself when redis or the dist build is missing. When the extensions `extensions/
 tree is dev-linked, extensions data is isolated to the temp dir and two extensions smoke
 tests run; deep extensions coverage lives in the private repo's own suites
 (`knowledge-loom-private/scripts/test.sh`).
+
+## Core integration suites (added 2026-07)
+
+`npm run test:integration` runs two spawn-based suites (sequentially — they
+own dedicated redis logical DBs):
+
+- `tests/integration-ai.test.mjs` — the full AI pipeline against a mock
+  OpenAI-compatible provider: research capture → BullMQ job → note on disk →
+  knowledge state → search; provider failure → retries → job status `error`;
+  assist-draft / note assist proposal parsing with unknown-link filtering;
+  generate-deck sanitization against live provider output; RAG token
+  streaming. Uses REDIS_DB=15 (flushed at start).
+- `tests/integration-modes.test.mjs` — server modes: `AUTH_SECRET` bearer
+  enforcement and `KNOWLEDGE_READ_ONLY` write rejection. REDIS_DB=12.
+
+All spawned test servers set `KNOWLEDGE_ROOT` to a temp dir — the server
+derives every data path from it (NOT from cwd), so suites can never touch
+the real knowledge/ directory.

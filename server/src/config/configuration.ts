@@ -39,8 +39,10 @@ function getArg(flag: string): string | undefined {
 
 export default () => {
   // __dirname = server/dist/config (compiled) or server/src/config (ts-node)
-  // Both require 3 levels up to reach project root
-  const rootDir = resolve(__dirname, '../../..');
+  // Both require 3 levels up to reach project root. KNOWLEDGE_ROOT overrides
+  // it — required by test suites so spawned servers never touch the real
+  // knowledge/ directory (cwd is NOT used for path derivation).
+  const rootDir = process.env.KNOWLEDGE_ROOT || resolve(__dirname, '../../..');
 
   if (process.env.KNOWLEDGE_SKIP_DOTENV !== '1') {
     loadEnv(join(rootDir, '.env'));
@@ -85,6 +87,8 @@ export default () => {
     aiFlashcardsDisabled: process.env.AI_FLASHCARDS_DISABLED === '1',
     redisHost: process.env.REDIS_HOST || 'localhost',
     redisPort: Number(process.env.REDIS_PORT || 6379),
+    // Optional logical database — lets tests/parallel envs isolate queues and counters.
+    redisDb: Number(process.env.REDIS_DB || 0),
     meiliHost: process.env.MEILI_HOST || 'http://localhost:7700',
     meiliMasterKey: process.env.MEILI_MASTER_KEY || '',
     meiliIndex,

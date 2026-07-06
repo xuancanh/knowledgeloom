@@ -63,7 +63,9 @@ export class NotesController {
     if (!prompt) throw new BadRequestException('prompt is required');
     await this.usage.checkQuota(userId, 'ai.assist');
     await this.usage.track(userId, 'ai.assist');
-    return this.notesService.assistDraft(body?.draft || {}, prompt);
+    // CodexService resolves note context from draft.userId — without it,
+    // link suggestions had no vault to check against.
+    return this.notesService.assistDraft({ ...(body?.draft || {}), userId }, prompt);
   }
 
   @Post(':id/assist')
@@ -73,7 +75,9 @@ export class NotesController {
     if (!prompt) throw new BadRequestException('prompt is required');
     await this.usage.checkQuota(userId, 'ai.assist');
     await this.usage.track(userId, 'ai.assist', { noteId: id });
-    return this.notesService.assistEdit(id, body?.draft || {}, prompt);
+    // draft.userId is how CodexService locates the note being edited; the
+    // endpoint 404'd for every real user without it.
+    return this.notesService.assistEdit(id, { ...(body?.draft || {}), userId }, prompt);
   }
 
   @Post(':id/read')
