@@ -374,6 +374,19 @@ maybe('marketplace: publish → browse → import clones notes with seeded deck 
   // Import count incremented; unpublish removes it from the gallery.
   const { json: after } = await get(`/api/marketplace/${listingId}`);
   assert.equal(after.listing.imports, 1);
+
+  // Quality signals: unrated listings expose null/0; validation and the
+  // self-rating guard hold (local mode has a single user = the owner).
+  assert.equal(after.listing.avgStars, null);
+  assert.equal(after.listing.ratingCount, 0);
+  assert.ok(Array.isArray(after.comments));
+  assert.equal((await post(`/api/marketplace/${listingId}/rate`, { stars: 9 })).status, 400);
+  const selfRate = await post(`/api/marketplace/${listingId}/rate`, { stars: 5 });
+  assert.equal(selfRate.status, 400);
+  assert.match(selfRate.json.error, /own listing/);
+  assert.equal((await post('/api/marketplace/nope/rate', { stars: 4 })).status, 404);
+  const { json: sorted } = await get('/api/marketplace?sort=rating');
+  assert.ok(Array.isArray(sorted.listings));
   assert.equal((await del(`/api/marketplace/${listingId}`)).status, 200);
   assert.equal((await get(`/api/marketplace/${listingId}`)).status, 404);
   const { json: gone } = await get('/api/marketplace?q=spacing');

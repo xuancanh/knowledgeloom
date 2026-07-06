@@ -427,7 +427,24 @@ export type MarketplaceListing = {
   author: string;
   imports: number;
   publishedAt: string;
+  avgStars: number | null;
+  ratingCount: number;
 };
+
+export async function rateListing(id: string, stars: number, comment = ''): Promise<{ avgStars: number; ratingCount: number }> {
+  const response = await apiFetch(`/api/marketplace/${encodeURIComponent(id)}/rate`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ stars, comment }),
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    let detail = text;
+    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
+    throw new Error(detail || `Failed to rate: ${response.status}`);
+  }
+  return response.json();
+}
 
 export async function browseMarketplace(q = '', kind = ''): Promise<{ listings: MarketplaceListing[] }> {
   const params = new URLSearchParams();
