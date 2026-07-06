@@ -66,7 +66,10 @@ export class JobsProcessor extends WorkerHost {
       this.logger.error(`Job failed: ${codexJob.id} - ${error.message}`);
 
       const attemptsLimit = job.opts.attempts || 3;
-      const isLastAttempt = job.attemptsMade >= attemptsLimit;
+      // attemptsMade counts prior attempts (0 during the first run), so the
+      // final attempt is attemptsMade + 1. The old `>=` comparison could
+      // never fire, leaving exhausted jobs stuck in 'queued' forever.
+      const isLastAttempt = job.attemptsMade + 1 >= attemptsLimit;
       codexJob.status = isLastAttempt ? 'error' : 'queued';
       codexJob.error = error.message;
       codexJob.finishedAt = isLastAttempt ? new Date().toISOString() : null;

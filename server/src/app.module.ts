@@ -59,6 +59,7 @@ const baseImports = [
           connection: {
             host: config.get<string>('redisHost'),
             port: config.get<number>('redisPort'),
+            db: config.get<number>('redisDb') || 0,
           },
         }),
       }),

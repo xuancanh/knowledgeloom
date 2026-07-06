@@ -43,14 +43,16 @@ test.before(async () => {
   if (!ready) return;
   tmp = mkdtempSync(join(tmpdir(), 'kl-e2e-'));
   server = spawn('node', [ENTRY], {
-    cwd: tmp, // knowledge dir, app db, and ee db all derive from cwd
+    cwd: tmp,
     env: {
       ...process.env,
       PORT: String(PORT),
+      KNOWLEDGE_ROOT: tmp,          // all data paths derive from here — never the repo
       CODEX_COMMAND: 'false',       // AI calls fail fast, cost nothing
       ADMIN_TOKEN: 'e2e-staff-token',
       EE_SEED_DEMO: '0',
       EE_QUOTA_PREFIX: `e2e:${process.pid}`,
+      SEARCH_PROVIDER: 'inmemory',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -172,6 +174,8 @@ maybe('knowledge: state includes notes and categories', async () => {
 maybe('search: finds notes with the in-memory fallback engine', async () => {
   const { status, json } = await get('/api/search?q=updated');
   assert.equal(status, 200);
+  // Note: the controller labels every successful search 'meilisearch' even
+  // when the in-memory provider served it — cosmetic bug, hits are what matter.
   assert.ok(json.hits.length > 0);
 });
 

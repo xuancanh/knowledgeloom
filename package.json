@@ -12,13 +12,14 @@
     "lint": "eslint .",
     "test": "npx tsx --test tests/backend-storage.test.ts tests/backend-note-parser.test.ts tests/backend-guards.test.ts tests/backend-reminders.test.ts tests/backend-services.test.ts tests/backend-learn-progress.test.ts",
     "test:frontend": "npx tsx --test tests/frontend-lib.test.ts tests/frontend-learn.test.ts",
-    "test:all": "npm test && npm run test:frontend && npm run test:e2e",
+    "test:all": "npm test && npm run test:frontend && npm run test:e2e && node --test --test-concurrency=1 --test-force-exit tests/integration-ai.test.mjs tests/integration-modes.test.mjs",
     "smoke:meili": "npx tsx scripts/smoke-meili-sync.ts",
     "preview": "vite preview",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:migrate-local": "node scripts/migrate-local-user.mjs",
-    "test:e2e": "npm run server:build && node --test --test-force-exit tests/e2e-api.test.mjs"
+    "test:e2e": "npm run server:build && node --test --test-force-exit tests/e2e-api.test.mjs",
+    "test:integration": "npm run server:build && node --test --test-concurrency=1 --test-force-exit tests/integration-ai.test.mjs tests/integration-modes.test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",

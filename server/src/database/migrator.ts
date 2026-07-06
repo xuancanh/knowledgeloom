@@ -82,9 +82,6 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
     id: '0000_initial_schema',
     run(db) {
       db.exec(`
-        PRAGMA journal_mode = WAL;
-        PRAGMA foreign_keys = ON;
-
         CREATE TABLE IF NOT EXISTS jobs (
           id          TEXT    PRIMARY KEY,
           status      TEXT    NOT NULL,
@@ -334,6 +331,12 @@ export function migrateLocalNoteFiles(knowledgeDir: string, logger: Logger): voi
 }
 
 export function runSqliteMigrations(db: Database.Database, logger: Logger): void {
+  // Connection pragmas must run outside the migration transactions —
+  // journal_mode cannot change inside one (fresh installs crashed on boot
+  // while these lived in migration 0000).
+  db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
+
   db.exec(SQLITE_CREATE_MIGRATIONS_TABLE);
 
   const applied = new Set(
