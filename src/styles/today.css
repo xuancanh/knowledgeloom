@@ -305,3 +305,42 @@
 .today-weak-rate { font-weight: 700; color: #c0392b; min-width: 42px; }
 .today-weak-title { color: var(--ink, #222); font-size: 0.92rem; }
 .today-weak-meta { margin-left: auto; font-size: 0.75rem; color: var(--ink-soft, #999); }
+
+/* Exam mode */
+
+.today-exam h3 { margin: 0 0 10px; font-size: 0.95rem; }
+
+.today-exam-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.today-exam-form input {
+  border: 1px solid var(--line, #ddd);
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: var(--panel, #fff);
+  color: var(--ink, #222);
+  font: inherit;
+}
+
+.today-exam-summary { font-size: 0.9rem; margin-bottom: 10px; }
+
+.today-exam-days { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.today-exam-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 40px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--line, #eee);
+  font-size: 0.72rem;
+}
+
+.today-exam-day.current { border-color: var(--accent, #7c5cff); border-width: 2px; }
+.today-exam-day.learn { background: rgba(124, 92, 255, 0.06); }
+.today-exam-day.consolidate { background: rgba(30, 132, 73, 0.06); }
+.today-exam-day.final-review { background: rgba(185, 119, 14, 0.10); }
+.today-exam-day.exam { background: rgba(192, 57, 43, 0.10); }
+
+.today-exam-day-count { font-weight: 700; font-size: 0.9rem; }
+.today-exam-day-date { color: var(--ink-soft, #999); }

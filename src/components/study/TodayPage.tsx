@@ -8,7 +8,94 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Flashcard, QuizQuestion, Reminder } from '../../types';
-import { fetchStudyToday, fetchStudyStats, reviewFlashcard, reviewQuiz, updateReminder, type StudyQueue, type StudyStats } from '../../api';
+import { fetchStudyToday, fetchStudyStats, createExamPlan, reviewFlashcard, reviewQuiz, updateReminder, type StudyQueue, type StudyStats, type ExamPlanDto } from '../../api';
+
+const EXAM_STORAGE_KEY = 'kl:exam-config';
+
+function ExamPlanner() {
+  const [examDate, setExamDate] = useState('');
+  const [category, setCategory] = useState('');
+  const [plan, setPlan] = useState<ExamPlanDto | null>(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(EXAM_STORAGE_KEY) || 'null');
+      if (saved?.examDate && saved.examDate >= new Date().toISOString().slice(0, 10)) {
+        setExamDate(saved.examDate);
+        setCategory(saved.category || '');
+        createExamPlan(saved.examDate, saved.category ? { category: saved.category } : undefined)
+          .then(setPlan)
+          .catch(() => {});
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const build = async () => {
+    if (!examDate) return;
+    setBusy(true);
+    setError('');
+    try {
+      const p = await createExamPlan(examDate, category.trim() ? { category: category.trim() } : undefined);
+      setPlan(p);
+      localStorage.setItem(EXAM_STORAGE_KEY, JSON.stringify({ examDate, category: category.trim() }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to build plan');
+      setPlan(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const clear = () => {
+    setPlan(null);
+    setExamDate('');
+    setCategory('');
+    localStorage.removeItem(EXAM_STORAGE_KEY);
+  };
+
+  const today = new Date().toISOString().slice(0, 10);
+  const todayInPlan = plan?.days.find((d) => d.date === today);
+  const focusLabel: Record<string, string> = {
+    learn: 'Learning pass', consolidate: 'Consolidation', 'final-review': 'Final review — weakest items', exam: 'Exam day',
+  };
+
+  return (
+    <section className="today-exam">
+      <h3>Exam mode</h3>
+      {!plan ? (
+        <div className="today-exam-form">
+          <input type="date" value={examDate} min={today} onChange={(e) => setExamDate(e.target.value)} disabled={busy} />
+          <input placeholder="Category (optional — whole vault if empty)" value={category} onChange={(e) => setCategory(e.target.value)} disabled={busy} />
+          <button className="today-btn" onClick={() => void build()} disabled={busy || !examDate}>
+            {busy ? 'Planning…' : 'Build plan'}
+          </button>
+          {error && <span className="import-status error">{error}</span>}
+        </div>
+      ) : (
+        <>
+          <div className="today-exam-summary">
+            <strong>{plan.daysUntilExam === 0 ? 'Exam is today.' : `${plan.daysUntilExam} day${plan.daysUntilExam === 1 ? '' : 's'} until the exam.`}</strong>
+            {' '}{plan.totalItems} items, {plan.totalReviews} scheduled reviews.
+            {todayInPlan && todayInPlan.items.length > 0 && (
+              <> Today: <strong>{todayInPlan.items.length} items</strong> ({focusLabel[todayInPlan.focus]}).</>
+            )}
+          </div>
+          <div className="today-exam-days">
+            {plan.days.map((d) => (
+              <div key={d.date} className={`today-exam-day ${d.focus}${d.date === today ? ' current' : ''}`} title={`${d.date}: ${focusLabel[d.focus]} — ${d.items.length} items`}>
+                <span className="today-exam-day-count">{d.focus === 'exam' ? '★' : d.items.length}</span>
+                <span className="today-exam-day-date">{d.date.slice(5)}</span>
+              </div>
+            ))}
+          </div>
+          <button className="today-btn" onClick={clear}>Clear plan</button>
+        </>
+      )}
+    </section>
+  );
+}
 
 type Phase = 'loading' | 'ready' | 'error';
 
@@ -199,6 +286,8 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
           </div>
         </section>
       ) : null}
+
+      <ExamPlanner />
 
       {stats && stats.totals.reviews > 0 && (
         <section className="today-stats">

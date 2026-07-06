@@ -265,6 +265,25 @@ maybe('study: today queue and retention stats reflect submitted reviews', async 
   assert.ok(Array.isArray(stats.categories));
 });
 
+maybe('study: exam plan lays out passes toward the exam date', async () => {
+  // Give the planner material to schedule (AI cards don't exist in e2e).
+  const { json: created } = await post('/api/flashcards', {
+    noteId, prompt: 'What is exam mode?', lesson: 'A date-targeted plan.', kind: 'concept',
+  });
+  assert.ok(created.flashcard?.id);
+
+  const examDate = new Date(Date.now() + 10 * 86400000).toISOString().slice(0, 10);
+  const { status, json: plan } = await post('/api/study/exam-plan', { examDate });
+  assert.equal(status, 201, JSON.stringify(plan));
+  assert.equal(plan.examDate, examDate);
+  assert.ok(plan.totalItems >= 1, 'the user flashcard is in scope');
+  assert.equal(plan.days[plan.days.length - 1].focus, 'exam');
+  assert.equal(plan.days[plan.days.length - 2].focus, 'final-review');
+
+  const bad = await post('/api/study/exam-plan', { examDate: '2001-01-01' });
+  assert.equal(bad.status, 400);
+});
+
 // ── learn progress ────────────────────────────────────────────────────────────
 
 maybe('learn progress: award accumulates XP and starts a streak', async () => {

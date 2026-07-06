@@ -18,6 +18,6 @@ import { ReviewEventsModule } from '../study/review-events.module';
     UserFlashcardsRepository,
     HiddenFlashcardsRepository,
   ],
-  exports: [FlashcardsService],
+  exports: [FlashcardsService, UserFlashcardsRepository],
 })
 export class FlashcardsModule {}

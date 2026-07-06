@@ -7,9 +7,10 @@ import { StudyController } from './study.controller';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { RemindersModule } from '../reminders/reminders.module';
 import { ReviewEventsModule } from './review-events.module';
+import { FlashcardsModule } from '../flashcards/flashcards.module';
 
 @Module({
-  imports: [KnowledgeModule, RemindersModule, ReviewEventsModule],
+  imports: [KnowledgeModule, RemindersModule, ReviewEventsModule, FlashcardsModule],
   controllers: [StudyController],
 })
 export class StudyModule {}
