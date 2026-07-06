@@ -55,7 +55,10 @@ export class CodexService {
    */
   async createNote(payload: any): Promise<any> {
     const userId = String(payload.userId || '');
-    const mode = payload.mode === 'polish' ? 'polish' : payload.mode === 'link' ? 'link' : 'research';
+    const mode = payload.mode === 'polish' ? 'polish'
+      : payload.mode === 'link' ? 'link'
+      : payload.mode === 'import' ? 'import'
+      : 'research';
     const topic = String(payload.topic || payload.title || '').trim();
     const existingNotes = await this.noteRepo.readAll(userId);
     const userNotesDir = join(this.usersDir, userId, 'notes');
@@ -66,7 +69,9 @@ export class CodexService {
         ? this.buildPolishPrompt({ ...payload, topic }, existingNotes)
         : mode === 'link'
           ? this.buildLinkPrompt({ ...payload, topic }, existingNotes)
-          : this.buildResearchPrompt({ ...payload, topic }, existingNotes);
+          : mode === 'import'
+            ? this.buildImportPrompt({ ...payload, topic }, existingNotes)
+            : this.buildResearchPrompt({ ...payload, topic }, existingNotes);
 
     const output = await this.ai.complete(prompt);
     const markdown = this.attachProvenance(output, {
@@ -214,6 +219,48 @@ Explain when to use it and what tradeoffs matter.
     return `Retrieve this URL, read the main content, and produce one markdown knowledge note from it.
 
 ${sections.join('\n\n')}
+
+Existing notes that can be linked by id:
+${related || '- None yet'}
+
+Return only markdown. Use this exact frontmatter schema.
+---
+title: "Clear note title"
+category: "Folder/Subfolder"
+summary: "One sentence summary"
+tags: ["tag-one", "tag-two"]
+links: ["existing-note-id"]
+createdAt: "${new Date().toISOString()}"
+---
+`;
+  }
+
+  private buildImportPrompt(payload: any, existingNotes: KnowledgeNote[]): string {
+    const topic = String(payload.topic || '').trim();
+    const categoryHint = String(payload.category || '').trim();
+    const tagsHint = Array.isArray(payload.tags) && payload.tags.length ? payload.tags.join(', ') : '';
+    const sourceName = String(payload.sourceName || '').trim();
+    const related = existingNotes.slice(-20).map((n) => `- ${n.id}: ${n.title} (${n.category}) - ${n.summary}`).join('\n');
+
+    const sections: string[] = [
+      topic ? `Title hint: ${topic}` : '',
+      sourceName ? `Source: ${sourceName}` : '',
+      categoryHint ? `Suggested category: ${categoryHint}` : '',
+      tagsHint ? `Suggested tags: ${tagsHint}` : '',
+      payload.sourceTruncated ? 'Note: the source material was truncated; work with what is provided.' : '',
+    ].filter(Boolean);
+
+    return `Convert this imported source material (document, transcript, or pasted text) into one well-structured markdown knowledge note.
+
+Rules:
+- Ground every claim in the source material. Do not research or invent facts.
+- Distill, don't transcribe: organise the key ideas under clear headings.
+- Keep concrete details (numbers, names, definitions, steps) — they become flashcards later.
+
+${sections.join('\n\n')}
+
+Source material:
+${String(payload.body || '')}
 
 Existing notes that can be linked by id:
 ${related || '- None yet'}

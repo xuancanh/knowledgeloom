@@ -71,7 +71,7 @@ test.after(() => {
 const maybe = (name, fn) => test(name, { skip: ready ? false : 'needs server/dist build + local redis' }, fn);
 
 maybe('AUTH_SECRET mode: API requires the bearer token', async () => {
-  const base = await bootServer(8641 + (process.pid % 40), { AUTH_SECRET: 'modes-secret' });
+  const base = await bootServer(9241 + (process.pid % 40), { AUTH_SECRET: 'modes-secret' });
 
   assert.equal((await fetch(`${base}/api/knowledge`)).status, 401, 'no token → 401');
   assert.equal((await fetch(`${base}/api/knowledge`, {
@@ -90,8 +90,18 @@ maybe('AUTH_SECRET mode: API requires the bearer token', async () => {
   assert.ok(write.ok);
 });
 
+maybe('audio import without transcription config → 501 with a clear message', async () => {
+  const base = await bootServer(9321 + (process.pid % 40), {});
+  const form = new FormData();
+  form.append('file', new Blob([new Uint8Array(2048)], { type: 'audio/mpeg' }), 'lecture.mp3');
+  const res = await fetch(`${base}/api/import`, { method: 'POST', body: form });
+  assert.equal(res.status, 501);
+  const json = await res.json();
+  assert.match(json.error, /transcription is not configured/);
+});
+
 maybe('read-only mode: reads succeed, writes are rejected', async () => {
-  const base = await bootServer(8681 + (process.pid % 40), { KNOWLEDGE_READ_ONLY: '1' });
+  const base = await bootServer(9281 + (process.pid % 40), { KNOWLEDGE_READ_ONLY: '1' });
 
   const status = await (await fetch(`${base}/api/status`)).json();
   assert.equal(status.readOnly, true);

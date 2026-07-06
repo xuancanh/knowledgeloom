@@ -91,8 +91,34 @@ const DECK_JSON = JSON.stringify({
 
 const RAG_TOKENS = ['Vector ', 'clocks ', 'order ', 'events.'];
 
+const IMPORT_NOTE = `---
+title: "Spaced Repetition Evidence"
+category: "Learning Science"
+summary: "Spacing beats massing for long-term retention."
+tags: ["memory", "spacing"]
+links: []
+createdAt: "${new Date().toISOString()}"
+---
+
+# Spaced Repetition Evidence
+
+## What I learned
+Distributed practice produced a large effect size in a 21k-learner meta-analysis.
+`;
+
+const TRANSCRIPT = 'Welcome to the lecture. Today we cover the spacing effect: distributing study sessions over time produces far better retention than cramming the same hours into one sitting.';
+
 function startMockAi() {
   const server = createServer((req, res) => {
+    // Whisper-compatible transcription endpoint (multipart body ignored).
+    if (req.url?.includes('/audio/transcriptions')) {
+      req.resume();
+      req.on('end', () => {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ text: TRANSCRIPT }));
+      });
+      return;
+    }
     let raw = '';
     req.on('data', (d) => { raw += d; });
     req.on('end', () => {
@@ -115,6 +141,7 @@ function startMockAi() {
       }
       const content = prompt.includes('learning content creator') ? DECK_JSON
         : prompt.includes('Return this exact JSON shape') ? assistJson()
+        : prompt.includes('imported source material') ? IMPORT_NOTE
         : RESEARCH_NOTE;
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ choices: [{ message: { content } }] }));
@@ -155,6 +182,8 @@ test.before(async () => {
       CODEX_JOB_MAX_ATTEMPTS: '1', // exhaustion path without BullMQ's ~30s retry-promotion latency
       CODEX_JOB_RETRY_MS: '200',
       SEARCH_PROVIDER: 'inmemory',
+      TRANSCRIBE_API_BASE: `http://127.0.0.1:${MOCK_PORT}/v1`,
+      TRANSCRIBE_API_KEY: 'test-key',
       EE_SEED_DEMO: '0',
       EE_QUOTA_PREFIX: `ai-itest:${process.pid}`,
     },
@@ -290,4 +319,57 @@ maybe('rag: streams provider tokens through to the client', async () => {
   const text = await res.text();
   assert.ok(res.ok, `rag stream failed: ${res.status} ${text.slice(0, 200)}`);
   assert.equal(text, RAG_TOKENS.join(''));
+});
+
+// ── import pipeline (text / PDF / audio) ──────────────────────────────────────
+
+maybe('import: pasted text → job → structured note with study material', async () => {
+  const { status, json } = await api('POST', '/api/import', {
+    text: 'Spacing effect: a 2026 meta-analysis of 21,000 learners found spaced repetition produced d=0.78 for long-term retention versus massed practice.',
+    title: 'Spacing research',
+  });
+  assert.equal(status, 202);
+  assert.ok(json.extractedChars > 100);
+  assert.equal(json.truncated, false);
+
+  await pollJob(json.jobId, 'done');
+  const { json: state } = await api('GET', '/api/knowledge');
+  const note = state.notes.find((n) => n.title === 'Spaced Repetition Evidence');
+  assert.ok(note, 'imported note appears in knowledge state');
+  assert.equal(note.category, 'Learning Science');
+});
+
+maybe('import: PDF upload is parsed and produces a note job', async () => {
+  // Real single-page PDF (generated with cupsfilter); hand-rolled minimal PDFs
+  // trip pdf.js's XRef parser nondeterministically.
+  const { readFileSync } = await import('node:fs');
+  const pdf = readFileSync(join(ROOT, 'tests/fixtures/testing-effect.pdf'));
+  const form = new FormData();
+  form.append('file', new Blob([pdf], { type: 'application/pdf' }), 'paper.pdf');
+  form.append('title', 'Testing effect paper');
+  const res = await fetch(`${BASE}/api/import`, { method: 'POST', body: form });
+  const json = await res.json();
+  assert.equal(res.status, 202, JSON.stringify(json));
+  assert.ok(json.extractedChars >= 100, `extracted ${json.extractedChars} chars from PDF`);
+  await pollJob(json.jobId, 'done');
+});
+
+maybe('import: audio upload → transcription → note job', async () => {
+  const form = new FormData();
+  form.append('file', new Blob([Buffer.alloc(2048)], { type: 'audio/mpeg' }), 'lecture.mp3');
+  const res = await fetch(`${BASE}/api/import`, { method: 'POST', body: form });
+  const json = await res.json();
+  assert.equal(res.status, 202, JSON.stringify(json));
+  assert.equal(json.extractedChars, TRANSCRIPT.length, 'transcript text is what gets imported');
+  await pollJob(json.jobId, 'done');
+});
+
+maybe('import: rejects unsupported types and too-short text', async () => {
+  const form = new FormData();
+  form.append('file', new Blob([Buffer.from('x')], { type: 'application/zip' }), 'x.zip');
+  const res = await fetch(`${BASE}/api/import`, { method: 'POST', body: form });
+  assert.equal(res.status, 400);
+
+  const { status } = await api('POST', '/api/import', { text: 'too short' });
+  assert.equal(status, 400);
 });
