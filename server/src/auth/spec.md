@@ -7,54 +7,74 @@
 
 ## Purpose
 
-Authenticates every protected request by validating a Supabase-issued JWT locally.
-The module is `@Global()` so the guard and decorator are available everywhere without
-explicit imports.
+Authenticates every protected request. The guard is provider-agnostic: it
+delegates to whichever `AuthStrategy` the module provides, following the same
+pluggable pattern as `AiProvider` / `NoteStorageProvider` / `SearchProvider`.
+The module is `@Global()` so the guard and decorator are available everywhere
+without explicit imports.
+
+See `docs/OPEN_SOURCE_DECISION.md` for the OSS/extensions split this design serves.
 
 ---
 
-## SupabaseAuthGuard
+## AuthStrategy (`auth-strategy.interface.ts`)
 
-NestJS `CanActivate` guard — validates the Bearer token on every guarded request.
+`authenticate(request): string` — returns the user id or throws
+`UnauthorizedException`. Provided under the `AUTH_STRATEGY` injection token.
 
-**Apply** with `@UseGuards(SupabaseAuthGuard)` on a controller or route.
-For write endpoints that also need read-only enforcement, stack both:
-`@UseGuards(SupabaseAuthGuard, WritableGuard)`.
+Implementations:
 
-### Behavior
+- **LocalAuthStrategy** (`local-auth.strategy.ts`, OSS default)
+  - No `AUTH_SECRET` configured → every request gets `userId = 'local'`.
+    A log line notes local mode at startup.
+  - `AUTH_SECRET` set → requires `Authorization: Bearer <secret>`; the
+    comparison is constant-time (`crypto.timingSafeEqual`). Still single-user.
+- **SupabaseAuthStrategy** (extensions — `server/src/extensions/auth/`, private repo)
+  - Verifies the Supabase JWT locally (HS256, `SUPABASE_JWT_SECRET`), enforces
+    expiry, and returns the `sub` claim. 401 for missing/malformed/expired
+    tokens or a missing `sub`.
 
-1. If `SUPABASE_JWT_SECRET` is not set → **local mode**: every request gets
-   `userId = 'local'` and the guard always returns `true`. A warning is logged
-   at startup.
-2. If the secret is set → extracts the `Authorization: Bearer <token>` header,
-   verifies the JWT signature with `jsonwebtoken.verify()`, and attaches the
-   `sub` claim to `request.userId`.
-3. Returns **HTTP 401** for missing, malformed, or expired tokens.
-4. Returns **HTTP 401** if the JWT payload has no `sub` claim or it is not a string.
+## Strategy selection (`auth.module.ts`)
 
-### Security properties
+| Condition | Strategy |
+|---|---|
+| `AUTH_PROVIDER=supabase` or `SUPABASE_JWT_SECRET` set | SupabaseAuthStrategy (dynamic import from `extensions/`) |
+| otherwise | LocalAuthStrategy |
 
-- Signature verified **locally** — no round-trip to Supabase on every request.
-- JWT expiry (`exp`) is enforced by the `jsonwebtoken` library.
-- The `extractToken` helper rejects non-Bearer schemes and empty tokens.
+If an extensions provider is requested but `extensions/` is not present in the build, **boot
+fails loudly** — the server never silently degrades to unauthenticated local
+mode.
 
 ### Configuration
 
 | Env var | Default | Description |
 |---------|---------|-------------|
-| `SUPABASE_JWT_SECRET` | — | HS256 secret for local JWT verification |
+| `AUTH_PROVIDER` | `local` | `local` or `supabase` (extensions) |
+| `AUTH_SECRET` | — | Optional bearer token for the local provider |
+| `SUPABASE_JWT_SECRET` | — | HS256 secret (extensions; implies `supabase` provider) |
+
+---
+
+## ApiAuthGuard (`auth.guard.ts`)
+
+NestJS `CanActivate` guard — calls the active strategy and attaches the
+returned id to `request.userId`.
+
+**Apply** with `@UseGuards(ApiAuthGuard)` on a controller or route.
+For write endpoints that also need read-only enforcement, stack both:
+`@UseGuards(ApiAuthGuard, WritableGuard)`.
 
 ---
 
 ## @CurrentUser() decorator
 
 Parameter decorator that extracts the authenticated user's ID from the request
-(as set by `SupabaseAuthGuard`).
+(as set by `ApiAuthGuard`).
 
 **Usage:**
 ```typescript
 @Get(':id')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 async getNote(@Param('id') id: string, @CurrentUser() userId: string) {
   return this.notesService.getMarkdown(userId, id);
 }
@@ -72,58 +92,45 @@ type parameter for `ExecutionContext.switchToHttp().getRequest<AuthenticatedRequ
 
 ---
 
-## Module wiring
-
-`AuthModule` is `@Global()` — it registers and exports `SupabaseAuthGuard` so
-any controller can use it without importing `AuthModule` explicitly.
-
----
-
 ## BDD Spec
 
-### Feature: JWT Authentication
+### Feature: Local authentication (OSS)
 
-**Scenario: Local mode when JWT secret is unset**
-- GIVEN `SUPABASE_JWT_SECRET` is not set
+**Scenario: Local mode when no secret is configured**
+- GIVEN `AUTH_SECRET` is not set (and no extensions provider is selected)
 - WHEN any request reaches a guarded route
 - THEN the guard sets `request.userId = 'local'` and returns `true`
-- AND a warning is logged at startup
+
+**Scenario: Bearer secret accepted**
+- GIVEN `AUTH_SECRET=s3cret`
+- WHEN a request arrives with `Authorization: Bearer s3cret`
+- THEN the guard sets `request.userId = 'local'`
+
+**Scenario: Bearer secret rejected**
+- GIVEN `AUTH_SECRET=s3cret`
+- WHEN a request arrives with no token, a wrong token, or a non-Bearer scheme
+- THEN the guard throws `UnauthorizedException`
+
+### Feature: extensions provider selection
+
+**Scenario: Supabase requested without extensions/**
+- GIVEN `AUTH_PROVIDER=supabase` (or `SUPABASE_JWT_SECRET` set) in an OSS build
+- WHEN the server boots
+- THEN boot fails with an error naming the missing extensions modules
+
+### Feature: JWT authentication (extensions — SupabaseAuthStrategy)
 
 **Scenario: Valid Bearer token**
-- GIVEN `SUPABASE_JWT_SECRET` is set to a valid HS256 secret
-- WHEN a request arrives with `Authorization: Bearer <valid-jwt>`
-- AND the JWT `sub` claim is a non-empty string
-- AND the JWT is not expired
-- THEN the guard sets `request.userId` to the `sub` value and returns `true`
+- GIVEN `SUPABASE_JWT_SECRET` is set and the extensions modules are present
+- WHEN a request arrives with a valid, unexpired JWT whose `sub` is a non-empty string
+- THEN the guard sets `request.userId` to the `sub` value
 
-**Scenario: Missing Authorization header**
-- GIVEN `SUPABASE_JWT_SECRET` is set
-- WHEN a request arrives with no `Authorization` header
-- THEN the guard throws `UnauthorizedException('Missing authorization token')`
-
-**Scenario: Expired token**
-- GIVEN `SUPABASE_JWT_SECRET` is set
-- WHEN a request arrives with an expired JWT
-- THEN the guard throws `UnauthorizedException` with the JWT error message
-
-**Scenario: Token with no sub claim**
-- GIVEN `SUPABASE_JWT_SECRET` is set
-- WHEN a request arrives with a valid JWT that has no `sub` claim
-- THEN the guard throws `UnauthorizedException('Token missing user identity')`
-
-**Scenario: Non-Bearer scheme**
-- GIVEN `SUPABASE_JWT_SECRET` is set
-- WHEN a request arrives with `Authorization: Basic <token>`
-- THEN the guard throws `UnauthorizedException('Missing authorization token')`
+**Scenario: Missing / expired / malformed token, or no `sub` claim**
+- THEN the guard throws `UnauthorizedException` (HTTP 401)
 
 ### Feature: CurrentUser decorator
 
 **Scenario: Extract userId from authenticated request**
-- GIVEN a request was authenticated by `SupabaseAuthGuard`
+- GIVEN a request was authenticated by `ApiAuthGuard`
 - WHEN a controller method uses `@CurrentUser() userId: string`
 - THEN `userId` equals the value of `request.userId`
-
-**Scenario: Extract userId without prior guard**
-- GIVEN no guard has set `request.userId`
-- WHEN a controller method uses `@CurrentUser() userId: string`
-- THEN `userId` is `undefined`

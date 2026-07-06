@@ -39,6 +39,23 @@ Open `http://localhost:5174`.
 
 The backend listens on `http://localhost:8787`; Vite proxies `/api` to it.
 
+## Auth & Open Source
+
+This repository is the open-source core, licensed under **AGPLv3** (see
+`LICENSE`). It runs in **single-user local mode** by default: no login, all
+data belongs to `userId="local"`. Set `AUTH_SECRET` in `.env` to require an
+`Authorization: Bearer <secret>` header on API calls for instances exposed to
+the internet (the web UI does not prompt for it — front it with a reverse
+proxy or VPN).
+
+Multi-user auth (Supabase JWT), the SaaS landing/login pages, and future
+billing/org/admin features live in a **private extensions repo**
+(`knowledge-loom-private`) that is merged into this tree at build time. OSS code
+never imports `extensions/` — enforced by ESLint; extensions modules attach through
+two seams: the frontend extensions registry (`src/lib/extensions.ts`) and the backend
+`AUTH_STRATEGY` injection token (`server/src/auth/`). See
+`docs/OPEN_SOURCE_DECISION.md` for the full strategy.
+
 ## Creation
 
 - `Write note`: writes a full draft directly to markdown. Enable `Allow AI polishing` to queue Codex with the user's draft as the factual source of truth. Codex may improve wording, structure, metadata, and supported links, but should not add new research.

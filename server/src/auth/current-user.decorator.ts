@@ -1,10 +1,10 @@
 /**
  * @CurrentUser() — extracts the authenticated user's Supabase ID from the
- * request, as set by SupabaseAuthGuard.
+ * request, as set by ApiAuthGuard.
  *
  * @example
  *   @Get(':id')
- *   @UseGuards(SupabaseAuthGuard)
+ *   @UseGuards(ApiAuthGuard)
  *   async getNote(@Param('id') id: string, @CurrentUser() userId: string) {
  *     return this.notesService.getMarkdown(userId, id);
  *   }

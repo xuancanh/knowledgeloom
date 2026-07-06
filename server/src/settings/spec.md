@@ -35,8 +35,8 @@ one row; the `settings` column is a JSON blob. Settings are read on every
 ## SettingsController
 
 ```
-GET   /api/settings   → { ...settings }         @UseGuards(SupabaseAuthGuard)
-PATCH /api/settings   → { ...merged }            @UseGuards(SupabaseAuthGuard)
+GET   /api/settings   → { ...settings }         @UseGuards(ApiAuthGuard)
+PATCH /api/settings   → { ...merged }            @UseGuards(ApiAuthGuard)
 ```
 
 ### GET `/api/settings`

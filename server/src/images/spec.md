@@ -22,7 +22,7 @@ GET  /api/images/:name  — serve a stored image file
 
 ### Upload (`POST /api/images`)
 
-Guards: `@UseGuards(SupabaseAuthGuard, WritableGuard)`.
+Guards: `@UseGuards(ApiAuthGuard, WritableGuard)`.
 
 1. Validates a file was uploaded (`file` is present).
 2. Checks the MIME type against the allowlist:

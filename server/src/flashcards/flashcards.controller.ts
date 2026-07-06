@@ -12,11 +12,11 @@ import { FlashcardsService } from './flashcards.service';
 import { UserFlashcardsRepository } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import { FlashcardReviewsRepository } from './flashcard-reviews.repository';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/flashcards')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class FlashcardsController {
   constructor(
     private readonly flashcardsService: FlashcardsService,

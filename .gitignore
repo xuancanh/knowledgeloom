@@ -18,3 +18,11 @@ knowledge/users/
 # Keep placeholder files
 !knowledge/notes/.gitkeep
 !knowledge/categories/.gitkeep
+knowledge/reminders.sqlite
+knowledge/reminders.sqlite-shm
+knowledge/reminders.sqlite-wal
+
+# Extensions modules — linked/merged from the private knowledge-loom-private repo,
+# never committed to the public tree
+src/extensions/
+server/src/extensions/

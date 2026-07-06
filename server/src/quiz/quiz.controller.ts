@@ -10,11 +10,11 @@ import { Controller, Post, Delete, Body, Param, HttpCode, UseGuards } from '@nes
 import { QuizService } from './quiz.service';
 import { QuizReviewsRepository } from './quiz-reviews.repository';
 import { QuizHiddenRepository } from './quiz-hidden.repository';
-import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/quiz')
-@UseGuards(SupabaseAuthGuard)
+@UseGuards(ApiAuthGuard)
 export class QuizController {
   constructor(
     private readonly quizService: QuizService,

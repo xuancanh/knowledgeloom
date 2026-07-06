@@ -105,9 +105,9 @@ Drizzle access for the `quiz_hidden` table.
 ## QuizController
 
 ```
-POST   /api/quiz/:id/review   → { review }       @UseGuards(SupabaseAuthGuard)
-DELETE /api/quiz/:id          → 204               @UseGuards(SupabaseAuthGuard)
-POST   /api/quiz/:id/restore  → { restored: id }  @UseGuards(SupabaseAuthGuard)
+POST   /api/quiz/:id/review   → { review }       @UseGuards(ApiAuthGuard)
+DELETE /api/quiz/:id          → 204               @UseGuards(ApiAuthGuard)
+POST   /api/quiz/:id/restore  → { restored: id }  @UseGuards(ApiAuthGuard)
 ```
 
 ### Review (`POST /api/quiz/:id/review`)
