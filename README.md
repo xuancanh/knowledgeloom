@@ -70,24 +70,55 @@ and tech ([architecture](docs/tech/ARCHITECTURE.md),
 [deployment](docs/tech/DEPLOYMENT.md), [MCP](docs/tech/MCP.md)).
 Contributors: [CONTRIBUTING.md](CONTRIBUTING.md) · AI agents: [AGENTS.md](AGENTS.md)
 
-## Features
+## Feature walkthrough
 
-- **Capture**: write directly, let AI polish a draft, research a topic, or
-  clip a URL (bookmarklet in Settings).
-- **Import**: PDF, text/markdown, audio/video (Whisper-compatible
-  transcription), and images/handwriting (vision extraction) — every import
-  becomes a note with flashcards and quiz questions.
-- **Study**: the Today queue merges everything due; FSRS-4.5 schedules both
-  flashcards and quizzes; exam mode lays out a day-by-day plan toward a date;
-  stats show 1d+/7d+ recall and your weakest topics.
-- **Learn sessions**: slide decks or a two-host podcast (with real TTS audio
-  when a key is configured), XP, streaks, mastery.
-- **Ask & Tutor**: RAG chat over your notes, plus a Socratic tutor mode that
+### Capture, and everything becomes study material
+
+Write notes directly, let AI polish a draft, research a topic from scratch,
+clip any web page (bookmarklet in Settings), or **import** PDFs, lecture
+audio/video, and photos of handwritten notes. The desk shows your review
+queue, reminders, and vault at a glance.
+
+![The desk — capture box, review queue, reminders, and discovery](docs/assets/home.png)
+
+### Notes are a linked knowledge base
+
+Markdown with categories, tags, and (bidirectional) links; every note shows
+its connections, backlinks, and the file on disk it lives in — your data is
+just markdown.
+
+![Note detail — content, connections, backlinks](docs/assets/note.png)
+
+![The graph — your vault's structure](docs/assets/graph.png)
+
+### Study on a real spaced-repetition schedule
+
+Every note grows an AI-generated flashcard deck and quiz. The **Today** queue
+merges everything due; **FSRS-4.5** schedules reviews; **exam mode** lays out
+a day-by-day plan toward a date; retention stats show what you actually
+remember after 1+ and 7+ days — and which topics are weakest.
+
+![Today — study queue, exam mode, retention stats, weakest topics](docs/assets/today.png)
+
+![Flashcards — AI-generated, typed, and scheduled](docs/assets/flashcards.png)
+
+### Share decks and import from the marketplace
+
+Publish read-only notes or whole collections at unguessable URLs, then list
+them on the marketplace: browse, search, star-rate, and import other
+people's decks — imported notes arrive with flashcards and quizzes intact.
+
+![Marketplace — browse, rate, and import community decks](docs/assets/marketplace.png)
+
+### And more
+
+- **Learn sessions** — guided slide decks or a two-host podcast (with real
+  TTS voices when a key is configured), XP, streaks, mastery.
+- **Ask & Tutor** — RAG chat over your notes, plus a Socratic tutor that
   quizzes you and cites every claim `[Note: "…"]`.
-- **Share & marketplace**: publish read-only notes or whole collections at
-  unguessable URLs; publish, browse, rate, and import community decks.
-- **MCP server**: expose the vault to Claude and other MCP clients (stdio,
+- **MCP server** — expose the vault to Claude and other MCP clients (stdio,
   read-only by default).
+- **PWA** — installable, offline shell, touch-friendly review.
 
 ## Auth & licensing
 
