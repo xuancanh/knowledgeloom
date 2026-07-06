@@ -23,6 +23,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { TranscriptionService } from './transcription.service';
+import { VisionService } from './vision.service';
 
 /** Extracted source text beyond this is truncated before prompting. */
 const IMPORT_TEXT_CAP = 24_000;
@@ -32,6 +33,7 @@ const AUDIO_MIMES = new Set([
   'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/wav', 'audio/x-wav',
   'audio/webm', 'audio/ogg', 'audio/flac', 'video/webm', 'video/mp4',
 ]);
+const IMAGE_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 const TEXT_MIMES = new Set(['text/plain', 'text/markdown', 'application/octet-stream']);
 
 @Controller('api/import')
@@ -40,6 +42,7 @@ export class ImportController {
   constructor(
     private readonly jobsService: JobsService,
     private readonly transcription: TranscriptionService,
+    private readonly vision: VisionService,
     @Inject(USAGE_SERVICE) private readonly usage: UsageService,
   ) {}
 
@@ -58,7 +61,7 @@ export class ImportController {
 
     let text = '';
     let sourceName = '';
-    let sourceKind: 'text' | 'pdf' | 'audio' = 'text';
+    let sourceKind: 'text' | 'pdf' | 'audio' | 'image' = 'text';
 
     if (file) {
       sourceName = file.originalname || 'upload';
@@ -74,6 +77,15 @@ export class ImportController {
         text = await this.transcription.transcribe(file).catch((err) => {
           if (err?.status === 501) throw new NotImplementedException(err.message);
           throw new BadGatewayException(err?.message || 'transcription failed');
+        });
+      } else if (IMAGE_MIMES.has(file.mimetype) || ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+        sourceKind = 'image';
+        if (!this.vision.enabled) {
+          throw new NotImplementedException('image import is not configured (set VISION_API_KEY or use an HTTP AI provider)');
+        }
+        text = await this.vision.extractText(file).catch((err) => {
+          if (err?.status === 501) throw new NotImplementedException(err.message);
+          throw new BadGatewayException(err?.message || 'image extraction failed');
         });
       } else if (TEXT_MIMES.has(file.mimetype) || ['txt', 'md', 'markdown'].includes(ext)) {
         text = file.buffer.toString('utf8');

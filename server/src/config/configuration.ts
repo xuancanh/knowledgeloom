@@ -115,6 +115,13 @@ export default () => {
     // CLI template; {file} is replaced with the audio path. Must print the transcript to stdout.
     transcribeCommand: process.env.TRANSCRIBE_COMMAND || '',
 
+    // Vision extraction for image/handwriting import. Defaults to the main AI
+    // provider's HTTP credentials when it is OpenAI-compatible (openrouter).
+    visionApiBase: process.env.VISION_API_BASE || process.env.AI_API_BASE_URL || 'https://openrouter.ai/api/v1',
+    visionApiKey: process.env.VISION_API_KEY
+      || ((process.env.AI_PROVIDER || 'codex') !== 'codex' ? process.env.AI_API_KEY || '' : ''),
+    visionModel: process.env.VISION_MODEL || 'gpt-4o-mini',
+
     // Text-to-speech for podcast audio: 'openai' (any /audio/speech-compatible
     // API) or 'none' (podcast stays text + browser timing).
     ttsProvider: process.env.TTS_PROVIDER || (process.env.TTS_API_KEY ? 'openai' : 'none'),
