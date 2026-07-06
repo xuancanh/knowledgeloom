@@ -608,7 +608,7 @@ export default function GraphPage({
             </defs>
 
             {edges.map((eg) => {
-              const { d, mid } = edgePath(eg);
+              const { d } = edgePath(eg);
               const st = edgeState(eg);
               const catColor = (st === 'hi' || st === 'sel')
                 ? 'var(--accent)'

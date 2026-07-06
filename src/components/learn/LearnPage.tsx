@@ -448,7 +448,7 @@ function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, ai
           const now = Date.now();
           if (now - wheelLock.current < 620) return;
           wheelLock.current = now;
-          e.deltaY > 0 ? goNext() : goPrev();
+          if (e.deltaY > 0) goNext(); else goPrev();
         }}
         onTouchStart={e => {
           if ((e.target as HTMLElement).closest('button, .qopt, .flip, .pod-controls, .pod-prog')) { touch.current = null; return; }
@@ -457,7 +457,7 @@ function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, ai
         onTouchEnd={e => {
           if (touch.current == null) return;
           const dy = e.changedTouches[0].clientY - touch.current;
-          if (Math.abs(dy) > 56) (dy < 0 ? goNext() : goPrev());
+          if (Math.abs(dy) > 56) { if (dy < 0) goNext(); else goPrev(); }
           touch.current = null;
         }}
       >
@@ -503,7 +503,7 @@ function Waveform({ playing, color, bars = 26 }: { playing: boolean; color: stri
   );
 }
 
-function PodcastStage({ note, ctx, catById, planIds, nodeIndex, progress, aiDeck, onAward, onComplete, catColor, catName }: {
+function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progress, aiDeck, onAward, onComplete, catColor, catName }: {
   note: NoteForLearn;
   ctx: LearnCtx;
   catById: Record<string, UiCategory>;
@@ -802,7 +802,7 @@ type AiDeck = {
   recap?: { takeaways: string[] };
 };
 
-function aiDeckToCards(note: NoteForLearn, ai: AiDeck, ctx: LearnCtx): LearnCard[] {
+function aiDeckToCards(note: NoteForLearn, ai: AiDeck, _ctx: LearnCtx): LearnCard[] {
   const deck: CardDraft[] = [];
   deck.push({ type: 'hook', title: note.title, lede: note.summary, tags: note.tags, category: note.category });
   (ai.teach || []).forEach(t => deck.push({ type: 'teach', head: t.head, paras: t.paras }));

@@ -11,7 +11,7 @@ export default function QuizPage({
   tagCounts,
   initialCategory,
   initialTag,
-  onScopeChange,
+  onScopeChange: _onScopeChange,
 }: {
   questions: QuizQuestion[];
   categories: UiCategory[];

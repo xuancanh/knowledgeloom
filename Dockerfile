@@ -28,6 +28,8 @@ RUN groupadd -r loom && useradd -r -g loom loom
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/server/dist ./server/dist
 COPY package.json ./
+# Root package.json is ESM (vite frontend); this marks server/dist as CommonJS.
+COPY server/package.json ./server/
 
 # Local-mode data (sqlite + markdown vault) lives here unless NOTE_STORAGE=s3
 # and DATABASE_DIALECT=postgres move everything out of the container.

@@ -12,7 +12,7 @@ const notePath = path.join(noteDir, '2099-01-01-smoke-meili.md');
 const legacyNotePath = path.join(noteRootDir, '2099-01-01-smoke-meili.md');
 const smokeManifestPath = path.join(rootDir, 'knowledge', 'meili-sync-knowledge_smoke.json');
 const calls: Array<{ method: string; url: string; body: string }> = [];
-let app: ChildProcess | undefined;
+let appProc: ChildProcess | undefined;
 let fakeMeiliStarted = false;
 
 // Fake Meili records requests so the test can assert that the backend tries to
@@ -49,7 +49,8 @@ The backend updates Meilisearch when the markdown source is rebuilt.
 await new Promise<void>((resolve) => fakeMeili.listen(7799, resolve));
 fakeMeiliStarted = true;
 
-app = spawn('node', ['node_modules/.bin/ts-node', '--project', 'server/tsconfig.json', 'server/src/main.ts'], {
+// eslint-disable-next-line prefer-const -- assigned once but must be visible to the exit handler above
+appProc = spawn('node', ['node_modules/.bin/ts-node', '--project', 'server/tsconfig.json', 'server/src/main.ts'], {
   cwd: rootDir,
   stdio: ['ignore', 'pipe', 'pipe'],
   env: {
@@ -100,12 +101,12 @@ async function cleanup(): Promise<void> {
   await rm(legacyNotePath, { force: true });
 
   // Rebuild derived indexes after deleting the temporary note. The 8790 server
-  // is the test app using fake Meili; 8787 is a dev server if one is running.
+  // is the test appProc using fake Meili; 8787 is a dev server if one is running.
   await fetchIfAvailable('http://127.0.0.1:8790/api/knowledge');
   await fetchIfAvailable('http://localhost:8787/api/knowledge');
   await rm(smokeManifestPath, { force: true });
 
-  if (app && !app.killed) app.kill('SIGTERM');
+  if (appProc && !appProc.killed) appProc.kill('SIGTERM');
   if (fakeMeiliStarted) {
     await new Promise<void>((resolve) => fakeMeili.close(() => resolve()));
   }

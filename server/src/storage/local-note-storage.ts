@@ -17,7 +17,7 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, dirname, basename, resolve, sep } from 'node:path';
+import { join, dirname, resolve, sep } from 'node:path';
 import type { NoteStorageProvider } from './note-storage.interface';
 
 @Injectable()

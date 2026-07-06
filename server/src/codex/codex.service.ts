@@ -29,7 +29,6 @@ import { KnowledgeService } from '../knowledge/knowledge.service';
 import {
   parseNote,
   stripFrontmatter,
-  noteRelativePath,
   uniqueNoteSlug,
 } from '../common/note-parser.util';
 import type { KnowledgeNote } from '../types';

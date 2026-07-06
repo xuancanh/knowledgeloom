@@ -15,7 +15,7 @@ function popDraft(): Draft {
   try {
     const raw = sessionStorage.getItem(NEW_NOTE_DRAFT_KEY);
     if (raw) { sessionStorage.removeItem(NEW_NOTE_DRAFT_KEY); return JSON.parse(raw); }
-  } catch {}
+  } catch { /* corrupt draft — start fresh */ }
   return {};
 }
 

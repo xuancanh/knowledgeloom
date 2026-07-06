@@ -72,7 +72,8 @@ function runCodex(prompt: string): Promise<string> {
       readFile(outputPath, 'utf8')
         .then((content) => {
           rm(outputPath, { force: true }).catch(() => {});
-          content.trim() ? resolve(content.trim()) : reject(new Error('no output'));
+          if (content.trim()) resolve(content.trim());
+          else reject(new Error('no output'));
         })
         .catch(reject);
     });

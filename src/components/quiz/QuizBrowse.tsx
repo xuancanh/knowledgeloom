@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { QuizQuestion, QuizQuestionType } from '../../types';
 import type { UiCategory } from '../../lib/view';

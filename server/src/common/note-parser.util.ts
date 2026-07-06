@@ -59,6 +59,7 @@ export function normalizeCategoryPath(value: string): string {
 }
 
 function safeFolderSegment(value: string): string {
+  // eslint-disable-next-line no-control-regex -- stripping filesystem-hostile control chars is the point
   const segment = String(value || '').trim().replace(/[<>:"\\|?*\x00-\x1F]/g, '-');
   if (!segment || /^\.+$/.test(segment)) return 'Uncategorized';
   return segment;

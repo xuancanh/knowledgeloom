@@ -30,7 +30,6 @@ export class ImagesService {
   async save(file: { originalname: string; buffer: Buffer; mimetype: string }): Promise<{ url: string; filename: string }> {
     await mkdir(this.imagesDir, { recursive: true });
 
-    const ext = extname(file.originalname).toLowerCase() || '.bin';
     const slug = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '-').toLowerCase();
     const filename = `${Date.now()}-${slug}`;
     const dest = join(this.imagesDir, filename);
