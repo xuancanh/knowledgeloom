@@ -91,20 +91,18 @@ Also shipped alongside Q3: an **MCP server** (stdio, read-only by default —
 docs/MCP.md) exposing search/read/capture/study-queue to Claude and other
 MCP clients.
 
-### Next (Q4 2026) — differentiate
+### Next (Q4 2026) — differentiate — ✅ shipped July 2026
 
-5. **Cited AI tutor mode.** RAG chat that quizzes the user Socratically and
-   links every claim to a note ("[Note: …]") — generic AI tutors can't do
-   this over private material.
-6. **Exam mode.** Date-targeted study plans: pick notes/categories + exam
-   date → scheduler compresses reviews to peak on exam day. Strong wedge for
-   the student segment and a natural paid feature.
-7. **Real podcast audio (TTS).** We already generate two-host scripts; add
-   TTS rendering for commute-time review. Audio-first learners are an
-   underserved input/output segment.
-8. **Deck sharing.** Public/read-only share links for decks and notes —
-   Quizlet's 800M study sets prove distribution comes from shared artifacts.
-   Also the first viral loop for the landing page.
+5. ✅ **Cited AI tutor mode** — `mode:'tutor'` on `/api/rag/stream`: Socratic
+   one-question-per-turn sessions, every claim cited [Note: "Title"];
+   Ask / Tutor-me toggle in the chat panel.
+6. ✅ **Exam mode** — `POST /api/study/exam-plan`: learning pass →
+   consolidation → final weakest-items review, planner UI on Today.
+7. ✅ **Real podcast audio (TTS)** — `POST /api/tts/podcast`, pluggable
+   OpenAI-compatible speech with per-host voices, cached, quota-metered
+   (`ai.podcast`); voice toggle in the podcast player.
+8. ✅ **Deck sharing** — `/share/:id` public read-only note + deck pages,
+   128-bit ids, revocable, no vault internals in the payload.
 
 ### Later (2027) — expand
 
