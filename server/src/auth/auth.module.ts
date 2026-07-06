@@ -10,7 +10,7 @@
  *                          compatibility with existing deployments.
  *
  * The Supabase strategy lives in server/src/extensions/ (merged from the private extensions
- * repo at build time — see docs/OPEN_SOURCE_DECISION.md) and is loaded via a
+ * repo at build time — see docs/tech/OPEN_SOURCE_DECISION.md) and is loaded via a
  * dynamic import so the OSS build has no static reference to extensions code. If an
  * extensions provider is requested but extensions/ is absent, boot fails loudly rather than
  * silently falling back to unauthenticated local mode.

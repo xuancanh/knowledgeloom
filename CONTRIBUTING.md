@@ -1,17 +1,27 @@
 # Contributing to Knowledge Loom
 
+Thanks for contributing! By submitting a contribution you agree to license it
+under the repository's license (**SSPL-1.0**, see `LICENSE`) and certify the
+[Developer Certificate of Origin](https://developercertificate.org/) — sign
+commits with `git commit -s` if asked.
+
 ## Development workflow
 
 ```bash
+docker compose -f docker-compose.dev.yml up -d   # redis + meilisearch (+ postgres)
 npm install            # Install all deps (root + server)
 npm run dev            # Full stack: NestJS + Vite in parallel
 npx tsc -p server/tsconfig.json --noEmit  # Type-check backend
 npx tsc -b --noEmit   # Type-check frontend
 npm run lint           # ESLint across all code
-npm test               # Run backend tests
-npm run test:frontend  # Run frontend tests
+npm test               # Backend unit tests
+npm run test:frontend  # Frontend unit tests
+npm run test:all       # Full pyramid incl. e2e + integration (needs redis)
 npm run build          # Production build
 ```
+
+See [TESTING.md](TESTING.md) for the test pyramid and the isolation rules
+every spawned-server test must follow (`KNOWLEDGE_ROOT`, `REDIS_DB`).
 
 ## Architecture principles
 
@@ -60,9 +70,28 @@ namespace. Plural keys follow i18next conventions (`key_plural`).
 - Keep commits focused — one subsystem per commit
 - Include i18n keys in the same commit as the feature
 
+## Boundaries that CI enforces
+
+- **Never import from `extensions/`** in OSS code (ESLint fence). Extensions modules
+  attach only through the seams: the frontend extensions registry (`src/lib/extensions.ts`),
+  `AUTH_STRATEGY`, `USAGE_SERVICE`, and `AppModule.forRoot()`.
+- **Never edit or reorder existing migrations** in
+  `server/src/database/migrator.ts` — append a new one (sqlite + pg).
+- Lint must pass with 0 errors (`any` and the React-compiler rules are
+  tracked warnings; don't add new hard errors).
+
 ## Pull requests
 
-- Run the full gate: `npm test && npm run test:frontend && npm run lint && npm run build`
-- For AI/prompt changes, inspect at least one generated output
+- Run the full gate: `npm run lint && npm run build && npm run test:all`
+- CI runs the same plus a Docker image build-and-boot smoke test
+- For AI/prompt changes, inspect at least one generated output (the mock
+  provider in `tests/integration-ai.test.mjs` shows the contract)
 - For UI changes, test in light and dark themes
 - For write-path changes, verify read-only mode still returns 403
+- New AI-consuming endpoints must go through the `USAGE_SERVICE` quota seam
+
+## Where things are documented
+
+Product: [docs/product/](docs/product/) · Tech: [docs/tech/](docs/tech/) ·
+AI-agent guide: [AGENTS.md](AGENTS.md) · Security policy:
+[SECURITY.md](SECURITY.md)

@@ -11,7 +11,7 @@
 #
 # Contributors: docker-compose.dev.yml starts only the infrastructure
 # (redis/meilisearch/postgres) for `npm run dev`. A hardened production
-# variant is docker-compose.prod.yml; cloud deploys are in docs/DEPLOYMENT.md.
+# variant is docker-compose.prod.yml; cloud deploys are in docs/tech/DEPLOYMENT.md.
 services:
   app:
     build: .

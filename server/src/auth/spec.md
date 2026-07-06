@@ -13,7 +13,7 @@ pluggable pattern as `AiProvider` / `NoteStorageProvider` / `SearchProvider`.
 The module is `@Global()` so the guard and decorator are available everywhere
 without explicit imports.
 
-See `docs/OPEN_SOURCE_DECISION.md` for the OSS/extensions split this design serves.
+See `docs/tech/OPEN_SOURCE_DECISION.md` for the OSS/extensions split this design serves.
 
 ---
 

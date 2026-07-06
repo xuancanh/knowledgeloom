@@ -55,17 +55,20 @@ src/                     React UI (components by feature, api client, hooks)
 server/src/              NestJS modules: notes, knowledge, learn, flashcards,
                          quiz, study (Today queue/exam/stats), import, rag,
                          shares, marketplace, tts, jobs, auth, usage seams
-mcp/                     Model Context Protocol server (stdio) — docs/MCP.md
+mcp/                     Model Context Protocol server (stdio) — docs/tech/MCP.md
 tests/                   unit + integration + e2e suites (see TESTING.md)
 knowledge/               your data (gitignored) — notes, sqlite, search manifests
 docker-compose.yml       one-command self-hosted stack
 docker-compose.dev.yml   infra only, for npm run dev
-infra/, Dockerfile       production deployment — docs/DEPLOYMENT.md
+infra/, Dockerfile       production deployment — docs/tech/DEPLOYMENT.md
 ```
 
-Deep dives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ·
-[docs/AI_SPEC.md](docs/AI_SPEC.md) · [docs/ROADMAP.md](docs/ROADMAP.md) ·
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) · [docs/MCP.md](docs/MCP.md)
+Documentation lives in [docs/](docs/README.md) — product
+([features](docs/product/FEATURES.md), [roadmap](docs/product/ROADMAP.md))
+and tech ([architecture](docs/tech/ARCHITECTURE.md),
+[API reference](docs/tech/API.md), [AI spec](docs/tech/AI_SPEC.md),
+[deployment](docs/tech/DEPLOYMENT.md), [MCP](docs/tech/MCP.md)).
+Contributors: [CONTRIBUTING.md](CONTRIBUTING.md) · AI agents: [AGENTS.md](AGENTS.md)
 
 ## Features
 
@@ -86,9 +89,13 @@ Deep dives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ·
 - **MCP server**: expose the vault to Claude and other MCP clients (stdio,
   read-only by default).
 
-## Auth & open source
+## Auth & licensing
 
-This repository is the open-source core, licensed **AGPLv3** (see `LICENSE`).
+This repository is the public core, licensed under the **Server Side Public
+License v1 (SSPL-1.0)** — see `LICENSE`. You can use, modify, self-host, and
+redistribute it freely; if you offer Knowledge Loom itself to third parties
+as a managed service, SSPL requires you to open the source of your entire
+service stack. (SSPL is source-available, not OSI-approved open source.)
 It runs in single-user local mode by default: no login, all data under
 `userId="local"`. `AUTH_SECRET` adds bearer-token protection for exposed
 instances.
@@ -96,7 +103,7 @@ instances.
 Multi-user auth (Supabase), billing, quota, and the admin console live in a
 private extensions repo merged into this tree at build time. OSS code never
 imports `extensions/` (ESLint-enforced); extensions modules attach through explicit
-seams. See `docs/OPEN_SOURCE_DECISION.md` for the full structure.
+seams. See `docs/tech/OPEN_SOURCE_DECISION.md` for the full structure.
 
 ## Tests
 

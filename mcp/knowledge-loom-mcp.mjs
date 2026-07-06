@@ -6,7 +6,7 @@
  * clients (Claude Code, Claude Desktop, …) can search, read, and — when
  * explicitly enabled — capture notes.
  *
- * Security posture (see docs/MCP.md for the full rationale):
+ * Security posture (see docs/tech/MCP.md for the full rationale):
  *  - stdio transport only: this process is spawned by the MCP client and never
  *    listens on a port, so there is no remote attack surface and no OAuth to
  *    get wrong. Do not wrap it with an HTTP/SSE proxy.

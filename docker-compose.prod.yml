@@ -1,5 +1,5 @@
 # Self-hosted production stack (VM / any Docker host).
-# Cloud deployment on Cloudflare + Supabase is documented in docs/DEPLOYMENT.md;
+# Cloud deployment on Cloudflare + Supabase is documented in docs/tech/DEPLOYMENT.md;
 # this compose file is the single-box alternative.
 services:
   api:

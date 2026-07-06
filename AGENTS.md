@@ -17,7 +17,14 @@ smart-knowledge-app/
 │   │   ├── categories/     # CategoryIndex + CSS module
 │   │   ├── chat/           # ChatPanel.tsx + ChatPanel.module.css (floating AI chat panel)
 │   │   ├── flashcards/     # FlashcardsPage, browse/study/done sub-components, constants
+│   │   ├── graph/          # GraphPage — interactive vault graph
+│   │   ├── import/         # ImportPage — PDF/text/audio/image → note pipeline UI
+│   │   ├── learn/          # LearnPage — plan builder, slide decks, podcast stage
+│   │   ├── marketplace/    # MarketplacePage — browse/publish/import/rate listings
 │   │   ├── notes/          # NoteDetail, AiAssistPanel, ReminderSection, LinkEditor
+│   │   ├── quiz/           # QuizPage, browse/study sub-components
+│   │   ├── share/          # SharePage — public read-only share view (/share/:id)
+│   │   ├── study/          # TodayPage — unified study queue, exam planner, stats
 │   │   ├── routes/         # URL→component wrappers (NoteRoute, CategoryRoute, NewNoteRoute, AllCategoriesRoute, AllTagsRoute, etc.)
 │   │   ├── settings/       # SettingsPage + CSS module
 │   │   ├── tags/           # TagIndex + CSS module
@@ -54,10 +61,20 @@ smart-knowledge-app/
 │   │   ├── images/         # POST /api/images — image upload
 │   │   ├── knowledge/      # Index rebuild pipeline
 │   │   ├── learn/          # Note capture endpoint
+│   │   ├── learn-progress/ # XP/streak/mastery + AI deck generation
+│   │   ├── import/         # POST /api/import — PDF/text/audio/image extraction
+│   │   ├── marketplace/    # Listings: publish/browse/rate/import shared decks
 │   │   ├── notes/          # Note CRUD + note-reads tracking
-│   │   ├── rag/            # POST /api/rag/stream — streaming RAG over the knowledge base
+│   │   ├── quiz/           # AI quiz generation + reviews
+│   │   ├── rag/            # POST /api/rag/stream — RAG chat + Socratic tutor mode
 │   │   ├── reminders/      # Note reminders
+│   │   ├── scheduling/     # fsrs.ts — FSRS-4.5 spaced-repetition scheduler (pure)
 │   │   ├── search/         # Pluggable search (Meilisearch / in-memory)
+│   │   ├── shares/         # Public share links (note + category collections)
+│   │   ├── study/          # Today queue, exam-plan builder, retention stats
+│   │   ├── tts/            # Podcast text-to-speech (OpenAI-compatible)
+│   │   ├── usage/          # USAGE_SERVICE quota seam (noop in OSS)
+│   │   ├── auth/           # AUTH_STRATEGY seam (local / AUTH_SECRET / extensions supabase)
 │   │   ├── settings/       # GET/PATCH /api/settings — per-user JSON blob in user_settings table
 │   │   ├── status/         # Health endpoint
 │   │   ├── storage/        # Pluggable note storage (local / S3)
@@ -69,9 +86,13 @@ smart-knowledge-app/
 │   ├── repositories/       # Drizzle repos (ESM, used by legacy only)
 │   ├── package.json        # {"type":"commonjs"} — overrides root for NestJS output
 │   └── tsconfig.json       # NestJS TypeScript config (CommonJS, emitDecoratorMetadata)
-├── tests/
-│   ├── backend-storage.test.mjs   # Legacy job/flashcard repository tests
-│   └── frontend-lib.test.mjs      # Pure function tests (format, view, guidance)
+├── tests/                  # See TESTING.md for the full pyramid
+│   ├── backend-*.test.ts   # Unit: parser, repos, guards, FSRS, exam plan, services
+│   ├── frontend-*.test.ts  # Unit: learn-content builders, lib utilities
+│   ├── e2e-api.test.mjs    # Spawned server + temp vault, every API area
+│   └── integration-*.mjs   # Mock-AI pipeline, server modes, MCP client
+├── mcp/                    # MCP server (stdio) — docs/tech/MCP.md
+├── infra/, Dockerfile      # Production deployment — docs/tech/DEPLOYMENT.md
 ├── knowledge/              # Runtime data (NOT committed except schema)
 │   ├── notes/              # Markdown source of truth (category sub-folders)
 │   ├── categories/         # Generated category markdown files
@@ -223,11 +244,14 @@ npx tsc -b --noEmit
 # Lint all code
 npm run lint
 
-# Run backend tests
+# Run backend unit tests
 npm test
 
-# Run frontend tests
+# Run frontend unit tests
 npm run test:frontend
+
+# Full pyramid: unit + e2e + integration (needs redis on localhost — see TESTING.md)
+npm run test:all
 
 # Build everything (NestJS + Vite)
 npm run build
@@ -249,9 +273,20 @@ npm run server
 - [ ] Add `@UseGuards(WritableGuard)` to any write endpoints
 - [ ] Call `KnowledgeService.rebuildIndexes()` after any note mutation
 - [ ] Add the config key to `configuration.ts` if a new env variable is needed
+- [ ] Schema change? Append a NEW migration in `server/src/database/migrator.ts`
+      (both sqlite and pg arrays) — NEVER edit or reorder existing migrations
 - [ ] Run `npx tsc -p server/tsconfig.json --noEmit` — must pass with 0 errors
 - [ ] **Add all new user-visible strings to `en.json` AND every other locale file in `src/i18n/locales/`**
       (9 locales: en, zh, ja, es, vi, id, ms, fr, hi). Fallback to English is not acceptable.
+- [ ] Add tests: pure logic in decorator-free modules (tsx can't parse Nest
+      param decorators) or against compiled `server/dist`; API behavior in
+      `tests/e2e-api.test.mjs`; AI-dependent paths against the mock provider
+      in `tests/integration-ai.test.mjs`
+- [ ] AI-consuming endpoint? Route it through the USAGE_SERVICE seam
+      (`checkQuota` before, `track` after) and add the feature name to
+      `AI_FEATURES` in `server/src/usage/usage.interface.ts`
+- [ ] Never import from `extensions/` in OSS code (ESLint-enforced); use the seams
+      (frontend extensions registry, AUTH_STRATEGY, USAGE_SERVICE, AppModule.forRoot)
 
 ---
 

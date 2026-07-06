@@ -2,7 +2,7 @@
 # The server serves the SPA when /app/dist exists, so this single container is
 # a complete self-hosted install (pair with redis + meilisearch via
 # docker-compose.yml). Cloud deployments may still serve the SPA from
-# Cloudflare Pages instead — see docs/DEPLOYMENT.md.
+# Cloudflare Pages instead — see docs/tech/DEPLOYMENT.md.
 
 # ── build stage ───────────────────────────────────────────────────────────────
 FROM node:22-slim AS build

@@ -93,7 +93,7 @@ const baseImports = [
 export class AppModule {
   /**
    * Builds the root module, appending the extensions ExtensionsModule when the extensions/
-   * tree is present (merged from the private repo — docs/OPEN_SOURCE_DECISION.md).
+   * tree is present (merged from the private repo — docs/tech/OPEN_SOURCE_DECISION.md).
    * The variable path keeps tsc from resolving the module statically; OSS
    * builds simply run without it.
    */
