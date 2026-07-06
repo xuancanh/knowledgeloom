@@ -32,6 +32,8 @@ export interface RagRequest {
   question: string;
   scope: RagScope;
   history: ChatMessage[];
+  /** 'chat' (default) answers questions; 'tutor' runs a Socratic session. */
+  mode?: 'chat' | 'tutor';
 }
 
 /** Rough character budget for context (~4k tokens × 4 chars/token). */
@@ -132,9 +134,24 @@ export class RagService {
     const contextBlock = this.buildContextBlock(notes);
     const scopeDesc = this.scopeDescription(req.scope && typeof req.scope === 'object' ? req.scope : { type: 'all' });
 
+    const tutor = req.mode === 'tutor';
     const system: AiMessage = {
       role: 'system',
-      content: `You are a helpful knowledge assistant. The user is exploring their personal knowledge base.
+      content: tutor
+        ? `You are a Socratic tutor helping the user master material from their own study notes.
+
+Scope: ${scopeDesc}
+
+${contextBlock}
+
+Tutoring method:
+- Quiz the user on the provided notes: ask exactly ONE focused question per turn, then wait for their answer.
+- When the user answers, evaluate it honestly: confirm what's right, correct what's wrong, and cite where the fact lives, e.g. [Note: "Title"]. Every factual claim you make must carry such a citation.
+- Never dump the full answer before the user has attempted it. Give a hint first if they struggle, the answer only on the second miss.
+- Progress from recall questions to why/how and application questions as the user succeeds.
+- Stay strictly within the provided notes. If the notes don't cover something, say so instead of inventing material.
+- Keep each turn short: feedback on their answer (with citations), then the next question.`
+        : `You are a helpful knowledge assistant. The user is exploring their personal knowledge base.
 
 Scope: ${scopeDesc}
 

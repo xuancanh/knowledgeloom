@@ -263,12 +263,13 @@ export async function* streamRagAnswer(
   scope: RagScope,
   history: Array<{ role: 'user' | 'assistant'; content: string }>,
   signal?: AbortSignal,
+  mode: 'chat' | 'tutor' = 'chat',
 ): AsyncGenerator<string> {
   const auth = await authHeaders();
   const response = await fetch('/api/rag/stream', {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...auth },
-    body: JSON.stringify({ question, scope, history }),
+    body: JSON.stringify({ question, scope, history, mode }),
     signal,
   });
   if (!response.ok) {

@@ -50,7 +50,7 @@ export function useRagChat() {
     if (!streaming) saveMessages(messages);
   }, [messages, streaming]);
 
-  const sendMessage = useCallback(async (text: string, scope: RagScope) => {
+  const sendMessage = useCallback(async (text: string, scope: RagScope, mode: 'chat' | 'tutor' = 'chat') => {
     const userMsg: ChatMessage = { id: makeId(), role: 'user', content: text };
     const assistantId = makeId();
     const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '', streaming: true };
@@ -63,7 +63,7 @@ export function useRagChat() {
     abortRef.current = ctrl;
 
     try {
-      for await (const token of streamRagAnswer(text, scope, history, ctrl.signal)) {
+      for await (const token of streamRagAnswer(text, scope, history, ctrl.signal, mode)) {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId ? { ...m, content: m.content + token } : m,
