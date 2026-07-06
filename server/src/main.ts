@@ -57,7 +57,9 @@ class AllExceptionsFilter implements ExceptionFilter {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(await AppModule.forRoot(), { logger: ['log', 'warn', 'error'] });
+  // rawBody exposes the unparsed request body (req.rawBody) for handlers that
+  // verify payload signatures — e.g. payment-provider webhooks in EE builds.
+  const app = await NestFactory.create(await AppModule.forRoot(), { logger: ['log', 'warn', 'error'], rawBody: true });
 
   app.enableCors({
     origin: '*',
