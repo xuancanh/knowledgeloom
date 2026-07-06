@@ -54,17 +54,18 @@ export class LearnProgressRepository {
     }
 
     const cur = rows[0];
-    const lastDate = cur.lastActiveDate;
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
-    let streak = cur.streak ?? 0;
-    let todayXp = cur.todayXp ?? 0;
-    if (lastDate === today) {
-      todayXp += amount;
-    } else {
-      todayXp = amount;
-      streak = lastDate === yesterday ? streak + 1 : 1;
-    }
+    // Single source of truth for day boundaries: roll the stored row forward,
+    // then apply today's activity on top (get() uses the same helper, so the
+    // two paths can no longer drift).
+    const rolled = applyDayRollover(
+      { todayXp: cur.todayXp ?? 0, streak: cur.streak ?? 0, lastActiveDate: cur.lastActiveDate ?? null },
+      today,
+      yesterday,
+    );
+    const todayXp = rolled.todayXp + amount;
+    const streak = cur.lastActiveDate === today ? rolled.streak : rolled.streak + 1;
 
     const xp = (cur.xp ?? 0) + amount;
     await this.db.update(this.table)

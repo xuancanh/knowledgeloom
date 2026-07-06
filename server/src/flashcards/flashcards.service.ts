@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { FlashcardCacheRepository } from './flashcard-cache.repository';
 import { FlashcardReviewsRepository, type FlashcardReview } from './flashcard-reviews.repository';
@@ -23,6 +23,8 @@ export interface ReviewOutcome {
 
 @Injectable()
 export class FlashcardsService {
+  private readonly logger = new Logger(FlashcardsService.name);
+
   constructor(
     @Inject(AI_PROVIDER) private readonly ai: AiProvider,
     private readonly cacheRepo: FlashcardCacheRepository,
@@ -114,6 +116,7 @@ export class FlashcardsService {
             const cards = this.normalize(note, this.parseJson(output), size);
             nextNotes[note.id] = { hash: this.noteHash(note, markdown), cards, generatedAt: new Date().toISOString() };
           } catch (err) {
+            this.logger.warn(`flashcard generation failed for ${note.id}: ${(err as Error).message}`);
             // Keep existing cache entry on AI failure rather than losing cards
             if (cache[note.id]) nextNotes[note.id] = cache[note.id];
           }
@@ -182,6 +185,16 @@ export class FlashcardsService {
   private normalize(note: KnowledgeNote, rawCards: any[], size: GenSize = 'small'): Flashcard[] {
     const generic = new Set(['what i learned', 'key details', 'lesson', 'summary', 'key idea']);
     const allowedKinds = new Set(['concept', 'question', 'lesson', 'tradeoff', 'pattern']);
+    // IDs are derived from the prompt text so a regeneration that produces the
+    // same card keeps the same id — and therefore the user's SM-2 review
+    // history. Random ids orphaned all review progress on every note edit.
+    const seen = new Map<string, number>();
+    const stableId = (prompt: string) => {
+      const base = `${note.id}-${createHash('sha1').update(prompt).digest('hex').slice(0, 10)}`;
+      const n = (seen.get(base) ?? 0) + 1;
+      seen.set(base, n);
+      return n === 1 ? base : `${base}-${n}`;
+    };
     return rawCards
       .map((card) => {
         const prompt = String(card.prompt || '').trim();
@@ -193,7 +206,7 @@ export class FlashcardsService {
       .filter((card) => card.prompt.length >= 8 && card.lesson.length >= 30 && !generic.has(card.prompt.toLowerCase()))
       .slice(0, FC_SIZE_RANGE[size].cap)
       .map((card): Flashcard => ({
-        id: `${note.id}-${randomUUID()}`,
+        id: stableId(card.prompt),
         noteId: note.id,
         noteTitle: note.title,
         category: note.category,

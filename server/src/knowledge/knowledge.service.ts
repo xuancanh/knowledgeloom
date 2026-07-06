@@ -79,8 +79,10 @@ export class KnowledgeService {
     // If we have a cached snapshot, serve it immediately (background rebuild will update it).
     if (cached) return { ...cached, userSettings };
 
-    // No cached state yet (first startup) — wait for the rebuild.
-    const state = await this.backgroundRebuilds.get(userId)!;
+    // No cached state yet (first startup) — wait for the rebuild. In read-only
+    // mode index.json is never written, so within the cooldown there may be
+    // neither a cache nor an in-flight rebuild; rebuild synchronously then.
+    const state = await (this.backgroundRebuilds.get(userId) ?? this.rebuildIndexes(userId));
     return { ...state, userSettings };
   }
 

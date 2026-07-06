@@ -405,3 +405,50 @@ test('relevance ranking: caps at MAX_CONTEXT_NOTES', () => {
   const result = rankByRelevance(notes, 'note');
   assert.equal(result.length, MAX_CONTEXT_NOTES);
 });
+
+// ── Stable generated-content ids (compiled services) ─────────────────────────
+//
+// Review progress (SM-2 / quiz streaks) is keyed by card id, so ids must be
+// deterministic across regenerations. These tests exercise the real compiled
+// normalize() from server/dist; they skip when the server hasn't been built.
+
+import { existsSync as _existsSync } from 'node:fs';
+import { join as _join, dirname as _dirname } from 'node:path';
+import { fileURLToPath as _fileURLToPath } from 'node:url';
+
+const _DIST = _join(_dirname(_fileURLToPath(import.meta.url)), '../server/dist');
+const _hasDist = _existsSync(_join(_DIST, 'flashcards/flashcards.service.js'));
+const distTest = (name: string, fn: () => void | Promise<void>) =>
+  test(name, { skip: _hasDist ? false : 'needs server/dist build' }, fn);
+
+const _note = { id: 'note-1', title: 'T', category: 'C', summary: 'S', tags: [] };
+
+distTest('flashcards: identical prompts produce identical ids across regenerations', async () => {
+  const { FlashcardsService } = await import(_join(_DIST, 'flashcards/flashcards.service.js'));
+  const svc: any = new FlashcardsService(null, null, null, null, null, null);
+  const cards = [{ prompt: 'What makes hashing consistent?', lesson: 'A ring topology keeps key movement proportional to node churn.', kind: 'concept' }];
+  const a = svc.normalize(_note, cards);
+  const b = svc.normalize(_note, cards);
+  assert.equal(a[0].id, b[0].id);
+  assert.ok(a[0].id.startsWith('note-1-'));
+});
+
+distTest('flashcards: duplicate prompts within one batch get distinct suffixed ids', async () => {
+  const { FlashcardsService } = await import(_join(_DIST, 'flashcards/flashcards.service.js'));
+  const svc: any = new FlashcardsService(null, null, null, null, null, null);
+  const card = { prompt: 'What makes hashing consistent?', lesson: 'A ring topology keeps key movement proportional to node churn.', kind: 'concept' };
+  const out = svc.normalize(_note, [card, { ...card }]);
+  assert.equal(out.length, 2);
+  assert.notEqual(out[0].id, out[1].id);
+  assert.equal(out[1].id, `${out[0].id}-2`);
+});
+
+distTest('quiz: identical questions produce identical ids across regenerations', async () => {
+  const { QuizService } = await import(_join(_DIST, 'quiz/quiz.service.js'));
+  const svc: any = new QuizService(null, null, null, null, null);
+  const qs = [{ type: 'short-answer', question: 'Explain CAP.', answer: 'A distributed system can only guarantee two of consistency, availability, partition tolerance.' }];
+  const a = svc.normalize(_note, qs);
+  const b = svc.normalize(_note, qs);
+  assert.equal(a[0].id, b[0].id);
+  assert.ok(a[0].id.startsWith('quiz-note-1-'));
+});

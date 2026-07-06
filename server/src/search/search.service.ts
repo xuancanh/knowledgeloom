@@ -20,6 +20,11 @@ import type { KnowledgeNote } from '../types';
 export class SearchService {
   constructor(@Inject(SEARCH_PROVIDER) private readonly provider: SearchProvider) {}
 
+  /** Human-readable name of the active provider, e.g. "meilisearch" or "inmemory". */
+  engineName(): string {
+    return this.provider.constructor.name.replace(/SearchProvider$|Provider$/, '').toLowerCase() || 'unknown';
+  }
+
   sync(userId: string, notes: KnowledgeNote[]) {
     return this.provider.sync(userId, notes);
   }
