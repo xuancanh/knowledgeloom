@@ -22,6 +22,9 @@ import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import * as express from 'express';
 
 /** Converts any unhandled exception into the { error: message } JSON shape. */
 @Catch()
@@ -70,6 +73,23 @@ async function bootstrap() {
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
+
+  // Single-container mode: when a frontend build is present (Docker image,
+  // self-host), serve it and SPA-fallback every non-API GET to index.html.
+  // In split deployments (Vite dev, Cloudflare Pages) the folder is absent
+  // and this is a no-op.
+  const webDist = process.env.WEB_DIST || resolve(__dirname, '../../dist');
+  if (existsSync(join(webDist, 'index.html'))) {
+    app.use(express.static(webDist));
+    app.use((req: any, res: any, next: any) => {
+      if (req.method === 'GET' && !req.path.startsWith('/api/') && req.accepts('html')) {
+        res.sendFile(join(webDist, 'index.html'));
+      } else {
+        next();
+      }
+    });
+    console.log(`Serving web app from ${webDist}`);
+  }
 
   // 404 handler for any route not matched by a controller is handled natively by NestJS throwing a NotFoundException,
   // which is then caught and formatted by the AllExceptionsFilter above.

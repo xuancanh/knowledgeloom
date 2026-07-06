@@ -57,7 +57,9 @@ jobs:
           docker run -d --name kl -e SKIP_JOBS=1 -e SEARCH_PROVIDER=inmemory -p 8787:8787 knowledge-loom-api:ci
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:8787/api/status > /dev/null; then
-              echo "API is up"; docker rm -f kl; exit 0
+              echo "API is up"
+              curl -fsS http://localhost:8787/ | grep -q '<!doctype html>' && echo "Web app served"
+              docker rm -f kl; exit 0
             fi
             sleep 2
           done

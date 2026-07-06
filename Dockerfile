@@ -1,6 +1,8 @@
-# Knowledge Loom API server — production image.
-# The SPA is deployed separately (Cloudflare Pages); this container is the
-# NestJS API only. See docs/DEPLOYMENT.md.
+# Knowledge Loom — all-in-one image: NestJS API + built web app.
+# The server serves the SPA when /app/dist exists, so this single container is
+# a complete self-hosted install (pair with redis + meilisearch via
+# docker-compose.yml). Cloud deployments may still serve the SPA from
+# Cloudflare Pages instead — see docs/DEPLOYMENT.md.
 
 # ── build stage ───────────────────────────────────────────────────────────────
 FROM node:22-slim AS build
@@ -9,11 +11,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY tsconfig*.json ./
-COPY server ./server
 # extensions tree is optional: when the private repo is merged/linked into server/src/ee
 # the build includes extensions modules; without it this is a pure OSS image.
-RUN npm run server:build
+COPY . .
+RUN npm run build
 
 # Runtime deps only (better-sqlite3 and friends rebuild for this base image).
 RUN npm ci --omit=dev
@@ -27,9 +28,11 @@ RUN groupadd -r loom && useradd -r -g loom loom
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/server/dist ./server/dist
+COPY --from=build /app/dist ./dist
 COPY package.json ./
 # Root package.json is ESM (vite frontend); this marks server/dist as CommonJS.
 COPY server/package.json ./server/
+ENV WEB_DIST=/app/dist
 
 # Local-mode data (sqlite + markdown vault) lives here unless NOTE_STORAGE=s3
 # and DATABASE_DIALECT=postgres move everything out of the container.

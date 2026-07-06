@@ -1,33 +1,69 @@
+# Knowledge Loom — one-command self-hosted quick start.
+#
+#   docker compose up -d
+#   open http://localhost:8787
+#
+# Runs the full stack: app (web + API in one container), Redis (job queue),
+# and Meilisearch (full-text search). Notes and databases persist in named
+# volumes. Add an AI key to unlock research/import/deck generation:
+#
+#   AI_API_KEY=sk-... docker compose up -d
+#
+# Contributors: docker-compose.dev.yml starts only the infrastructure
+# (redis/meilisearch/postgres) for `npm run dev`. A hardened production
+# variant is docker-compose.prod.yml; cloud deploys are in docs/DEPLOYMENT.md.
 services:
-  meilisearch:
-    image: getmeili/meilisearch:v1.12
+  app:
+    build: .
+    restart: unless-stopped
     ports:
-      - "7700:7700"
+      - "8787:8787"
     environment:
-      MEILI_ENV: development
-      MEILI_MASTER_KEY: local_master_key
+      REDIS_HOST: redis
+      SEARCH_PROVIDER: meilisearch
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-loom-dev-master-key}
+      # AI provider (optional — the app runs without it; AI features fail fast)
+      AI_PROVIDER: ${AI_PROVIDER:-openrouter}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_API_BASE_URL: ${AI_API_BASE_URL:-https://openrouter.ai/api/v1}
+      AI_MODEL: ${AI_MODEL:-anthropic/claude-sonnet-5}
+      # Optional feature keys (each degrades to a clean 501 when unset)
+      TRANSCRIBE_API_KEY: ${TRANSCRIBE_API_KEY:-}
+      VISION_API_KEY: ${VISION_API_KEY:-}
+      TTS_API_KEY: ${TTS_API_KEY:-}
+      # Set a long random value when exposing beyond localhost
+      AUTH_SECRET: ${AUTH_SECRET:-}
     volumes:
-      - meili_data:/meili_data
+      - loom-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
 
   redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - redis_data:/data
+      - loom-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
-  postgres:
-    image: postgres:alpine
-    ports:
-      - "5432:5432"
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: knowledgeloom
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-loom-dev-master-key}
+      MEILI_NO_ANALYTICS: "true"
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - loom-meili:/meili_data
 
 volumes:
-  meili_data:
-  redis_data:
-  postgres_data:
+  loom-data:
+  loom-redis:
+  loom-meili:

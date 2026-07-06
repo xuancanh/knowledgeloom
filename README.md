@@ -1,122 +1,114 @@
 # Knowledge Loom
 
-A local smart knowledge management app. When you capture something new, you choose whether to save a finished note as-is, ask Codex to polish a draft without adding facts, or ask Codex to research and write from a topic. Every path saves markdown, rebuilds category index files, and syncs searchable documents into Meilisearch.
+A second brain that makes you learn. Capture knowledge as markdown notes —
+written by you, researched by AI, or imported from PDFs, lecture recordings,
+photos of handwritten notes, and web pages — and Knowledge Loom turns it into
+study material automatically: flashcards and quizzes on an FSRS spaced-repetition
+schedule, guided learn sessions with an optional two-host podcast, a Socratic
+AI tutor that cites your own notes, exam-day study plans, and retention
+analytics that show what you actually remember.
 
-## Stack
+## Quick start (Docker)
 
-- Vite + React + TypeScript frontend, matching the lightweight organization of `interview_prep_react`.
-- Express backend in `server/index.mjs`.
-- Markdown source of truth under `knowledge/notes`.
-- Category indexes under `knowledge/categories`.
-- SQLite operational database at `knowledge/app.sqlite` for Codex jobs and AI flashcard cache.
-- SQLite reminder database at `knowledge/reminders.sqlite`.
-- Meilisearch index named `knowledge_notes` by default.
-
-## Project Shape
-
-```text
-src/                 React UI, components, API client, view helpers
-server/index.mjs     Express API routes
-server/lib/          Services, repositories, Meilisearch sync, Codex runner
-scripts/dev.mjs      Runs backend and Vite together
-knowledge/           Notes, generated indexes, SQLite databases, search manifests
-docker-compose.yml   Local Meilisearch service
+```bash
+docker compose up -d
+open http://localhost:8787
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module ownership and data flow.
-See [docs/AI_SPEC.md](docs/AI_SPEC.md) for the Codex prompt contracts and AI behavior rules.
+That's the full stack: the app (web + API in one container), Redis (job
+queue), and Meilisearch (full-text search). Notes and databases persist in
+Docker volumes. To unlock the AI features, pass any OpenAI-compatible key:
 
-## Run Locally
+```bash
+AI_API_KEY=sk-... AI_MODEL=anthropic/claude-sonnet-5 docker compose up -d
+```
+
+Exposing it beyond localhost? Set `AUTH_SECRET` (bearer token required on all
+API calls) or front it with your own auth proxy.
+
+## Develop locally
 
 ```bash
 cp .env.example .env
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d   # redis + meilisearch (+ postgres)
 npm install
-npm run dev
+npm run dev                                       # API :8787 + Vite :5174
 ```
 
-Open `http://localhost:5174`.
+## Stack
 
-The backend listens on `http://localhost:8787`; Vite proxies `/api` to it.
+- **Frontend**: Vite + React + TypeScript SPA (installable PWA).
+- **Backend**: NestJS (`server/src`), compiled to `server/dist`.
+- **Source of truth**: markdown files under `knowledge/users/<user>/notes`
+  (or any S3-compatible bucket via `NOTE_STORAGE=s3`).
+- **Databases**: SQLite by default; PostgreSQL via `DATABASE_DIALECT=postgres`.
+- **Queue**: BullMQ on Redis for durable AI jobs.
+- **Search**: Meilisearch (default) or zero-dependency in-memory provider.
+- **AI**: pluggable — the `codex` CLI locally, or any OpenAI-compatible HTTP
+  API (`AI_PROVIDER=openrouter`); same pattern for transcription
+  (`TRANSCRIBE_*`), vision import (`VISION_*`), and podcast TTS (`TTS_*`).
 
-## Auth & Open Source
-
-This repository is the open-source core, licensed under **AGPLv3** (see
-`LICENSE`). It runs in **single-user local mode** by default: no login, all
-data belongs to `userId="local"`. Set `AUTH_SECRET` in `.env` to require an
-`Authorization: Bearer <secret>` header on API calls for instances exposed to
-the internet (the web UI does not prompt for it — front it with a reverse
-proxy or VPN).
-
-Multi-user auth (Supabase JWT), the SaaS landing/login pages, and future
-billing/org/admin features live in a **private extensions repo**
-(`knowledge-loom-private`) that is merged into this tree at build time. OSS code
-never imports `extensions/` — enforced by ESLint; extensions modules attach through
-two seams: the frontend extensions registry (`src/lib/extensions.ts`) and the backend
-`AUTH_STRATEGY` injection token (`server/src/auth/`). See
-`docs/OPEN_SOURCE_DECISION.md` for the full strategy.
-
-## Creation
-
-- `Write note`: writes a full draft directly to markdown. Enable `Allow AI polishing` to queue Codex with the user's draft as the factual source of truth. Codex may improve wording, structure, metadata, and supported links, but should not add new research.
-- `Research & write`: queues Codex with a lightweight topic and optional context. Codex researches, categorizes, links, and writes the note.
-- `Generate from link`: queues Codex with a URL. Codex retrieves the linked source, extracts the main content, and writes a note with the source URL preserved in the body.
-
-## Codex Exec Flow
-
-1. Submit a draft or topic in the Capture panel.
-2. `POST /api/learn` either writes a direct note immediately or creates an async Codex job.
-3. For AI modes, the backend runs `codex exec --skip-git-repo-check --output-last-message ...`.
-4. The result is written to `knowledge/notes/YYYY-MM-DD-topic.md`.
-5. The backend rebuilds the derived knowledge manifest.
-6. Category markdown indexes are regenerated in `knowledge/categories`.
-7. Meilisearch receives the updated note documents.
-
-If `codex exec` fails, the job remains durable in SQLite and is retried. Interrupted `running` jobs are reset to `queued` when the backend restarts. Older `knowledge/jobs.json` files are imported into SQLite on first boot and then treated as legacy data.
-
-## Editing Notes
-
-The note editor supports normal manual edits plus an AI prompt panel. The AI panel rewrites the current unsaved draft in the form only; it does not save automatically. Review the proposed title, summary, tags, links, and markdown body, then use the normal Save button to persist the note.
-
-## Reminders
-
-Each article can have future review reminders. The backend stores reminders in a local SQLite database at `knowledge/reminders.sqlite`, while markdown remains the source of truth for note content. Active reminders appear on the desk, due reminders are highlighted, and completing or deleting a reminder updates SQLite immediately.
-
-Deleting an article also deletes its reminders so the reminder database does not keep orphaned rows.
-
-## Meilisearch
-
-The app reads these environment variables:
+## Project shape
 
 ```text
-MEILI_HOST=http://localhost:7700
-MEILI_MASTER_KEY=local_master_key
-MEILI_INDEX=knowledge_notes
+src/                     React UI (components by feature, api client, hooks)
+server/src/              NestJS modules: notes, knowledge, learn, flashcards,
+                         quiz, study (Today queue/exam/stats), import, rag,
+                         shares, marketplace, tts, jobs, auth, usage seams
+mcp/                     Model Context Protocol server (stdio) — docs/MCP.md
+tests/                   unit + integration + e2e suites (see TESTING.md)
+knowledge/               your data (gitignored) — notes, sqlite, search manifests
+docker-compose.yml       one-command self-hosted stack
+docker-compose.dev.yml   infra only, for npm run dev
+infra/, Dockerfile       production deployment — docs/DEPLOYMENT.md
 ```
 
-Every source rebuild incrementally syncs Meili documents so the search index mirrors the markdown source without deleting/re-adding unchanged notes. The UI search box uses `/api/search`; if Meilisearch is down, the backend returns local fallback results and labels the response as `fallback`.
+Deep dives: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ·
+[docs/AI_SPEC.md](docs/AI_SPEC.md) · [docs/ROADMAP.md](docs/ROADMAP.md) ·
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) · [docs/MCP.md](docs/MCP.md)
 
-`knowledge/index.json`, `knowledge/categories/*.md`, and `knowledge/meili-sync-*.json` are generated compatibility/projection artifacts. Durable app state should be stored in SQLite; search documents should be stored in Meilisearch.
+## Features
+
+- **Capture**: write directly, let AI polish a draft, research a topic, or
+  clip a URL (bookmarklet in Settings).
+- **Import**: PDF, text/markdown, audio/video (Whisper-compatible
+  transcription), and images/handwriting (vision extraction) — every import
+  becomes a note with flashcards and quiz questions.
+- **Study**: the Today queue merges everything due; FSRS-4.5 schedules both
+  flashcards and quizzes; exam mode lays out a day-by-day plan toward a date;
+  stats show 1d+/7d+ recall and your weakest topics.
+- **Learn sessions**: slide decks or a two-host podcast (with real TTS audio
+  when a key is configured), XP, streaks, mastery.
+- **Ask & Tutor**: RAG chat over your notes, plus a Socratic tutor mode that
+  quizzes you and cites every claim `[Note: "…"]`.
+- **Share & marketplace**: publish read-only notes or whole collections at
+  unguessable URLs; publish, browse, rate, and import community decks.
+- **MCP server**: expose the vault to Claude and other MCP clients (stdio,
+  read-only by default).
+
+## Auth & open source
+
+This repository is the open-source core, licensed **AGPLv3** (see `LICENSE`).
+It runs in single-user local mode by default: no login, all data under
+`userId="local"`. `AUTH_SECRET` adds bearer-token protection for exposed
+instances.
+
+Multi-user auth (Supabase), billing, quota, and the admin console live in a
+private extensions repo merged into this tree at build time. OSS code never
+imports `extensions/` (ESLint-enforced); extensions modules attach through explicit
+seams. See `docs/OPEN_SOURCE_DECISION.md` for the full structure.
 
 ## Tests
 
 ```bash
-npm run test
-npm run smoke:meili
+npm run test:all   # unit + frontend + e2e + integration (needs redis)
 npm run lint
-npm run build
 ```
 
-`npm run test` covers the SQLite repository layer. `npm run smoke:meili` runs a fake Meilisearch service and verifies incremental sync plus cleanup for deleted notes.
+See [TESTING.md](TESTING.md) for what each suite covers.
 
-## Read-Only Mode
+## Read-only mode
 
-Set `KNOWLEDGE_READ_ONLY=1` or `READ_ONLY_MODE=1` to disable writes. The backend also treats Cloudflare-style env flags such as `CF_PAGES=1` or `WORKERS_CI=1` as read-only.
-
-In read-only mode:
-
-- capture/Codex job creation is rejected
-- note update/delete routes return `403`
-- category/search derived files are not written
-- Meilisearch sync is skipped
-- `/api/status` returns `{ "readOnly": true }`
+Set `KNOWLEDGE_READ_ONLY=1` to disable writes: capture and AI jobs are
+rejected, mutation routes return 403, derived files and search sync are
+skipped, and `/api/status` reports `{ "readOnly": true }`.
