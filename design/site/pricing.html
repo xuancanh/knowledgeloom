@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en" data-pla="cards">
+<head>
+  <meta charset="utf-8" />
+  <title>Pricing — Knowledge Loom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <div class="wrap row">
+      <a href="index.html" class="wordmark"><span class="mark"></span><span class="name">Knowledge <em>Loom</em></span></a>
+      <nav class="links">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#weave">The Weave</a>
+        <a href="index.html#learn">Learn</a>
+        <a href="index.html#teams">Teams</a>
+        <a href="pricing.html">Pricing</a>
+      </nav>
+      <div class="spacer"></div>
+      <div class="actions">
+        <a href="login.html" class="btn btn-plain">Log in</a>
+        <a href="signup.html" class="btn btn-primary">Start weaving</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="price-hero">
+    <div class="wrap-narrow">
+      <span class="eyebrow accent">Pricing</span>
+      <h1>One desk, four ways to grow.</h1>
+      <p>Start free and stay free for as long as you like. Upgrade when your vault — or your team — outgrows the loom.</p>
+      <div class="bill-toggle" id="bill">
+        <button data-b="mo" class="on">Monthly</button>
+        <button data-b="yr">Yearly <span class="save">· save 20%</span></button>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <!-- ── CARDS LAYOUT ── -->
+    <div class="tiers">
+      <!-- THREAD -->
+      <div class="tier">
+        <div class="tname"><span class="dot teal"></span> Thread</div>
+        <div class="tdesc">For the curious. A single desk to capture and connect what you learn.</div>
+        <div class="price"><span class="amt" data-mo="$0" data-yr="$0">$0</span><span class="per">forever</span></div>
+        <div class="price-sub">no card required</div>
+        <a href="signup.html" class="btn btn-ghost btn-block">Start free</a>
+        <ul class="flist">
+          <li><span class="ck">✓</span> Up to 500 notes</li>
+          <li><span class="ck">✓</span> The Weave graph</li>
+          <li><span class="ck">✓</span> Full Learn mode — all 4 formats</li>
+          <li><span class="ck">✓</span> 20 Codex research runs / mo</li>
+          <li><span class="ck">✓</span> Instant search (⌘K)</li>
+          <li class="muted"><span class="ck">✓</span> Solo only</li>
+        </ul>
+      </div>
+
+      <!-- WEAVER -->
+      <div class="tier featured">
+        <div class="rib">Most popular</div>
+        <div class="tname"><span class="dot oxblood"></span> Weaver</div>
+        <div class="tdesc">For the serious individual. Unlimited everything, no research caps.</div>
+        <div class="price"><span class="amt" data-mo="$9" data-yr="$7">$9</span><span class="per">/ mo</span></div>
+        <div class="price-sub" data-mo="billed monthly" data-yr="billed $84/yr">billed monthly</div>
+        <a href="checkout.html?plan=weaver" class="btn btn-primary btn-block">Choose Weaver</a>
+        <ul class="flist">
+          <li class="grp">Everything in Thread, plus</li>
+          <li><span class="ck">✓</span> Unlimited notes</li>
+          <li><span class="ck">✓</span> Unlimited Codex research</li>
+          <li><span class="ck">✓</span> Codex-proposed weave edges</li>
+          <li><span class="ck">✓</span> Spaced-repetition scheduler</li>
+          <li><span class="ck">✓</span> Version history &amp; exports</li>
+          <li><span class="ck">✓</span> Priority support</li>
+        </ul>
+      </div>
+
+      <!-- ATELIER -->
+      <div class="tier">
+        <div class="tname"><span class="dot ochre"></span> Atelier</div>
+        <div class="tdesc">For teams that think together in a shared vault.</div>
+        <div class="price"><span class="amt" data-mo="$18" data-yr="$14">$18</span><span class="per">/ seat / mo</span></div>
+        <div class="price-sub" data-mo="min. 3 seats" data-yr="billed $168/seat/yr">min. 3 seats</div>
+        <a href="checkout.html?plan=atelier" class="btn btn-ghost btn-block">Choose Atelier</a>
+        <ul class="flist">
+          <li class="grp">Everything in Weaver, plus</li>
+          <li><span class="ck">✓</span> Shared team vaults</li>
+          <li><span class="ck">✓</span> Real-time co-editing &amp; presence</li>
+          <li><span class="ck">✓</span> Roles &amp; permissions</li>
+          <li><span class="ck">✓</span> Comments &amp; @mentions</li>
+          <li><span class="ck">✓</span> Shared Learn plans</li>
+          <li><span class="ck">✓</span> Team usage analytics</li>
+        </ul>
+      </div>
+
+      <!-- GUILD -->
+      <div class="tier">
+        <div class="tname"><span class="dot indigo"></span> Guild</div>
+        <div class="tdesc">For organisations that need control, security, and scale.</div>
+        <div class="price"><span class="amt">Custom</span></div>
+        <div class="price-sub">annual contract</div>
+        <a href="checkout.html?plan=guild" class="btn btn-ghost btn-block">Talk to us</a>
+        <ul class="flist">
+          <li class="grp">Everything in Atelier, plus</li>
+          <li><span class="ck">✓</span> SSO / SAML &amp; SCIM</li>
+          <li><span class="ck">✓</span> Advanced audit log</li>
+          <li><span class="ck">✓</span> Custom data residency</li>
+          <li><span class="ck">✓</span> Private Codex models</li>
+          <li><span class="ck">✓</span> Dedicated success manager</li>
+          <li><span class="ck">✓</span> 99.9% uptime SLA</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── COMPARISON TABLE LAYOUT ── -->
+    <div class="compare">
+      <table>
+        <thead>
+          <tr>
+            <th class="rowh" style="width:32%;"></th>
+            <th class="tier-h"><div class="tn"><span class="dot teal"></span> Thread</div><div class="tp"><span data-mo="$0" data-yr="$0">$0</span></div></th>
+            <th class="tier-h featured"><div class="tn"><span class="dot oxblood"></span> Weaver</div><div class="tp"><span data-mo="$9/mo" data-yr="$7/mo">$9/mo</span></div></th>
+            <th class="tier-h"><div class="tn"><span class="dot ochre"></span> Atelier</div><div class="tp"><span data-mo="$18/seat" data-yr="$14/seat">$18/seat</span></div></th>
+            <th class="tier-h"><div class="tn"><span class="dot indigo"></span> Guild</div><div class="tp">Custom</div></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="sec-row"><td colspan="5">Capture &amp; organise</td></tr>
+          <tr><th class="rowh">Notes</th><td><span class="val">500</span></td><td><span class="val">Unlimited</span></td><td><span class="val">Unlimited</span></td><td><span class="val">Unlimited</span></td></tr>
+          <tr><th class="rowh">Codex research runs</th><td><span class="val">20 / mo</span></td><td><span class="val">Unlimited</span></td><td><span class="val">Unlimited</span></td><td><span class="val">Unlimited + private</span></td></tr>
+          <tr><th class="rowh">The Weave graph</th><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr><th class="rowh">Codex-proposed edges</th><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr class="sec-row"><td colspan="5">Learn mode</td></tr>
+          <tr><th class="rowh">All 4 formats</th><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr><th class="rowh">Spaced repetition</th><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr><th class="rowh">Shared Learn plans</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr class="sec-row"><td colspan="5">Collaboration</td></tr>
+          <tr><th class="rowh">Shared vaults</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr><th class="rowh">Real-time co-editing</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr><th class="rowh">Roles &amp; permissions</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="ck">✓</span></td><td><span class="val">Advanced</span></td></tr>
+          <tr class="sec-row"><td colspan="5">Security &amp; support</td></tr>
+          <tr><th class="rowh">SSO / SAML &amp; SCIM</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="ck">✓</span></td></tr>
+          <tr><th class="rowh">Audit log</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="val">Basic</span></td><td><span class="val">Advanced</span></td></tr>
+          <tr><th class="rowh">Support</th><td><span class="val">Community</span></td><td><span class="val">Priority</span></td><td><span class="val">Priority</span></td><td><span class="val">Dedicated CSM</span></td></tr>
+          <tr><th class="rowh">Uptime SLA</th><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="no">—</span></td><td><span class="val">99.9%</span></td></tr>
+          <tr class="cta-row">
+            <td></td>
+            <td><a href="signup.html" class="btn btn-ghost btn-sm">Start free</a></td>
+            <td><a href="checkout.html?plan=weaver" class="btn btn-primary btn-sm">Choose</a></td>
+            <td><a href="checkout.html?plan=atelier" class="btn btn-ghost btn-sm">Choose</a></td>
+            <td><a href="checkout.html?plan=guild" class="btn btn-ghost btn-sm">Talk to us</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head center"><span class="eyebrow accent">Questions</span><h2>The fine print, in plain type.</h2></div>
+      <div class="faq wrap-narrow" style="width:min(920px,92vw);">
+        <div class="qa"><h4>Is the free plan really free?</h4><p>Yes. Thread stays free for as long as you want — 500 notes, the full Weave, and all four Learn formats. No card, no trial clock.</p></div>
+        <div class="qa"><h4>What counts as a Codex research run?</h4><p>Each capture you submit for background research is one run. Thread includes 20 a month; every paid plan is unlimited.</p></div>
+        <div class="qa"><h4>Can I switch plans later?</h4><p>Anytime. Upgrades apply instantly and prorate; downgrades take effect at the end of your billing period.</p></div>
+        <div class="qa"><h4>How does team billing work?</h4><p>Atelier is billed per active seat with a 3-seat minimum. Add or remove seats whenever — we prorate the difference.</p></div>
+        <div class="qa"><h4>Do you offer education discounts?</h4><p>Students and educators get Weaver free and 50% off Atelier. Reach out with a .edu address to enable it.</p></div>
+        <div class="qa"><h4>What happens to my notes if I downgrade?</h4><p>Nothing is deleted. If you exceed the free note cap, older notes become read-only until you upgrade again.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section" style="padding-top:0;">
+    <div class="wrap"><div class="cta-band">
+      <h2>Still deciding? Start on Thread.</h2>
+      <p>You can weave your first hundred notes before you ever think about a plan.</p>
+      <div class="cta-row" style="justify-content:center; display:flex; gap:14px;"><a href="signup.html" class="btn btn-primary btn-lg">Start free</a></div>
+    </div></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer"><div class="wrap">
+    <div class="cols">
+      <div><a href="index.html" class="wordmark"><span class="mark"></span><span class="name">Knowledge <em>Loom</em></span></a><p class="blurb">A desk for things you just learned. Capture, weave, and actually keep what matters.</p></div>
+      <div><h4>Product</h4><ul><li><a href="index.html#features">Features</a></li><li><a href="index.html#weave">The Weave</a></li><li><a href="index.html#learn">Learn mode</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
+      <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Manifesto</a></li><li><a href="#">Careers</a></li><li><a href="#">Changelog</a></li></ul></div>
+      <div><h4>Resources</h4><ul><li><a href="#">Docs</a></li><li><a href="#">Import guide</a></li><li><a href="#">Community</a></li><li><a href="#">API</a></li></ul></div>
+      <div><h4>Account</h4><ul><li><a href="login.html">Log in</a></li><li><a href="signup.html">Sign up</a></li><li><a href="admin.html">Staff console</a></li><li><a href="#">Status</a></li></ul></div>
+    </div>
+    <div class="base"><span>© 2026 Knowledge Loom, Inc.</span><span class="spacer"></span><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Security</a></div>
+  </div></footer>
+
+  <!-- VARIANT SWITCH -->
+  <div class="variant-switch">
+    <span class="vl">Layout</span>
+    <div class="seg">
+      <button data-p="cards" class="on">Cards</button>
+      <button data-p="table">Table</button>
+    </div>
+  </div>
+
+  <script>
+    // billing toggle
+    const bill = document.getElementById('bill');
+    function setBill(mode) {
+      bill.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.b === mode));
+      document.querySelectorAll('[data-mo]').forEach(el => { el.textContent = el.dataset[mode]; });
+    }
+    bill.querySelectorAll('button').forEach(b => b.addEventListener('click', () => setBill(b.dataset.b)));
+    setBill('mo');
+
+    // layout variant
+    const root = document.documentElement;
+    const savedP = localStorage.getItem('kl-pricing') || 'cards';
+    root.setAttribute('data-pla', savedP);
+    document.querySelectorAll('.variant-switch [data-p]').forEach(b => {
+      b.classList.toggle('on', b.dataset.p === savedP);
+      b.addEventListener('click', () => {
+        root.setAttribute('data-pla', b.dataset.p);
+        localStorage.setItem('kl-pricing', b.dataset.p);
+        document.querySelectorAll('.variant-switch [data-p]').forEach(x => x.classList.toggle('on', x === b));
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Log in — Knowledge Loom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <div class="auth">
+    <!-- ASIDE -->
+    <aside class="aside">
+      <a href="index.html" class="wordmark"><span class="mark"></span><span class="name">Knowledge <em>Loom</em></span></a>
+      <div class="quote">
+        <div class="q">"The notes you take are only half the thinking. Loom keeps the other half."</div>
+        <div class="a">— The Loom manifesto</div>
+      </div>
+      <div class="stats">
+        <div class="s"><div class="v">1.4M+</div><div class="k">notes woven</div></div>
+        <div class="s"><div class="v">18k</div><div class="k">daily learners</div></div>
+        <div class="s"><div class="v">4.9★</div><div class="k">avg. rating</div></div>
+      </div>
+    </aside>
+
+    <!-- PANEL -->
+    <section class="panel">
+      <div class="mini-top" style="position:absolute; top:0; right:0; left:50%; padding-inline:52px;">
+        <div class="row"><span class="spacer"></span><span style="font-size:14.5px; color:var(--muted-2);">New here? <a href="signup.html">Create an account</a></span></div>
+      </div>
+      <div class="form-wrap">
+        <a href="index.html" class="wordmark" style="display:none;"></a>
+        <span class="eyebrow accent">Welcome back</span>
+        <h1>Log in to your desk.</h1>
+        <p class="sub">Pick up exactly where your last thought landed.</p>
+
+        <div class="oauth">
+          <button type="button"><span class="g" style="background:#fff;color:#4285f4;border:1px solid var(--rule);">G</span> Continue with Google</button>
+          <button type="button"><span class="g" style="background:var(--ink);color:var(--paper);">✦</span> Continue with GitHub</button>
+        </div>
+        <div class="divider-or">or with email</div>
+
+        <form id="loginForm" novalidate>
+          <div class="field" id="f-email">
+            <label for="email">Email</label>
+            <input class="input" type="email" id="email" placeholder="you@studio.com" autocomplete="email" />
+            <div class="err">Enter a valid email address.</div>
+          </div>
+          <div class="field" id="f-pw">
+            <div class="hint-row">
+              <label for="pw" style="margin:0;">Password</label>
+              <a href="#">Forgot?</a>
+            </div>
+            <input class="input" type="password" id="pw" placeholder="••••••••••" autocomplete="current-password" />
+            <div class="err">Password must be at least 8 characters.</div>
+          </div>
+          <label class="check-row"><input type="checkbox" checked /> <span>Keep me signed in on this device</span></label>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Log in →</button>
+        </form>
+
+        <div class="auth-foot">Staff member? <a href="admin.html">Open the console</a></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email');
+      const pw = document.getElementById('pw');
+      const fe = document.getElementById('f-email');
+      const fp = document.getElementById('f-pw');
+      let ok = true;
+      fe.classList.toggle('invalid', !emailRe.test(email.value)); if (!emailRe.test(email.value)) ok = false;
+      fp.classList.toggle('invalid', pw.value.length < 8); if (pw.value.length < 8) ok = false;
+      if (ok) {
+        const btn = form.querySelector('button[type=submit]');
+        btn.textContent = 'Unlocking your desk…';
+        setTimeout(() => { window.location.href = '../Knowledge Loom.html'; }, 850);
+      }
+    });
+    ['email','pw'].forEach(id => document.getElementById(id).addEventListener('input', e => e.target.closest('.field').classList.remove('invalid')));
+  </script>
+</body>
+</html>

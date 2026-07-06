@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Staff Console — Knowledge Loom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="site.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="console">
+    <!-- SIDEBAR -->
+    <aside class="side">
+      <div class="brand">
+        <a href="index.html" class="wordmark"><span class="mark"></span><span class="name">Knowledge <em>Loom</em></span></a>
+        <div class="badge">Staff Console</div>
+      </div>
+      <nav>
+        <div class="grp">Business</div>
+        <button class="snav" data-tab="overview"><span class="ic">◨</span> Overview</button>
+        <button class="snav" data-tab="customers"><span class="ic">◍</span> Customers</button>
+        <button class="snav" data-tab="subscriptions"><span class="ic">◆</span> Subscriptions <span class="badge-n">3</span></button>
+        <div class="grp">Product</div>
+        <button class="snav" data-tab="analytics"><span class="ic">▨</span> Analytics</button>
+        <button class="snav" data-tab="codex"><span class="ic">◎</span> Codex &amp; usage</button>
+        <div class="grp">Operations</div>
+        <button class="snav" data-tab="support"><span class="ic">✎</span> Support <span class="badge-n">5</span></button>
+        <button class="snav" data-tab="flags"><span class="ic">⚑</span> Feature flags</button>
+        <button class="snav" data-tab="audit"><span class="ic">◈</span> Audit log</button>
+      </nav>
+      <div class="me">
+        <span class="av">SO</span>
+        <div><div class="nm">S. Okafor</div><div class="rl">Admin · Ops</div></div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="cmain">
+      <div class="ctop">
+        <h1 id="pageTitle">Overview</h1>
+        <div class="spacer"></div>
+        <div class="gsearch"><span class="mono">⌕</span><input placeholder="Search customers, orgs, invoices…" /></div>
+        <span class="daterange">Last 30 days ▾</span>
+        <span class="env"><span class="pip"></span>Production</span>
+        <button id="themeBtn" class="btn btn-ghost btn-sm">☾</button>
+      </div>
+
+      <div class="cbody">
+
+        <!-- ═══ OVERVIEW ═══ -->
+        <section class="tabpage" id="tab-overview">
+          <div class="kpis">
+            <div class="kpi"><div class="k">◆ MRR</div><div class="v">$15,924</div><div class="d up">▲ 8.2% <span class="muted">vs last mo</span></div></div>
+            <div class="kpi"><div class="k">◍ Active subscribers</div><div class="v">1,284</div><div class="d up">▲ 4.1% <span class="muted">+51</span></div></div>
+            <div class="kpi"><div class="k">✦ New signups (30d)</div><div class="v">2,918</div><div class="d up">▲ 12.6% <span class="muted">640 paid</span></div></div>
+            <div class="kpi"><div class="k">↺ Net revenue churn</div><div class="v">1.9%</div><div class="d down">▲ 0.3% <span class="muted">watch</span></div></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel">
+              <div class="ph-head"><h3>Revenue trend</h3><span class="sub">MRR · 12 months</span><span class="spacer"></span><span class="mono" style="color:var(--moss); font-size:12px;">▲ $347 this mo</span></div>
+              <div class="ph-body"><div id="chRevenue"></div></div>
+            </div>
+            <div class="panel">
+              <div class="ph-head"><h3>Plan mix</h3><span class="sub">by accounts</span></div>
+              <div class="ph-body" style="display:flex; align-items:center; gap:20px;">
+                <div id="chPlanMix"></div>
+                <div class="mini-legend" style="flex-direction:column; gap:10px;">
+                  <span class="lk"><span class="dot teal"></span> Thread · 6,120</span>
+                  <span class="lk"><span class="dot oxblood"></span> Weaver · 3,200</span>
+                  <span class="lk"><span class="dot ochre"></span> Atelier · 4,180</span>
+                  <span class="lk"><span class="dot indigo"></span> Guild · 2,400</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel">
+              <div class="ph-head"><h3>Needs attention</h3><span class="sub">action required</span></div>
+              <div class="ph-body" style="padding:0;">
+                <div class="flag-row"><div class="info"><div class="fn"><span class="dot rust"></span> 3 failed payments</div><div class="fk">$243 at risk · dunning in progress</div></div><button class="btn btn-ghost btn-sm" onclick="document.querySelector('[data-tab=subscriptions]').click()">Review</button></div>
+                <div class="flag-row"><div class="info"><div class="fn"><span class="dot ochre"></span> 2 high-priority tickets</div><div class="fk">Oldest open 1h · refund + stuck job</div></div><button class="btn btn-ghost btn-sm" onclick="document.querySelector('[data-tab=support]').click()">Open queue</button></div>
+                <div class="flag-row"><div class="info"><div class="fn"><span class="dot indigo"></span> 4 trials ending in 48h</div><div class="fk">$61 potential · nudge sequence armed</div></div><button class="btn btn-ghost btn-sm" onclick="document.querySelector('[data-tab=customers]').click()">View</button></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="ph-head"><h3>Recent activity</h3><span class="sub">live</span></div>
+              <div class="ph-body">
+                <ul class="timeline">
+                  <li><div class="tt"><b>Cadence Labs</b> added 4 seats to Atelier</div><div class="td">2m ago · +$72 MRR</div></li>
+                  <li><div class="tt"><b>Studio Verdant</b> started an Atelier trial</div><div class="td">18m ago · 5 seats</div></li>
+                  <li><div class="tt"><b>Ben Osei</b> upgraded Thread → Weaver</div><div class="td">40m ago · +$9 MRR</div></li>
+                  <li><div class="tt"><b>Halden &amp; Co.</b> payment failed</div><div class="td">1h ago · dunning started</div></li>
+                  <li><div class="tt"><b>Marcus Feld</b> churned after 40 days idle</div><div class="td">Yesterday · –$9 MRR</div></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ CUSTOMERS ═══ -->
+        <section class="tabpage" id="tab-customers">
+          <div class="tbl-toolbar" id="statusFilters">
+            <button class="chip-filter on" data-v="all">All</button>
+            <button class="chip-filter" data-v="active">Active</button>
+            <button class="chip-filter" data-v="trial">Trial</button>
+            <button class="chip-filter" data-v="past-due">Past due</button>
+            <button class="chip-filter" data-v="canceled">Canceled</button>
+            <button class="chip-filter" data-v="churned">Churned</button>
+            <span class="spacer"></span>
+            <div class="tbl-search"><span class="mono">⌕</span><input id="custSearch" placeholder="Search name, email, org…" /></div>
+          </div>
+          <div class="tbl-toolbar" id="planFilters" style="margin-top:-4px;">
+            <span class="seg-scope" style="margin-right:4px;">Plan</span>
+            <button class="chip-filter on" data-v="all">All plans</button>
+            <button class="chip-filter" data-v="Thread">Thread</button>
+            <button class="chip-filter" data-v="Weaver">Weaver</button>
+            <button class="chip-filter" data-v="Atelier">Atelier</button>
+            <button class="chip-filter" data-v="Guild">Guild</button>
+            <span class="spacer"></span>
+            <span class="seg-scope" id="custCount"></span>
+            <button class="btn btn-ghost btn-sm">Export CSV</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="data">
+              <thead><tr><th>Customer</th><th>Plan</th><th>Status</th><th class="num">Seats</th><th class="num">MRR</th><th>Joined</th><th>Last active</th></tr></thead>
+              <tbody id="custBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ═══ SUBSCRIPTIONS ═══ -->
+        <section class="tabpage" id="tab-subscriptions">
+          <div class="kpis">
+            <div class="kpi"><div class="k">◆ MRR</div><div class="v">$15,924</div><div class="d up">▲ 8.2%</div></div>
+            <div class="kpi"><div class="k">↥ ARR</div><div class="v">$191k</div><div class="d up">▲ 9.0%</div></div>
+            <div class="kpi"><div class="k">◎ ARPA</div><div class="v">$12.40</div><div class="d up">▲ 1.1%</div></div>
+            <div class="kpi"><div class="k">↻ Trial → paid</div><div class="v">38%</div><div class="d up">▲ 2.4%</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="ph-head"><h3>MRR by plan</h3><span class="sub">$ thousands</span></div>
+              <div class="ph-body">
+                <div id="chMrrPlan"></div>
+                <div class="mini-legend" style="margin-top:10px;"><span class="lk"><span class="dot teal"></span> Thread $0</span><span class="lk"><span class="dot oxblood"></span> Weaver $12.4k</span><span class="lk"><span class="dot ochre"></span> Atelier $18.9k*</span><span class="lk"><span class="dot indigo"></span> Guild $15.2k</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="ph-head"><h3>Upcoming renewals</h3><span class="sub">next 30 days</span></div>
+              <div class="ph-body" style="padding:0;">
+                <table class="data"><thead><tr><th>Account</th><th>Plan</th><th class="num">Seats</th><th class="num">Amount</th><th>Renews</th></tr></thead><tbody id="renewBody"></tbody></table>
+              </div>
+            </div>
+          </div>
+          <div class="hbar section-gap"><h2>Failed payments &amp; dunning</h2><span class="sub">$243 at risk</span></div>
+          <div class="tbl-wrap">
+            <table class="data"><thead><tr><th>Account</th><th>Plan</th><th class="num">Amount</th><th>Retry</th><th>Next attempt</th><th class="num">Action</th></tr></thead><tbody id="dunBody"></tbody></table>
+          </div>
+        </section>
+
+        <!-- ═══ ANALYTICS ═══ -->
+        <section class="tabpage" id="tab-analytics">
+          <div class="kpis">
+            <div class="kpi"><div class="k">◉ DAU / MAU</div><div class="v">31%</div><div class="d up">▲ 1.8% <span class="muted">stickiness</span></div></div>
+            <div class="kpi"><div class="k">✦ Notes captured (24h)</div><div class="v">42,610</div><div class="d up">▲ 6.0%</div></div>
+            <div class="kpi"><div class="k">▸ Learn sessions (24h)</div><div class="v">9,204</div><div class="d up">▲ 11.2%</div></div>
+            <div class="kpi"><div class="k">◎ Avg. 30-day recall</div><div class="v">92%</div><div class="d up">▲ 0.4%</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="ph-head"><h3>Daily active users</h3><span class="sub">thousands · 12 weeks</span></div>
+              <div class="ph-body"><div id="chDau"></div></div>
+            </div>
+            <div class="panel">
+              <div class="ph-head"><h3>Feature adoption</h3><span class="sub">of active users</span></div>
+              <div class="ph-body">
+                <div class="adopt-row"><span class="an">Capture</span><span class="ab"><span class="meter"><i style="width:98%; background:var(--accent)"></i></span></span><span class="av2">98%</span></div>
+                <div class="adopt-row"><span class="an">Search (⌘K)</span><span class="ab"><span class="meter"><i style="width:81%; background:var(--accent)"></i></span></span><span class="av2">81%</span></div>
+                <div class="adopt-row"><span class="an">The Weave</span><span class="ab"><span class="meter"><i style="width:64%; background:var(--ochre)"></i></span></span><span class="av2">64%</span></div>
+                <div class="adopt-row"><span class="an">Learn mode</span><span class="ab"><span class="meter"><i style="width:57%; background:var(--moss)"></i></span></span><span class="av2">57%</span></div>
+                <div class="adopt-row"><span class="an">Podcast format</span><span class="ab"><span class="meter"><i style="width:29%; background:var(--indigo)"></i></span></span><span class="av2">29%</span></div>
+                <div class="adopt-row"><span class="an">Shared vaults</span><span class="ab"><span class="meter"><i style="width:22%; background:var(--teal)"></i></span></span><span class="av2">22%</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="grid-2 even">
+            <div class="panel">
+              <div class="ph-head"><h3>Retention cohorts</h3><span class="sub">% active by week since signup</span></div>
+              <div class="ph-body" style="overflow-x:auto;">
+                <table class="cohort">
+                  <thead><tr><th class="rowh">Cohort</th><th>W0</th><th>W1</th><th>W2</th><th>W4</th><th>W8</th><th>W12</th></tr></thead>
+                  <tbody>
+                    <tr><td class="rowh">Apr</td><td class="cell" style="background:var(--accent);color:#faf3e2">100</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 62%,var(--surface))">68</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 50%,var(--surface))">57</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 42%,var(--surface))">49</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 38%,var(--surface))">44</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 36%,var(--surface))">41</td></tr>
+                    <tr><td class="rowh">May</td><td class="cell" style="background:var(--accent);color:#faf3e2">100</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 64%,var(--surface))">70</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 52%,var(--surface))">59</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 44%,var(--surface))">51</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 40%,var(--surface))">46</td><td class="cell mut">—</td></tr>
+                    <tr><td class="rowh">Jun</td><td class="cell" style="background:var(--accent);color:#faf3e2">100</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 66%,var(--surface))">72</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 54%,var(--surface))">61</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 46%,var(--surface))">53</td><td class="cell mut">—</td><td class="cell mut">—</td></tr>
+                    <tr><td class="rowh">Jul</td><td class="cell" style="background:var(--accent);color:#faf3e2">100</td><td class="cell" style="background:color-mix(in srgb,var(--accent) 68%,var(--surface))">74</td><td class="cell mut">—</td><td class="cell mut">—</td><td class="cell mut">—</td><td class="cell mut">—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="ph-head"><h3>Activation funnel</h3><span class="sub">new signups → habit</span></div>
+              <div class="ph-body">
+                <div class="adopt-row"><span class="an">Signed up</span><span class="ab"><span class="meter"><i style="width:100%; background:var(--indigo)"></i></span></span><span class="av2">100%</span></div>
+                <div class="adopt-row"><span class="an">First capture</span><span class="ab"><span class="meter"><i style="width:83%; background:var(--indigo)"></i></span></span><span class="av2">83%</span></div>
+                <div class="adopt-row"><span class="an">First weave link</span><span class="ab"><span class="meter"><i style="width:51%; background:var(--indigo)"></i></span></span><span class="av2">51%</span></div>
+                <div class="adopt-row"><span class="an">First Learn session</span><span class="ab"><span class="meter"><i style="width:37%; background:var(--indigo)"></i></span></span><span class="av2">37%</span></div>
+                <div class="adopt-row"><span class="an">Day-7 return</span><span class="ab"><span class="meter"><i style="width:44%; background:var(--moss)"></i></span></span><span class="av2">44%</span></div>
+                <div class="adopt-row"><span class="an">Converted to paid</span><span class="ab"><span class="meter"><i style="width:22%; background:var(--moss)"></i></span></span><span class="av2">22%</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ CODEX & USAGE ═══ -->
+        <section class="tabpage" id="tab-codex">
+          <div class="kpis">
+            <div class="kpi"><div class="k">◎ Jobs (24h)</div><div class="v">28,410</div><div class="d up">▲ 5.1%</div></div>
+            <div class="kpi"><div class="k">✓ Success rate</div><div class="v">86.4%</div><div class="d up">▲ 0.9%</div></div>
+            <div class="kpi"><div class="k">⌁ Fallback rate</div><div class="v">11.2%</div><div class="d down">▲ 0.4% <span class="muted">watch</span></div></div>
+            <div class="kpi"><div class="k">◷ Median latency</div><div class="v">2.6s</div><div class="d up">▼ 0.2s</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="ph-head"><h3>Codex job volume</h3><span class="sub">this week</span></div>
+              <div class="ph-body">
+                <div id="chCodex"></div>
+                <div class="mini-legend" style="margin-top:10px;"><span class="lk"><span class="dot moss"></span> Saved</span><span class="lk"><span class="dot ochre"></span> Fallback</span><span class="lk"><span class="dot rust"></span> Failed</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="ph-head"><h3>Infrastructure</h3><span class="sub">now</span></div>
+              <div class="ph-body">
+                <div class="dr-row"><span class="l">Queue depth</span><span class="r mono-cell">142 jobs</span></div>
+                <div class="dr-row"><span class="l">Workers online</span><span class="r mono-cell">18 / 20</span></div>
+                <div class="dr-row"><span class="l">Codex v3 rollout</span><span class="r mono-cell">35%</span></div>
+                <div class="dr-row"><span class="l">Est. daily inference cost</span><span class="r mono-cell">$418</span></div>
+                <div class="dr-row"><span class="l">Cost / 1k jobs</span><span class="r mono-cell">$14.70</span></div>
+                <div class="dr-row"><span class="l">Meilisearch index</span><span class="r"><span class="pill active"><span class="d2"></span>Healthy</span></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="hbar section-gap"><h2>Recent research jobs</h2><span class="sub">live from the queue</span></div>
+          <div class="tbl-wrap">
+            <table class="data">
+              <thead><tr><th>Job</th><th>Account</th><th>State</th><th>Category</th><th class="num">Latency</th></tr></thead>
+              <tbody>
+                <tr><td class="mono-cell mut">j-1042</td><td>Fieldnote</td><td><span class="pill active"><span class="d2"></span>saved</span></td><td>Distributed Systems</td><td class="num mono-cell">2.1s</td></tr>
+                <tr><td class="mono-cell mut">j-1041</td><td>Cadence Labs</td><td><span class="pill trial"><span class="d2"></span>researching</span></td><td>—</td><td class="num mono-cell">…</td></tr>
+                <tr><td class="mono-cell mut">j-1040</td><td>Meridian</td><td><span class="pill past-due"><span class="d2"></span>fallback</span></td><td>Cognitive Science</td><td class="num mono-cell">4.8s</td></tr>
+                <tr><td class="mono-cell mut">j-1039</td><td>Northwind</td><td><span class="pill active"><span class="d2"></span>saved</span></td><td>Cryptography</td><td class="num mono-cell">2.4s</td></tr>
+                <tr><td class="mono-cell mut">j-1038</td><td>Brightpath</td><td><span class="pill churned"><span class="d2"></span>failed</span></td><td>—</td><td class="num mono-cell">timeout</td></tr>
+                <tr><td class="mono-cell mut">j-1037</td><td>Kestrel Institute</td><td><span class="pill active"><span class="d2"></span>saved</span></td><td>Probability</td><td class="num mono-cell">1.9s</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ═══ SUPPORT ═══ -->
+        <section class="tabpage" id="tab-support">
+          <div class="kpis">
+            <div class="kpi"><div class="k">✎ Open tickets</div><div class="v">14</div><div class="d down">▲ 3 <span class="muted">today</span></div></div>
+            <div class="kpi"><div class="k">◷ Median first response</div><div class="v">42m</div><div class="d up">▼ 8m</div></div>
+            <div class="kpi"><div class="k">◉ CSAT</div><div class="v">94%</div><div class="d up">▲ 1%</div></div>
+            <div class="kpi"><div class="k">↥ Resolved (7d)</div><div class="v">86</div><div class="d up">▲ 12%</div></div>
+          </div>
+          <div class="hbar section-gap"><h2>Ticket queue</h2><span class="sub">sorted by priority</span></div>
+          <div class="tbl-wrap">
+            <table class="data">
+              <thead><tr><th>ID</th><th>Subject</th><th>Requester</th><th>Priority</th><th>Status</th><th class="num">Age</th></tr></thead>
+              <tbody id="ticketBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ═══ FEATURE FLAGS ═══ -->
+        <section class="tabpage" id="tab-flags">
+          <div class="hbar"><h2>Feature flags</h2><span class="sub">changes apply live · logged to audit</span></div>
+          <div class="tbl-wrap"><div id="flagBody"></div></div>
+        </section>
+
+        <!-- ═══ AUDIT LOG ═══ -->
+        <section class="tabpage" id="tab-audit">
+          <div class="hbar"><h2>Audit log</h2><span class="sub">every staff &amp; system action</span></div>
+          <div class="tbl-wrap">
+            <table class="data">
+              <thead><tr><th>Actor</th><th>Action</th><th>Target</th><th class="num">When</th></tr></thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER DRAWER -->
+  <div class="drawer-scrim" id="drScrim"></div>
+  <aside class="drawer" id="drawer">
+    <div class="dr-head">
+      <div class="top">
+        <span class="av" id="drAv">—</span>
+        <div><h2 id="drName">—</h2><div class="em" id="drEmail">—</div></div>
+        <span class="x" id="drClose">✕</span>
+      </div>
+      <div class="meta-row" id="drMeta"></div>
+    </div>
+    <div class="dr-body">
+      <div class="dr-stats" id="drStats"></div>
+      <div class="dr-sec">Subscription</div>
+      <div id="drRows"></div>
+      <div class="dr-sec">Staff actions</div>
+      <div class="dr-actions">
+        <button class="btn btn-primary btn-sm">Impersonate</button>
+        <button class="btn btn-ghost btn-sm">Change plan</button>
+        <button class="btn btn-ghost btn-sm">Issue refund</button>
+        <button class="btn btn-ghost btn-sm">Reset password</button>
+        <button class="btn btn-ghost btn-sm">Send email</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--rust); border-color:color-mix(in srgb, var(--rust) 40%, transparent);">Suspend</button>
+      </div>
+      <div class="dr-sec">Recent timeline</div>
+      <ul class="timeline">
+        <li><div class="tt">Captured 12 notes this week</div><div class="td">across 3 categories</div></li>
+        <li><div class="tt">Completed a Learn plan — "Consensus"</div><div class="td">2 days ago · 94% mastery</div></li>
+        <li><div class="tt">Invited 2 members to the vault</div><div class="td">5 days ago</div></li>
+        <li><div class="tt">Upgraded plan</div><div class="td">on signup anniversary</div></li>
+      </ul>
+    </div>
+  </aside>
+
+  <script src="admin.js"></script>
+</body>
+</html>

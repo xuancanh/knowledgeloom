@@ -10,17 +10,21 @@
  *
  * Requires authentication — RAG is scoped to the authenticated user's notes.
  */
-import { Controller, Post, Body, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, UseGuards, Inject } from '@nestjs/common';
 import type { Response } from 'express';
 import { RagService, RagRequest } from './rag.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
+import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 
 @Controller('api/rag')
 @UseGuards(ApiAuthGuard)
 export class RagController {
-  constructor(private readonly ragService: RagService) {}
+  constructor(
+    private readonly ragService: RagService,
+    @Inject(USAGE_SERVICE) private readonly usage: UsageService,
+  ) {}
 
   @Post('stream')
   @UseGuards(WritableGuard)
@@ -29,6 +33,10 @@ export class RagController {
     @Body() body: RagRequest,
     @Res() res: Response,
   ): Promise<void> {
+    // Quota check before headers are flushed so over-quota users get a clean 429.
+    await this.usage.checkQuota(userId, 'ai.rag');
+    await this.usage.track(userId, 'ai.rag');
+
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('X-Accel-Buffering', 'no');

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Checkout — Knowledge Loom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <div class="checkout">
+    <!-- FORM SIDE -->
+    <section class="form-side">
+      <div class="inner">
+        <div class="mini-top"><div class="row">
+          <a href="pricing.html" class="back">← Back to plans</a>
+          <span class="spacer"></span>
+          <a href="index.html" class="wordmark"><span class="mark"></span><span class="name">Knowledge <em>Loom</em></span></a>
+        </div></div>
+
+        <h1 style="font-size:30px; font-weight:500; letter-spacing:-0.02em; margin:24px 0 4px;">Complete your upgrade</h1>
+        <p style="color:var(--muted-2); margin:0 0 8px;">You're a few fields away from an unlimited desk.</p>
+
+        <form id="payForm" novalidate>
+          <!-- SEATS (team only) -->
+          <div id="seatBlock" style="display:none;">
+            <div class="co-step"><span class="n">1</span> Team seats</div>
+            <p style="font-size:14px; color:var(--muted-2); margin:0 0 6px;">Atelier is billed per active seat, with a 3-seat minimum. You can add more anytime.</p>
+            <div class="seat-step">
+              <button type="button" id="seatMinus">–</button>
+              <span class="cnt" id="seatCnt">3</span>
+              <button type="button" id="seatPlus">+</button>
+              <span class="mono" style="font-size:12px; color:var(--muted);">seats</span>
+            </div>
+          </div>
+
+          <!-- ACCOUNT -->
+          <div class="co-step"><span class="n" id="s2">1</span> Billing contact</div>
+          <div class="field" id="f-email">
+            <label for="email">Email</label>
+            <input class="input" type="email" id="email" placeholder="you@studio.com" autocomplete="email" />
+            <div class="err">Enter a valid email address.</div>
+          </div>
+          <div class="field" id="f-name">
+            <label for="cname">Name on card</label>
+            <input class="input" type="text" id="cname" placeholder="Ada Lovelace" autocomplete="cc-name" />
+            <div class="err">Enter the name on your card.</div>
+          </div>
+
+          <!-- CARD -->
+          <div class="co-step"><span class="n" id="s3">2</span> Payment</div>
+          <div class="field" id="f-card">
+            <label for="card">Card number</label>
+            <div class="card-input">
+              <input class="input" type="text" id="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" maxlength="19" />
+              <span class="brand" id="brand">····</span>
+            </div>
+            <div class="err">Enter a valid 16-digit card number.</div>
+          </div>
+          <div class="card-row">
+            <div class="field" id="f-exp">
+              <label for="exp">Expiry</label>
+              <input class="input" type="text" id="exp" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" />
+              <div class="err">MM / YY</div>
+            </div>
+            <div class="field" id="f-cvc">
+              <label for="cvc">CVC</label>
+              <input class="input" type="text" id="cvc" inputmode="numeric" placeholder="123" maxlength="4" autocomplete="cc-csc" />
+              <div class="err">3–4 digits</div>
+            </div>
+            <div class="field" id="f-zip">
+              <label for="zip">ZIP</label>
+              <input class="input" type="text" id="zip" placeholder="00000" maxlength="10" autocomplete="postal-code" />
+              <div class="err">Req.</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="payBtn" style="margin-top:8px;">Pay <span id="payAmt">$9.00</span> →</button>
+          <div class="trust-row"><span style="color:var(--moss);">◈</span> Secured with 256-bit encryption · Cancel anytime · 14-day money-back guarantee</div>
+        </form>
+      </div>
+    </section>
+
+    <!-- SUMMARY SIDE -->
+    <aside class="sum-side">
+      <div class="inner">
+        <div class="eyebrow" style="margin-bottom:16px;">Order summary</div>
+        <div class="summary-card">
+          <div class="plan-line">
+            <div><div class="pn" id="planName">Weaver</div><div class="mono" style="font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-top:3px;" id="planTag">Individual · monthly</div></div>
+            <div class="pp" id="planUnit">$9 / mo</div>
+          </div>
+          <div class="line"><span id="subLabel">Subtotal</span><span class="mono" id="subVal">$9.00</span></div>
+          <div class="line"><span>Est. tax</span><span class="mono" id="taxVal">$0.72</span></div>
+          <div class="line" id="promoLine" style="display:none; color:var(--moss);"><span>Promo — WEAVE20</span><span class="mono" id="promoVal">–$0.00</span></div>
+
+          <div class="promo">
+            <input class="input" id="promo" placeholder="Promo code" />
+            <button type="button" class="btn btn-ghost btn-sm" id="applyPromo">Apply</button>
+          </div>
+
+          <div class="line total"><span>Due today</span><span class="mono" id="totalVal">$9.72</span></div>
+        </div>
+
+        <div style="margin-top:18px; font-size:13.5px; color:var(--muted-2); line-height:1.55;">
+          <div class="mono" style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">What you're getting</div>
+          <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;" id="perks"></ul>
+        </div>
+
+        <div class="ph" style="height:120px; margin-top:22px;"><span class="ph-tag">trust badges — PCI · SOC 2 · GDPR</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- SUCCESS OVERLAY -->
+  <div id="done" style="display:none; position:fixed; inset:0; z-index:100; background:color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter:blur(6px); place-items:center;">
+    <div style="text-align:center; max-width:420px; padding:40px;">
+      <div style="width:64px; height:64px; border-radius:50%; background:var(--moss); color:#faf3e2; display:grid; place-items:center; font-size:30px; margin:0 auto 22px;">✓</div>
+      <h1 style="font-size:32px; font-weight:500; letter-spacing:-0.02em; margin:0 0 10px;">You're on <span id="doneName">Weaver</span>.</h1>
+      <p style="color:var(--muted-2); margin:0 0 26px;">A receipt is on its way. Your desk just went unlimited.</p>
+      <a href="../Knowledge Loom.html" class="btn btn-primary btn-lg">Open your desk →</a>
+    </div>
+  </div>
+
+  <script>
+    const PLANS = {
+      weaver:  { name: 'Weaver',  tag: 'Individual · monthly', unit: 9,  per: '/ mo', seat: false,
+                 perks: ['Unlimited notes & research', 'Codex-proposed weave edges', 'Spaced-repetition scheduler', 'Priority support'] },
+      atelier: { name: 'Atelier', tag: 'Team · monthly', unit: 18, per: '/ seat / mo', seat: true,
+                 perks: ['Shared team vaults', 'Real-time co-editing', 'Roles & permissions', 'Team usage analytics'] },
+      guild:   { name: 'Guild',   tag: 'Enterprise · annual', unit: 0, per: 'custom', seat: false, custom: true,
+                 perks: ['SSO / SAML & SCIM', 'Advanced audit log', 'Private Codex models', 'Dedicated success manager'] },
+    };
+    const params = new URLSearchParams(location.search);
+    const key = PLANS[params.get('plan')] ? params.get('plan') : 'weaver';
+    const plan = PLANS[key];
+    let seats = 3, promo = 0;
+
+    document.getElementById('planName').textContent = plan.name;
+    document.getElementById('planTag').textContent = plan.tag;
+    document.getElementById('doneName').textContent = plan.name;
+    document.getElementById('perks').innerHTML = plan.perks.map(p => `<li style="display:flex; gap:9px;"><span style="color:var(--moss);">✓</span>${p}</li>`).join('');
+
+    if (plan.seat) {
+      document.getElementById('seatBlock').style.display = 'block';
+      document.getElementById('s2').textContent = '2';
+      document.getElementById('s3').textContent = '3';
+    }
+
+    function money(n){ return '$' + n.toFixed(2); }
+    function recalc() {
+      if (plan.custom) {
+        document.getElementById('planUnit').textContent = 'Custom';
+        document.getElementById('subLabel').textContent = 'Subtotal';
+        document.getElementById('subVal').textContent = '—';
+        document.getElementById('taxVal').textContent = '—';
+        document.getElementById('totalVal').textContent = 'Contact sales';
+        document.getElementById('payAmt').textContent = 'Request a quote';
+        return;
+      }
+      const qty = plan.seat ? seats : 1;
+      const sub = plan.unit * qty;
+      const discount = sub * promo;
+      const taxed = (sub - discount) * 0.08;
+      const total = sub - discount + taxed;
+      document.getElementById('planUnit').textContent = '$' + plan.unit + ' ' + plan.per;
+      document.getElementById('subLabel').textContent = plan.seat ? `Subtotal · ${qty} seats` : 'Subtotal';
+      document.getElementById('subVal').textContent = money(sub);
+      document.getElementById('taxVal').textContent = money(taxed);
+      document.getElementById('totalVal').textContent = money(total);
+      document.getElementById('payAmt').textContent = money(total);
+      const pl = document.getElementById('promoLine');
+      if (promo > 0) { pl.style.display = 'flex'; document.getElementById('promoVal').textContent = '–' + money(discount); }
+      else pl.style.display = 'none';
+    }
+    recalc();
+
+    // seats
+    const setSeats = (d) => { seats = Math.max(3, seats + d); document.getElementById('seatCnt').textContent = seats; recalc(); };
+    document.getElementById('seatMinus')?.addEventListener('click', () => setSeats(-1));
+    document.getElementById('seatPlus')?.addEventListener('click', () => setSeats(1));
+
+    // promo
+    document.getElementById('applyPromo').addEventListener('click', () => {
+      const v = document.getElementById('promo').value.trim().toUpperCase();
+      const btn = document.getElementById('applyPromo');
+      if (v === 'WEAVE20') { promo = 0.20; btn.textContent = 'Applied ✓'; btn.style.color = 'var(--moss)'; }
+      else { promo = 0; btn.textContent = 'Invalid'; setTimeout(() => btn.textContent = 'Apply', 1400); }
+      recalc();
+    });
+
+    // card formatting
+    const card = document.getElementById('card');
+    card.addEventListener('input', () => {
+      let v = card.value.replace(/\D/g, '').slice(0, 16);
+      card.value = v.replace(/(.{4})/g, '$1 ').trim();
+      const b = document.getElementById('brand');
+      b.textContent = v.startsWith('4') ? 'VISA' : /^5[1-5]/.test(v) ? 'MC' : /^3[47]/.test(v) ? 'AMEX' : v.length ? 'CARD' : '····';
+    });
+    const exp = document.getElementById('exp');
+    exp.addEventListener('input', () => {
+      let v = exp.value.replace(/\D/g, '').slice(0, 4);
+      exp.value = v.length > 2 ? v.slice(0,2) + ' / ' + v.slice(2) : v;
+    });
+
+    // submit
+    document.getElementById('payForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (plan.custom) { window.location.href = 'index.html#teams'; return; }
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let ok = true;
+      const bad = (id, cond) => { document.getElementById(id).classList.toggle('invalid', cond); if (cond) ok = false; };
+      bad('f-email', !emailRe.test(document.getElementById('email').value));
+      bad('f-name', document.getElementById('cname').value.trim().length < 2);
+      bad('f-card', card.value.replace(/\s/g,'').length !== 16);
+      bad('f-exp', exp.value.replace(/\D/g,'').length !== 4);
+      bad('f-cvc', document.getElementById('cvc').value.length < 3);
+      bad('f-zip', document.getElementById('zip').value.length < 3);
+      if (!ok) return;
+      const btn = document.getElementById('payBtn');
+      btn.textContent = 'Processing…';
+      setTimeout(() => {
+        const done = document.getElementById('done');
+        done.style.display = 'grid';
+      }, 1100);
+    });
+    document.querySelectorAll('.field .input').forEach(i => i.addEventListener('input', e => e.target.closest('.field').classList.remove('invalid')));
+  </script>
+</body>
+</html>

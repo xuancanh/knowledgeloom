@@ -5,6 +5,7 @@ import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NotesService } from '../notes/notes.service';
+import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { AiDeck, parseAiJson, sanitizeAiDeck } from './deck-sanitizer';
 
 /** Generated decks are cached per note content so replaying a lesson does not re-bill the AI provider. */
@@ -20,6 +21,7 @@ export class LearnProgressController {
     private readonly repo: LearnProgressRepository,
     private readonly notes: NotesService,
     @Inject(AI_PROVIDER) private readonly ai: AiProvider,
+    @Inject(USAGE_SERVICE) private readonly usage: UsageService,
   ) {}
 
   @Get()
@@ -59,9 +61,13 @@ export class LearnProgressController {
     const cached = this.deckCache.get(cacheKey);
     if (cached) return cached;
 
+    // Cache hits above are free; only a real generation consumes quota.
+    await this.usage.checkQuota(userId, 'ai.deck');
+
     const prompt = buildDeckPrompt({ title, category, summary, tags, markdown });
     try {
       const raw = await this.ai.complete(prompt, { outputFormat: 'json' });
+      await this.usage.track(userId, 'ai.deck', { noteId });
       const deck = sanitizeAiDeck(parseAiJson(raw));
       if (!deck) {
         this.logger.warn(`generate-deck: AI response for note ${noteId} had no usable sections`);

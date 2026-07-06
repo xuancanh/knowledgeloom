@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sign up — Knowledge Loom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <div class="auth">
+    <!-- ASIDE -->
+    <aside class="aside">
+      <a href="index.html" class="wordmark"><span class="mark"></span><span class="name">Knowledge <em>Loom</em></span></a>
+      <div class="quote">
+        <div class="q">"Stop collecting notes. Start weaving knowledge."</div>
+        <div class="a">— Start free · no card required</div>
+      </div>
+      <ul style="list-style:none; padding:0; margin:0 0 auto; display:flex; flex-direction:column; gap:14px;">
+        <li style="display:flex; gap:12px; align-items:flex-start; font-size:15.5px; color:var(--ink-2);"><span style="color:var(--accent);">✓</span> Free forever tier — 500 notes, full Learn mode</li>
+        <li style="display:flex; gap:12px; align-items:flex-start; font-size:15.5px; color:var(--ink-2);"><span style="color:var(--accent);">✓</span> Codex research on every capture</li>
+        <li style="display:flex; gap:12px; align-items:flex-start; font-size:15.5px; color:var(--ink-2);"><span style="color:var(--accent);">✓</span> Import from Obsidian, Notion &amp; Markdown</li>
+        <li style="display:flex; gap:12px; align-items:flex-start; font-size:15.5px; color:var(--ink-2);"><span style="color:var(--accent);">✓</span> Upgrade to a shared team vault anytime</li>
+      </ul>
+      <div class="stats">
+        <div class="s"><div class="v">1.4M+</div><div class="k">notes woven</div></div>
+        <div class="s"><div class="v">92%</div><div class="k">30-day recall</div></div>
+      </div>
+    </aside>
+
+    <!-- PANEL -->
+    <section class="panel">
+      <div class="mini-top" style="position:absolute; top:0; right:0; left:50%; padding-inline:52px;">
+        <div class="row"><span class="spacer"></span><span style="font-size:14.5px; color:var(--muted-2);">Have an account? <a href="login.html">Log in</a></span></div>
+      </div>
+      <div class="form-wrap">
+        <span class="eyebrow accent">Create your desk</span>
+        <h1>Start weaving in a minute.</h1>
+        <p class="sub">Free forever. Add a card only when you grow into a paid plan.</p>
+
+        <div class="oauth">
+          <button type="button"><span class="g" style="background:#fff;color:#4285f4;border:1px solid var(--rule);">G</span> Sign up with Google</button>
+          <button type="button"><span class="g" style="background:var(--ink);color:var(--paper);">✦</span> Sign up with GitHub</button>
+        </div>
+        <div class="divider-or">or with email</div>
+
+        <form id="suForm" novalidate>
+          <div class="field" id="f-name">
+            <label for="name">Full name</label>
+            <input class="input" type="text" id="name" placeholder="Ada Lovelace" autocomplete="name" />
+            <div class="err">Tell us what to call you.</div>
+          </div>
+          <div class="field" id="f-email">
+            <label for="email">Work or personal email</label>
+            <input class="input" type="email" id="email" placeholder="you@studio.com" autocomplete="email" />
+            <div class="err">Enter a valid email address.</div>
+          </div>
+          <div class="field" id="f-pw">
+            <label for="pw">Password</label>
+            <input class="input" type="password" id="pw" placeholder="At least 8 characters" autocomplete="new-password" />
+            <div class="pw-strength"><i id="pwbar"></i></div>
+            <div class="err">Use at least 8 characters.</div>
+          </div>
+          <label class="check-row"><input type="checkbox" id="terms" /> <span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</span></label>
+          <div class="field" id="f-terms" style="margin-top:-8px;"><div class="err">Please accept the terms to continue.</div></div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Create account →</button>
+        </form>
+
+        <div class="auth-foot">By continuing you'll land on the free <b>Thread</b> plan. Upgrade anytime.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById('suForm');
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const pw = document.getElementById('pw');
+    const bar = document.getElementById('pwbar');
+    pw.addEventListener('input', () => {
+      const v = pw.value;
+      let s = 0;
+      if (v.length >= 8) s++;
+      if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+      if (/\d/.test(v)) s++;
+      if (/[^A-Za-z0-9]/.test(v)) s++;
+      const pct = [0, 30, 55, 80, 100][s];
+      const col = ['var(--rust)','var(--rust)','var(--ochre)','var(--moss)','var(--moss)'][s];
+      bar.style.width = pct + '%';
+      bar.style.background = col;
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name');
+      const email = document.getElementById('email');
+      const terms = document.getElementById('terms');
+      let ok = true;
+      const set = (id, bad) => { document.getElementById(id).classList.toggle('invalid', bad); if (bad) ok = false; };
+      set('f-name', name.value.trim().length < 2);
+      set('f-email', !emailRe.test(email.value));
+      set('f-pw', pw.value.length < 8);
+      set('f-terms', !terms.checked);
+      if (ok) {
+        const btn = form.querySelector('button[type=submit]');
+        btn.textContent = 'Setting up your desk…';
+        setTimeout(() => { window.location.href = 'pricing.html'; }, 900);
+      }
+    });
+    ['name','email','pw'].forEach(id => document.getElementById(id).addEventListener('input', e => e.target.closest('.field').classList.remove('invalid')));
+    document.getElementById('terms').addEventListener('change', () => document.getElementById('f-terms').classList.remove('invalid'));
+  </script>
+</body>
+</html>

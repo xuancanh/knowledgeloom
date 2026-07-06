@@ -27,7 +27,7 @@
  *  The two @Global() modules (Config, Database) are imported here and nowhere
  *  else; their providers are visible to every module automatically.
  */
-import { Module } from '@nestjs/common';
+import { Module, DynamicModule, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
@@ -44,13 +44,14 @@ import { RagModule } from './rag/rag.module';
 import { QuizModule } from './quiz/quiz.module';
 import { SettingsModule } from './settings/settings.module';
 import { LearnProgressModule } from './learn-progress/learn-progress.module';
+import { UsageModule } from './usage/usage.module';
 
-@Module({
-  imports: [
+const baseImports = [
     // Global providers — no need to import these in feature modules.
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     DatabaseModule,
     AuthModule,
+    UsageModule,
     ...(process.env.SKIP_JOBS === '1' ? [] : [
       BullModule.forRootAsync({
         inject: [ConfigService],
@@ -75,6 +76,24 @@ import { LearnProgressModule } from './learn-progress/learn-progress.module';
     QuizModule,
     SettingsModule,
     LearnProgressModule,
-  ],
-})
-export class AppModule {}
+];
+
+@Module({})
+export class AppModule {
+  /**
+   * Builds the root module, appending the enterprise EeModule when the ee/
+   * tree is present (merged from the private repo — docs/OPEN_SOURCE_DECISION.md).
+   * The variable path keeps tsc from resolving the module statically; OSS
+   * builds simply run without it.
+   */
+  static async forRoot(): Promise<DynamicModule> {
+    const imports = [...baseImports];
+    const eeModulePath = './ee/ee.module';
+    try {
+      const mod = await import(eeModulePath);
+      imports.push(mod.EeModule);
+      new Logger('AppModule').log('Enterprise modules loaded (ee/)');
+    } catch { /* OSS build — ee/ not present */ }
+    return { module: AppModule, imports };
+  }
+}
