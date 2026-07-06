@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (server + frontend)
+        run: npm run build
+
+      # Unit, frontend, e2e (spawned server + redis), and integration suites.
+      # Every suite isolates itself: temp KNOWLEDGE_ROOT, dedicated REDIS_DB.
+      - name: Test
+        run: npm run test:all
+
+  docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -t knowledge-loom-api:ci .
+      - name: Smoke-boot the image
+        run: |
+          docker run -d --name kl -e SKIP_JOBS=1 -e SEARCH_PROVIDER=inmemory -p 8787:8787 knowledge-loom-api:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8787/api/status > /dev/null; then
+              echo "API is up"; docker rm -f kl; exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not boot"; docker logs kl; docker rm -f kl; exit 1

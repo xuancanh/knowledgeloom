@@ -1,0 +1,24 @@
+# Cloudflare Worker + Container binding for the Knowledge Loom API.
+# Deployed by .github/workflows/deploy-api.yml once CLOUDFLARE_* secrets exist.
+# Runtime env: `wrangler secret put <NAME>` for everything in
+# .env.production.example.
+name = "knowledge-loom-api"
+main = "worker.mjs"
+compatibility_date = "2026-07-01"
+
+[[containers]]
+class_name = "LoomApi"
+image = "./../../Dockerfile"
+max_instances = 2
+
+[[durable_objects.bindings]]
+name = "LOOM_API"
+class_name = "LoomApi"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["LoomApi"]
+
+[[routes]]
+pattern = "api.example.com/*"
+zone_name = "example.com"

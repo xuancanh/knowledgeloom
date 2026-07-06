@@ -1,0 +1,13 @@
+node_modules
+dist
+server/dist
+knowledge
+.git
+.github
+tests
+docs
+design
+mcp
+*.md
+.env*
+.omo
