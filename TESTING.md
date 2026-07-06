@@ -117,3 +117,20 @@ test.after(() => {
 - Third-party API responses (use mocks)
 - CSS/styling (manual review)
 - Simple pass-through controllers with no logic
+
+## End-to-end API suite (added 2026-07)
+
+`npm run test:e2e` builds the server and runs `tests/e2e-api.test.mjs`, which
+spawns the compiled server against a temp working directory and drives every
+feature area over real HTTP: note lifecycle (write/read/update/patch/delete),
+knowledge state, search, reminders (incl. delete cascade), settings,
+flashcards CRUD + SM-2 review, quiz reviews + hide/restore, learn progress
+(XP award/clamp, mastery, generate-deck validation and no-AI degradation),
+jobs, image upload/serve + mime rejection, and error paths. `CODEX_COMMAND=false`
+makes AI calls fail fast so nothing is spent.
+
+Requires redis on localhost (BullMQ, same as `npm run dev`) — the suite skips
+itself when redis or the dist build is missing. When the enterprise `ee/`
+tree is dev-linked, EE data is isolated to the temp dir and two EE smoke
+tests run; deep EE coverage lives in the private repo's own suites
+(`knowledge-loom-ee/scripts/test.sh`).
