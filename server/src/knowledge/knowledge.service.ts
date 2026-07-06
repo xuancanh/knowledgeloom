@@ -27,6 +27,7 @@ import { FlashcardsService } from '../flashcards/flashcards.service';
 import { QuizService } from '../quiz/quiz.service';
 import { SearchService } from '../search/search.service';
 import { slugify, parseNote, noteRelativePath } from '../common/note-parser.util';
+import { getFeatureToggles } from '../settings/feature-toggles';
 import type { KnowledgeNote, NoteSource, CategoryEntry, KnowledgeState } from '../types';
 
 @Injectable()
@@ -135,7 +136,15 @@ export class KnowledgeService {
       targets: [...(targetMap.get(note.id)?.entries() ?? [])].map(([id, direction]) => ({ id, direction })),
     }));
 
-    const { allCards: flashcards, reviews } = await this.flashcardsService.loadEnrichedData(userId, noteSources);
+    // Feature toggles: a disabled study feature contributes nothing to the
+    // state AND skips its AI generation — turning quiz off means no quiz
+    // prompts are ever sent for new notes. Caches are kept, so re-enabling
+    // restores previously generated material instantly.
+    const features = getFeatureToggles(await this.settingsRepo.get(userId));
+
+    const { allCards: flashcards, reviews } = features.flashcards
+      ? await this.flashcardsService.loadEnrichedData(userId, noteSources)
+      : { allCards: [], reviews: new Map() };
     const enrichedFlashcards = flashcards.map((card) => {
       const review = reviews.get(card.id);
       if (!review) return card;
@@ -152,7 +161,9 @@ export class KnowledgeService {
       };
     });
 
-    const { allQuestions, reviews: quizReviews } = await this.quizService.loadEnrichedData(userId, noteSources);
+    const { allQuestions, reviews: quizReviews } = features.quiz
+      ? await this.quizService.loadEnrichedData(userId, noteSources)
+      : { allQuestions: [], reviews: new Map() };
     const enrichedQuizQuestions = allQuestions.map((q) => {
       const review = quizReviews.get(q.id);
       if (!review) return q;
@@ -190,6 +201,12 @@ export class KnowledgeService {
    * note has changed since the last generation.
    */
   async regenerateForNote(userId: string, noteId: string, target: 'flashcards' | 'quiz' | 'all', size: import('../types').GenSize = 'small'): Promise<void> {
+    const features = getFeatureToggles(await this.settingsRepo.get(userId));
+    if ((target === 'flashcards' && !features.flashcards) || (target === 'quiz' && !features.quiz)) {
+      const err: any = new Error(`${target} are disabled in settings`);
+      err.status = 400;
+      throw err;
+    }
     const allSources = await this.noteRepo.readAllSources(userId);
     const source = allSources.find((s) => s.note.id === noteId);
     if (!source) {
@@ -198,10 +215,11 @@ export class KnowledgeService {
       throw err;
     }
     const sources = [source];
-    if (target === 'flashcards' || target === 'all') {
+    // target 'all' still respects individual toggles — only enabled features regenerate.
+    if ((target === 'flashcards' || target === 'all') && features.flashcards) {
       await this.flashcardsService.sync(userId, sources, { force: true, size });
     }
-    if (target === 'quiz' || target === 'all') {
+    if ((target === 'quiz' || target === 'all') && features.quiz) {
       await this.quizService.sync(userId, sources, { force: true, size });
     }
   }

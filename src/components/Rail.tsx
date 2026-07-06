@@ -83,6 +83,7 @@ export default function Rail({
   onImport,
   onMarketplace,
   onSettings,
+  features,
   openCategory,
   openTag,
   closeRail,
@@ -111,6 +112,7 @@ export default function Rail({
   onImport: () => void;
   onMarketplace: () => void;
   onSettings: () => void;
+  features: import('../lib/features').FeatureToggles;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
   closeRail: () => void;
@@ -188,29 +190,39 @@ export default function Rail({
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> {t('nav.activity')}
             <span className="count">{inFlightCount}</span>
           </button>
-          <button className={`nav-item${isToday ? ' active' : ''}`} onClick={() => { onToday(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>☀</span> Today
-          </button>
-          <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> {t('nav.flashcards')}
-            <span className="count">{flashcardCount}</span>
-          </button>
-          <button className={`nav-item${isQuiz ? ' active' : ''}`} onClick={() => { onQuiz(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>?</span> {t('nav.quiz')}
-            <span className="count">{quizCount}</span>
-          </button>
+          {features.today && (
+            <button className={`nav-item${isToday ? ' active' : ''}`} onClick={() => { onToday(); closeRail(); }}>
+              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>☀</span> Today
+            </button>
+          )}
+          {features.flashcards && (
+            <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
+              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> {t('nav.flashcards')}
+              <span className="count">{flashcardCount}</span>
+            </button>
+          )}
+          {features.quiz && (
+            <button className={`nav-item${isQuiz ? ' active' : ''}`} onClick={() => { onQuiz(); closeRail(); }}>
+              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>?</span> {t('nav.quiz')}
+              <span className="count">{quizCount}</span>
+            </button>
+          )}
           <button className={`nav-item${isGraph ? ' active' : ''}`} onClick={() => { onGraph(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◈</span> {t('nav.graph')}
           </button>
-          <button className={`nav-item${isLearn ? ' active' : ''}`} onClick={() => { onLearn(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Learn
-          </button>
+          {features.learn && (
+            <button className={`nav-item${isLearn ? ' active' : ''}`} onClick={() => { onLearn(); closeRail(); }}>
+              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Learn
+            </button>
+          )}
           <button className={`nav-item${isImport ? ' active' : ''}`} onClick={() => { onImport(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⇪</span> Import
           </button>
-          <button className={`nav-item${isMarketplace ? ' active' : ''}`} onClick={() => { onMarketplace(); closeRail(); }}>
-            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⛁</span> Marketplace
-          </button>
+          {features.marketplace && (
+            <button className={`nav-item${isMarketplace ? ' active' : ''}`} onClick={() => { onMarketplace(); closeRail(); }}>
+              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⛁</span> Marketplace
+            </button>
+          )}
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> {t('nav.settings')}
           </button>

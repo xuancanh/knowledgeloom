@@ -20,6 +20,8 @@ import { RemindersService } from '../reminders/reminders.service';
 import { SearchService } from '../search/search.service';
 import { CodexService } from '../codex/codex.service';
 import { JobsService } from '../jobs/jobs.service';
+import { UserSettingsRepository } from '../settings/user-settings.repository';
+import { getFeatureToggles } from '../settings/feature-toggles';
 import {
   parseNote,
   composeMarkdown,
@@ -40,6 +42,7 @@ export class NotesService {
     private readonly searchService: SearchService,
     private readonly codexService: CodexService,
     private readonly jobsService: JobsService,
+    private readonly settingsRepo: UserSettingsRepository,
     private readonly config: ConfigService,
   ) {
     this.readOnly = config.get<boolean>('readOnly');
@@ -165,6 +168,15 @@ export class NotesService {
 
   async enqueueRegenerate(userId: string, id: string, target: 'flashcards' | 'quiz' | 'all', size: 'small' | 'medium' | 'large' = 'small'): Promise<any> {
     this.assertWritable();
+    // Gate at enqueue time so a disabled feature is a clean 400 here, not a
+    // failed job later (regenerateForNote enforces the same rule in-process).
+    const features = getFeatureToggles(await this.settingsRepo.get(userId));
+    if ((target === 'flashcards' && !features.flashcards) || (target === 'quiz' && !features.quiz)) {
+      throw new BadRequestException(`${target} are disabled in settings`);
+    }
+    if (target === 'all' && !features.flashcards && !features.quiz) {
+      throw new BadRequestException('flashcards and quiz are disabled in settings');
+    }
     const safeId = basename(id);
     const file = await this.noteRepo.findById(userId, safeId);
     if (!file) throw new NotFoundException('note not found');

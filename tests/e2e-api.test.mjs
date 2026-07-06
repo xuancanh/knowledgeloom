@@ -393,6 +393,38 @@ maybe('marketplace: publish → browse → import clones notes with seeded deck 
   assert.ok(!gone.listings.some((l) => l.id === listingId));
 });
 
+// ── feature toggles ───────────────────────────────────────────────────────────
+
+maybe('settings: disabling a learning feature empties it from state and gates regen', async () => {
+  // A user flashcard exists (created in the exam-plan test); prove it's visible.
+  const { json: before } = await get('/api/knowledge');
+  assert.ok(before.flashcards.length >= 1, 'baseline: flashcards present');
+  const quizBefore = before.quizQuestions.length;
+
+  // Disable flashcards only. The next rebuild (triggered by a note write)
+  // must drop them from state while quiz is untouched.
+  assert.equal((await patch('/api/settings', { features: { flashcards: false } })).status, 200);
+  const { json: created } = await post('/api/learn', {
+    mode: 'write', title: 'Toggle Probe', body: '# Probe\n\nContent for the toggle test.',
+    category: 'Testing/Toggles', summary: '', tags: [],
+  });
+  assert.deepEqual(created.state.flashcards, [], 'flashcards gone from rebuilt state');
+  assert.equal(created.state.quizQuestions.length, quizBefore, 'quiz unaffected');
+
+  // Regeneration for the disabled feature is rejected outright.
+  const regen = await post(`/api/notes/${created.note.id}/regenerate`, { target: 'flashcards' });
+  assert.equal(regen.status, 400);
+  assert.match(regen.json.error, /disabled in settings/);
+
+  // Re-enable: cached/user material returns on the next rebuild — nothing was lost.
+  assert.equal((await patch('/api/settings', { features: { flashcards: true } })).status, 200);
+  const { json: after } = await post('/api/learn', {
+    mode: 'write', title: 'Toggle Probe Two', body: '# Probe 2\n\nMore content here.',
+    category: 'Testing/Toggles', summary: '', tags: [],
+  });
+  assert.ok(after.state.flashcards.length >= 1, 'flashcards restored after re-enabling');
+});
+
 // ── learn progress ────────────────────────────────────────────────────────────
 
 maybe('learn progress: award accumulates XP and starts a streak', async () => {

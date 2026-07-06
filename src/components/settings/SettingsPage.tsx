@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { patchSettings } from '../../api';
+import { getFeatures, DEFAULT_FEATURES, FEATURE_LABELS, type FeatureToggles } from '../../lib/features';
 import {
   addTemplate,
   deleteTemplate,
@@ -151,6 +153,55 @@ function TemplateEditor({
   );
 }
 
+// ── Feature toggles ───────────────────────────────────────────────────────────
+
+function FeatureTogglesSection({ userSettings }: { userSettings?: Record<string, unknown> }) {
+  const [local, setLocal] = useState<FeatureToggles>(() => getFeatures(userSettings));
+  const [saving, setSaving] = useState(false);
+
+  // Follow externally-refreshed settings (the knowledge poll) unless mid-save.
+  useEffect(() => {
+    if (!saving) setLocal(getFeatures(userSettings));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify((userSettings as any)?.features ?? {})]);
+
+  const toggle = async (key: keyof FeatureToggles) => {
+    const next = { ...local, [key]: !local[key] };
+    setLocal(next);
+    setSaving(true);
+    try {
+      await patchSettings({ features: next });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {(Object.keys(DEFAULT_FEATURES) as (keyof FeatureToggles)[]).map((key) => (
+        <label
+          key={key}
+          style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}
+        >
+          <input
+            type="checkbox"
+            checked={local[key]}
+            onChange={() => void toggle(key)}
+            style={{ marginTop: 3 }}
+          />
+          <span>
+            <strong>{FEATURE_LABELS[key].label}</strong>
+            <br />
+            <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft, #777)' }}>
+              {FEATURE_LABELS[key].description}
+            </span>
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 // ── Web clipper bookmarklet ───────────────────────────────────────────────────
 
 function ClipperBookmarklet() {
@@ -194,9 +245,11 @@ type FilterMode = GuidanceMode | 'all';
 export default function SettingsPage({
   templates,
   onTemplatesChange,
+  userSettings,
 }: {
   templates: GuidanceTemplate[];
   onTemplatesChange: (updated: GuidanceTemplate[]) => void;
+  userSettings?: Record<string, unknown>;
 }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<FilterMode>('all');
@@ -271,6 +324,21 @@ export default function SettingsPage({
           </div>
         </div>
         <LanguageSwitcher />
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>Features</h2>
+            <p className={styles.sectionDesc}>
+              Turn off the learning features you don't use. Disabled features disappear
+              from navigation, and turning off flashcards or quizzes also stops their AI
+              generation for new notes (existing material is kept and comes back if you
+              re-enable).
+            </p>
+          </div>
+        </div>
+        <FeatureTogglesSection userSettings={userSettings} />
       </section>
 
       <section className={styles.section}>

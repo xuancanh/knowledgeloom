@@ -25,6 +25,7 @@ import ImportPage from './components/import/ImportPage';
 import SharePage from './components/share/SharePage';
 import MarketplacePage from './components/marketplace/MarketplacePage';
 import { ee } from './lib/ee';
+import { getFeatures } from './lib/features';
 
 // Extensions-only pages come from the extensions registry; in OSS builds these are
 // undefined and the app boots straight into local mode at /home.
@@ -71,6 +72,10 @@ function AuthenticatedApp() {
     handleDeleteReminder,
   } = useKnowledge();
 
+  // Granular feature toggles (Settings → Features). Disabled features are
+  // hidden from navigation and their routes bounce back to the desk.
+  const features = getFeatures(state.userSettings);
+
   return (
     <div className={`app${(showContextPanel && !isGraph && !isLearn) ? '' : ' no-right'}${compactMode ? ' dense' : ''}`}>
 
@@ -97,6 +102,7 @@ function AuthenticatedApp() {
         onImport={openImport}
         onMarketplace={openMarketplace}
         onSettings={openSettings}
+        features={features}
         openCategory={openCategory}
         openTag={openTag}
         closeRail={() => setRailOpen(false)}
@@ -177,6 +183,7 @@ function AuthenticatedApp() {
               <ActivityPage jobs={jobs} onOpenNote={openNote} />
             } />
             <Route path="/flashcards/*" element={
+              !features.flashcards ? <Navigate to="/home" replace /> :
               <FlashcardsRoute
                 flashcards={state.flashcards || []}
                 notes={state.notes}
@@ -187,6 +194,7 @@ function AuthenticatedApp() {
               />
             } />
             <Route path="/quiz/*" element={
+              !features.quiz ? <Navigate to="/home" replace /> :
               <QuizRoute
                 questions={state.quizQuestions || []}
                 categories={categories}
@@ -267,6 +275,7 @@ function AuthenticatedApp() {
               />
             } />
             <Route path="/learn" element={
+              !features.learn ? <Navigate to="/home" replace /> :
               <LearnPage
                 notes={state.notes}
                 categories={categories}
@@ -274,17 +283,19 @@ function AuthenticatedApp() {
               />
             } />
             <Route path="/today" element={
+              !features.today ? <Navigate to="/home" replace /> :
               <TodayPage onOpenNote={openNote} />
             } />
             <Route path="/import" element={
               <ImportPage onOpenNote={openNote} />
             } />
             <Route path="/marketplace" element={
+              !features.marketplace ? <Navigate to="/home" replace /> :
               <MarketplacePage onOpenNote={openNote} />
             } />
             <Route path="/clip" element={<ClipRoute />} />
             <Route path="/settings" element={
-              <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
+              <SettingsPage templates={templates} onTemplatesChange={setTemplates} userSettings={state.userSettings} />
             } />
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/login" element={<Navigate to="/home" replace />} />
@@ -304,7 +315,7 @@ function AuthenticatedApp() {
         onOpen={openNote}
       />
 
-      <ChatPanel notes={state.notes} categories={categories} />
+      {features.chat && <ChatPanel notes={state.notes} categories={categories} />}
 
       <div className="toast-stack" role="status" aria-live="polite">
         {toasts.map((toast) => (
