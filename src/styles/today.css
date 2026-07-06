@@ -1,0 +1,219 @@
+/* Today study queue */
+
+.today-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.today-head h1 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+}
+
+.today-counts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.today-chip {
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line, #ccc);
+  color: var(--ink-soft, #666);
+}
+
+.today-progress {
+  margin-top: 12px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line, #e3e3e3);
+  overflow: hidden;
+}
+
+.today-progress-fill {
+  height: 100%;
+  background: var(--accent, #7c5cff);
+  transition: width 0.25s ease;
+}
+
+.today-zone-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft, #888);
+  margin-bottom: 8px;
+}
+
+.today-card {
+  border: 1px solid var(--line, #ddd);
+  border-radius: 14px;
+  padding: 28px 24px;
+  background: var(--panel, #fff);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 180px;
+}
+
+.today-card.static { cursor: default; }
+
+.today-card-prompt {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.today-card-lesson,
+.today-answer {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--ink, #222);
+  border-top: 1px dashed var(--line, #ddd);
+  padding-top: 12px;
+}
+
+.today-card-hint {
+  color: var(--ink-soft, #999);
+  font-size: 0.85rem;
+}
+
+.today-note-ref {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--accent, #7c5cff);
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.today-rate-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.today-rate {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--line, #ddd);
+  background: var(--panel, #fff);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.today-rate.again { color: #c0392b; }
+.today-rate.hard { color: #b9770e; }
+.today-rate.good { color: #1e8449; }
+.today-rate:hover { border-color: currentColor; }
+
+.today-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.today-choice {
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line, #ddd);
+  background: var(--panel, #fff);
+  cursor: pointer;
+}
+
+.today-choice.picked { border-color: var(--accent, #7c5cff); }
+.today-choice.correct { border-color: #1e8449; background: rgba(30, 132, 73, 0.08); }
+.today-choice.wrong { border-color: #c0392b; background: rgba(192, 57, 43, 0.08); }
+
+.today-quiz-actions { margin-top: 8px; }
+
+.today-explain {
+  font-size: 0.85rem;
+  color: var(--ink-soft, #666);
+  margin: 8px 0;
+}
+
+.today-btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--accent, #7c5cff);
+  color: var(--accent, #7c5cff);
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.today-done {
+  text-align: center;
+  padding: 48px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.today-done-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: #1e8449;
+  border: 2px solid #1e8449;
+}
+
+.today-empty {
+  text-align: center;
+  color: var(--ink-soft, #888);
+  padding: 48px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.today-reminders h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.today-reminder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line, #eee);
+}
+
+.today-reminder-check {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--accent, #7c5cff);
+}
+
+.today-reminder-body {
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.today-reminder-msg { font-size: 0.92rem; color: var(--ink, #222); }
+.today-reminder-when { font-size: 0.75rem; color: var(--ink-soft, #999); }

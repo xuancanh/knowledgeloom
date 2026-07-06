@@ -19,6 +19,7 @@ import ContextPanel from './components/ContextPanel';
 import { ChatPanel } from './components/chat/ChatPanel';
 import GraphPage from './components/graph/GraphPage';
 import LearnPage from './components/learn/LearnPage';
+import TodayPage from './components/study/TodayPage';
 import { ee } from './lib/ee';
 
 // Extensions-only pages come from the extensions registry; in OSS builds these are
@@ -57,7 +58,7 @@ function AuthenticatedApp() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn,
+    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday,
     graphAddLink, graphRemoveLink, graphCreateNote, graphDeleteNote, graphRenameNote, graphSetCategory,
     handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
@@ -86,6 +87,7 @@ function AuthenticatedApp() {
         onQuiz={openQuiz}
         onGraph={openGraph}
         onLearn={openLearn}
+        onToday={openToday}
         onSettings={openSettings}
         openCategory={openCategory}
         openTag={openTag}
@@ -262,6 +264,9 @@ function AuthenticatedApp() {
                 categories={categories}
                 onExit={goHome}
               />
+            } />
+            <Route path="/today" element={
+              <TodayPage onOpenNote={openNote} />
             } />
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
