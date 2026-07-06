@@ -29,3 +29,7 @@ server/src/extensions/
 knowledge/ee.sqlite
 knowledge/ee.sqlite-shm
 knowledge/ee.sqlite-wal
+
+# Agent/session state and internal design sources — never in the public tree
+.omo/
+design/
