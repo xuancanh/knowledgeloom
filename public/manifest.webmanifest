@@ -1,0 +1,14 @@
+{
+  "name": "Knowledge Loom",
+  "short_name": "Loom",
+  "description": "A second brain that makes you learn — notes, flashcards, quizzes, and spaced repetition.",
+  "start_url": "/today",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1b1728",
+  "theme_color": "#4b3f8f",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

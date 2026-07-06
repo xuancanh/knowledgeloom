@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#4b3f8f"/>
+  <!-- loom threads -->
+  <g stroke="#f5f2ff" stroke-width="28" stroke-linecap="round">
+    <line x1="140" y1="120" x2="140" y2="392"/>
+    <line x1="256" y1="120" x2="256" y2="392"/>
+    <line x1="372" y1="120" x2="372" y2="392"/>
+  </g>
+  <g stroke="#c9b8ff" stroke-width="28" stroke-linecap="round">
+    <path d="M96 200 Q 256 260 416 200" fill="none"/>
+    <path d="M96 312 Q 256 252 416 312" fill="none"/>
+  </g>
+</svg>
