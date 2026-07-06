@@ -18,6 +18,10 @@ export interface FlashcardReview {
   nextReviewAt: string | null;
   lastReviewAt: string | null;
   lastRating: string | null;
+  /** FSRS memory state; null on legacy rows until their next review. */
+  stability: number | null;
+  difficulty: number | null;
+  lapses: number;
 }
 
 @Injectable()
@@ -46,9 +50,36 @@ export class FlashcardReviewsRepository {
         nextReviewAt: row.nextReviewAt ?? null,
         lastReviewAt: row.lastReviewAt ?? null,
         lastRating: row.lastRating ?? null,
+        stability: row.stability != null ? parseFloat(row.stability) : null,
+        difficulty: row.difficulty != null ? parseFloat(row.difficulty) : null,
+        lapses: row.lapses ?? 0,
       });
     }
     return map;
+  }
+
+  async find(userId: string, cardId: string): Promise<FlashcardReview | null> {
+    if (this.config.get<boolean>('readOnly') || !this.db) return null;
+    const row = await this.db
+      .select()
+      .from(this.table)
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId)))
+      .get();
+    if (!row) return null;
+    return {
+      cardId: row.cardId,
+      noteId: row.noteId,
+      isUserCard: row.isUserCard === 1 || row.isUserCard === true,
+      easeFactor: row.easeFactor,
+      interval: row.interval,
+      repetitions: row.repetitions,
+      nextReviewAt: row.nextReviewAt ?? null,
+      lastReviewAt: row.lastReviewAt ?? null,
+      lastRating: row.lastRating ?? null,
+      stability: row.stability != null ? parseFloat(row.stability) : null,
+      difficulty: row.difficulty != null ? parseFloat(row.difficulty) : null,
+      lapses: row.lapses ?? 0,
+    };
   }
 
   async upsert(userId: string, review: {
@@ -61,8 +92,16 @@ export class FlashcardReviewsRepository {
     nextReviewAt: string | null;
     lastReviewAt: string;
     lastRating: string;
+    stability?: number | null;
+    difficulty?: number | null;
+    lapses?: number;
   }): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
+    const fsrsFields = {
+      stability: review.stability != null ? review.stability.toFixed(4) : null,
+      difficulty: review.difficulty != null ? review.difficulty.toFixed(4) : null,
+      lapses: review.lapses ?? 0,
+    };
     const existing = await this.db
       .select()
       .from(this.table)
@@ -78,6 +117,7 @@ export class FlashcardReviewsRepository {
           nextReviewAt: review.nextReviewAt,
           lastReviewAt: review.lastReviewAt,
           lastRating: review.lastRating,
+          ...fsrsFields,
         })
         .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId)))
         .run();
@@ -95,6 +135,7 @@ export class FlashcardReviewsRepository {
           nextReviewAt: review.nextReviewAt,
           lastReviewAt: review.lastReviewAt,
           lastRating: review.lastRating,
+          ...fsrsFields,
         })
         .run();
     }

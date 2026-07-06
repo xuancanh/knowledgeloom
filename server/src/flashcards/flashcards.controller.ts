@@ -9,6 +9,7 @@
  */
 import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
 import { FlashcardsService } from './flashcards.service';
+import { fsrsReview, seedFromLegacy, elapsedDaysBetween, type FsrsGrade } from '../scheduling/fsrs';
 import { UserFlashcardsRepository } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import { FlashcardReviewsRepository } from './flashcard-reviews.repository';
@@ -59,7 +60,31 @@ export class FlashcardsController {
     @Param('id') cardId: string,
     @Body() body: { rating: 'again' | 'hard' | 'good'; noteId: string; isUserCard?: boolean },
   ) {
-    const review = this.flashcardsService.computeReview(body.rating);
+    // FSRS scheduling. Prior state is loaded server-side (the old code always
+    // scheduled from scratch, so intervals never grew); legacy SM-2 rows are
+    // seeded from their interval/ease on first FSRS review.
+    const existing = await this.reviewsRepo.find(userId, cardId);
+    const priorState = existing?.stability != null && existing?.difficulty != null
+      ? { stability: existing.stability, difficulty: existing.difficulty, reps: existing.repetitions, lapses: existing.lapses }
+      : existing
+        ? seedFromLegacy(existing.interval, parseFloat(existing.easeFactor), existing.repetitions)
+        : null;
+
+    const grade: FsrsGrade = body.rating === 'again' ? 1 : body.rating === 'hard' ? 2 : 3;
+    const elapsed = elapsedDaysBetween(existing?.lastReviewAt);
+    const outcome = fsrsReview(priorState, grade, elapsed);
+
+    const review = {
+      // legacy field names kept for the UI; easeFactor now carries difficulty
+      easeFactor: outcome.state.difficulty.toFixed(2),
+      interval: outcome.intervalDays,
+      repetitions: outcome.state.reps,
+      nextReviewAt: outcome.nextReviewAt,
+      stability: Number(outcome.state.stability.toFixed(2)),
+      difficulty: Number(outcome.state.difficulty.toFixed(2)),
+      lapses: outcome.state.lapses,
+      algorithm: 'fsrs-4.5',
+    };
     await this.reviewsRepo.upsert(userId, {
       cardId,
       noteId: body.noteId,
@@ -70,6 +95,9 @@ export class FlashcardsController {
       nextReviewAt: review.nextReviewAt,
       lastReviewAt: new Date().toISOString(),
       lastRating: body.rating,
+      stability: outcome.state.stability,
+      difficulty: outcome.state.difficulty,
+      lapses: outcome.state.lapses,
     });
     return { review };
   }
