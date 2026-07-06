@@ -38,6 +38,10 @@ export interface RagRequest {
 const CONTEXT_CHAR_LIMIT = 16_000;
 /** Max notes to include in context. */
 const MAX_CONTEXT_NOTES = 12;
+/** Max conversation turns forwarded to the provider. */
+const MAX_HISTORY_MESSAGES = 12;
+/** Floor for the per-note body slice so late notes still contribute substance. */
+const MIN_BODY_CHARS = 800;
 
 @Injectable()
 export class RagService {
@@ -49,12 +53,33 @@ export class RagService {
 
   async *stream(userId: string, req: RagRequest): AsyncGenerator<string> {
     const notes = await this.retrieveNotes(userId, req);
-    const messages = this.buildMessages(req, notes);
+    const enriched = await this.enrichForContext(userId, notes);
+    const messages = this.buildMessages(req, enriched);
     yield* this.ai.completeStream(messages);
   }
 
+  /**
+   * Replaces each retrieved note's one-line summary with its markdown body
+   * (truncated to a fair share of the context budget). Without this the model
+   * only ever saw titles and summaries and could not actually answer from the
+   * notes' content.
+   */
+  private async enrichForContext(userId: string, notes: KnowledgeNote[]): Promise<KnowledgeNote[]> {
+    const picked = notes.slice(0, MAX_CONTEXT_NOTES);
+    if (!picked.length) return picked;
+    const perNote = Math.max(MIN_BODY_CHARS, Math.floor(CONTEXT_CHAR_LIMIT / picked.length));
+    return Promise.all(
+      picked.map(async (note) => {
+        const full = await this.enrichNoteContext(userId, note);
+        const body = (full.summary || note.summary || '').trim();
+        return { ...note, summary: body.slice(0, perNote) };
+      }),
+    );
+  }
+
   private async retrieveNotes(userId: string, req: RagRequest): Promise<KnowledgeNote[]> {
-    const { scope, question } = req;
+    const scope: RagScope = req.scope && typeof req.scope === 'object' ? req.scope : { type: 'all' };
+    const question = String(req.question || '');
 
     if (scope.type === 'note') {
       try {
@@ -105,7 +130,7 @@ export class RagService {
 
   private buildMessages(req: RagRequest, notes: KnowledgeNote[]): AiMessage[] {
     const contextBlock = this.buildContextBlock(notes);
-    const scopeDesc = this.scopeDescription(req.scope);
+    const scopeDesc = this.scopeDescription(req.scope && typeof req.scope === 'object' ? req.scope : { type: 'all' });
 
     const system: AiMessage = {
       role: 'system',
@@ -122,10 +147,9 @@ Guidelines:
 - If the user asks to find or list notes, reference them by their exact titles.`,
     };
 
-    const history: AiMessage[] = req.history.map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    const history: AiMessage[] = (Array.isArray(req.history) ? req.history : [])
+      .slice(-MAX_HISTORY_MESSAGES)
+      .map((m) => ({ role: m.role, content: m.content }));
 
     return [system, ...history, { role: 'user', content: req.question }];
   }

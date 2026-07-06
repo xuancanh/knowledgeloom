@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { QuizCacheRepository } from './quiz-cache.repository';
 import { QuizReviewsRepository, type QuizReview } from './quiz-reviews.repository';
@@ -15,6 +15,8 @@ const SIZE_RANGE: Record<GenSize, { min: number; max: number; cap: number }> = {
 
 @Injectable()
 export class QuizService {
+  private readonly logger = new Logger(QuizService.name);
+
   constructor(
     @Inject(AI_PROVIDER) private readonly ai: AiProvider,
     private readonly cacheRepo: QuizCacheRepository,
@@ -78,6 +80,7 @@ export class QuizService {
             const questions = this.normalize(note, this.parseJson(output), size);
             nextNotes[note.id] = { hash: this.noteHash(note, markdown), questions, generatedAt: new Date().toISOString() };
           } catch (err) {
+            this.logger.warn(`quiz generation failed for ${note.id}: ${(err as Error).message}`);
             if (cache[note.id]) nextNotes[note.id] = cache[note.id];
           }
         }),
@@ -120,6 +123,16 @@ export class QuizService {
     const validTypes = new Set(['fill-blank', 'multiple-choice', 'short-answer']);
     const results: QuizQuestion[] = [];
 
+    // Content-derived ids: regenerating an unchanged question preserves its id
+    // and therefore the user's streak/review schedule (random ids reset both).
+    const seen = new Map<string, number>();
+    const stableId = (question: string) => {
+      const base = `quiz-${note.id}-${createHash('sha1').update(question).digest('hex').slice(0, 10)}`;
+      const n = (seen.get(base) ?? 0) + 1;
+      seen.set(base, n);
+      return n === 1 ? base : `${base}-${n}`;
+    };
+
     for (const q of rawQuestions) {
       const type = String(q.type || '').trim().toLowerCase();
       if (!validTypes.has(type)) continue;
@@ -129,7 +142,7 @@ export class QuizService {
       if (!question || !answer) continue;
 
       const base = {
-        id: `quiz-${note.id}-${randomUUID()}`,
+        id: stableId(question),
         noteId: note.id,
         noteTitle: note.title,
         category: note.category,

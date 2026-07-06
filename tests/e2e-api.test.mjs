@@ -174,8 +174,7 @@ maybe('knowledge: state includes notes and categories', async () => {
 maybe('search: finds notes with the in-memory fallback engine', async () => {
   const { status, json } = await get('/api/search?q=updated');
   assert.equal(status, 200);
-  // Note: the controller labels every successful search 'meilisearch' even
-  // when the in-memory provider served it — cosmetic bug, hits are what matter.
+  assert.equal(json.engine, 'inmemory');
   assert.ok(json.hits.length > 0);
 });
 

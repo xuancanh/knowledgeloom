@@ -31,7 +31,7 @@ export class SearchController {
   ) {
     try {
       const hits = await this.searchService.search(userId, q, category);
-      return { engine: 'meilisearch', hits };
+      return { engine: this.searchService.engineName(), hits };
     } catch (err: any) {
       // Graceful fallback: in-memory substring search over the current index.
       const state = await this.knowledgeService.rebuildIndexes(userId);
