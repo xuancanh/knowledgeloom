@@ -284,6 +284,25 @@ export async function* streamRagAnswer(
   }
 }
 
+/* ── Study queue ── */
+
+export type StudyQueue = {
+  flashcards: import('./types').Flashcard[];
+  quiz: import('./types').QuizQuestion[];
+  reminders: Reminder[];
+  counts: {
+    flashcards: number; dueFlashcards: number; newFlashcards: number;
+    quiz: number; dueQuiz: number; newQuiz: number; reminders: number;
+  };
+  generatedAt: string;
+};
+
+export async function fetchStudyToday(): Promise<StudyQueue> {
+  const response = await apiFetch('/api/study/today');
+  if (!response.ok) throw new Error(`Failed to load study queue: ${response.status}`);
+  return response.json();
+}
+
 /* ── Learn progress ── */
 
 export type LearnProgressDto = {

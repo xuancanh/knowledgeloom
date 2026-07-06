@@ -79,6 +79,7 @@ export default function Rail({
   onQuiz,
   onGraph,
   onLearn,
+  onToday,
   onSettings,
   openCategory,
   openTag,
@@ -104,6 +105,7 @@ export default function Rail({
   onQuiz: () => void;
   onGraph: () => void;
   onLearn: () => void;
+  onToday: () => void;
   onSettings: () => void;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
@@ -122,6 +124,7 @@ export default function Rail({
   const isSettings = path === '/settings';
   const isGraph = path === '/graph';
   const isLearn = path === '/learn';
+  const isToday = path === '/today';
   const activeCategoryId = path.startsWith('/categories/')
     ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
     : null;
@@ -178,6 +181,9 @@ export default function Rail({
           >
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> {t('nav.activity')}
             <span className="count">{inFlightCount}</span>
+          </button>
+          <button className={`nav-item${isToday ? ' active' : ''}`} onClick={() => { onToday(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>☀</span> Today
           </button>
           <button className={`nav-item${isFlashcards ? ' active' : ''}`} onClick={() => { onFlashcards(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>▧</span> {t('nav.flashcards')}
