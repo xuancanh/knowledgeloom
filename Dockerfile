@@ -3,7 +3,7 @@
 # NestJS API only. See docs/DEPLOYMENT.md.
 
 # ── build stage ───────────────────────────────────────────────────────────────
-FROM node:22-slim AS build
+FROM node:26-slim AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -19,7 +19,7 @@ RUN npm run server:build
 RUN npm ci --omit=dev
 
 # ── runtime stage ─────────────────────────────────────────────────────────────
-FROM node:22-slim
+FROM node:26-slim
 ENV NODE_ENV=production
 WORKDIR /app
 
