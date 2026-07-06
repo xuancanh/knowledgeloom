@@ -8,6 +8,9 @@ permissions:
 
 jobs:
   dependency-review:
+    # Dependency graph on private repos requires GitHub Advanced Security;
+    # this activates automatically once the repo is public (planned: AGPL core).
+    if: github.event.repository.private == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
