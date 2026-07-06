@@ -314,6 +314,25 @@ maybe('shares: create → public read (no auth) → revoke → 404', async () =>
   assert.equal((await post('/api/shares', { noteId: 'no-such-note' })).status, 404);
 });
 
+maybe('shares: category collection share is public and revocable', async () => {
+  const { status, json: share } = await post('/api/shares', { category: 'Testing/E2E' });
+  assert.equal(status, 201, JSON.stringify(share));
+  assert.equal(share.kind, 'category');
+
+  const pub = await get(`/api/shares/${share.id}/public`);
+  assert.equal(pub.status, 200);
+  assert.equal(pub.json.kind, 'category');
+  assert.equal(pub.json.collection.name, 'Testing/E2E');
+  assert.ok(pub.json.notes.length >= 1);
+  assert.ok(pub.json.notes.some((n) => n.title === 'Updated E2E Note'));
+  assert.ok(pub.json.notes.every((n) => typeof n.body === 'string'));
+
+  // Unknown category is rejected; revocation still works.
+  assert.equal((await post('/api/shares', { category: 'No/Such/Category' })).status, 404);
+  assert.equal((await del(`/api/shares/${share.id}`)).status, 200);
+  assert.equal((await get(`/api/shares/${share.id}/public`)).status, 404);
+});
+
 // ── learn progress ────────────────────────────────────────────────────────────
 
 maybe('learn progress: award accumulates XP and starts a streak', async () => {

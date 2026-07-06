@@ -256,7 +256,7 @@ export default function NoteDetail({
             onClick={async () => {
               setShareState('working');
               try {
-                const share = await createShare(note.id);
+                const share = await createShare({ noteId: note.id });
                 const url = `${window.location.origin}${share.url}`;
                 await navigator.clipboard.writeText(url).catch(() => {});
                 setShareState('copied');

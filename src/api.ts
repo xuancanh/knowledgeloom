@@ -382,11 +382,11 @@ export async function importSource(input: {
 
 /* ── Share links ── */
 
-export async function createShare(noteId: string): Promise<{ id: string; url: string; noteId: string }> {
+export async function createShare(target: { noteId: string } | { category: string }): Promise<{ id: string; url: string; kind: 'note' | 'category'; target: string }> {
   const response = await apiFetch('/api/shares', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ noteId }),
+    body: JSON.stringify(target),
   });
   if (!response.ok) throw new Error(`Failed to create share link: ${response.status}`);
   return response.json();
@@ -397,10 +397,15 @@ export async function revokeShare(id: string): Promise<void> {
   if (!response.ok) throw new Error(`Failed to revoke share: ${response.status}`);
 }
 
+export type SharedNote = { title: string; category: string; summary: string; tags: string[]; body: string; createdAt: string };
+
 export type PublicShare = {
-  note: { title: string; category: string; summary: string; tags: string[]; body: string; createdAt: string };
-  flashcards: { prompt: string; lesson: string; kind: string }[];
-  quiz: { type: string; question: string; answer: string; choices?: string[]; correctIndex?: number; explanation?: string }[];
+  kind: 'note' | 'category';
+  note?: SharedNote;
+  collection?: { name: string; noteCount: number };
+  notes?: SharedNote[];
+  flashcards: { prompt: string; lesson: string; kind: string; noteTitle?: string }[];
+  quiz: { type: string; question: string; answer: string; choices?: string[]; correctIndex?: number; explanation?: string; noteTitle?: string }[];
   sharedAt: string;
 };
 

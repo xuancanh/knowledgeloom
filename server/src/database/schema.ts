@@ -271,7 +271,9 @@ export const pgReviewEvents = pgTable('review_events', {
 export const sqliteShares = sqliteTable('shares', {
   id: sqliteText('id').primaryKey(),
   userId: sqliteText('userId').notNull().default(''),
+  // Target: a note id (kind='note') or a category path (kind='category').
   noteId: sqliteText('noteId').notNull(),
+  kind: sqliteText('kind').notNull().default('note'),
   createdAt: sqliteText('createdAt').notNull(),
   revokedAt: sqliteText('revokedAt'),
 });
@@ -280,6 +282,7 @@ export const pgShares = pgTable('shares', {
   id: pgText('id').primaryKey(),
   userId: pgText('userId').notNull().default(''),
   noteId: pgText('noteId').notNull(),
+  kind: pgText('kind').notNull().default('note'),
   createdAt: pgText('createdAt').notNull(),
   revokedAt: pgText('revokedAt'),
 });
