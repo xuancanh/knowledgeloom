@@ -31,20 +31,6 @@ function detectScope(
   return { type: 'all' };
 }
 
-function scopeLabel(scope: RagScope, notes: KnowledgeNote[], categories: KnowledgeCategory[]): string {
-  if (scope.type === 'all') return 'All notes';
-  if (scope.type === 'note') {
-    const note = notes.find((n) => n.id === scope.id);
-    return note ? note.title : 'This note';
-  }
-  if (scope.type === 'category') {
-    const cat = categories.find((c) => c.slug === scope.path || c.name === scope.path);
-    return cat?.name || scope.path;
-  }
-  if (scope.type === 'tag') return `#${scope.tag}`;
-  return 'All notes';
-}
-
 function isSameScope(a: RagScope, b: RagScope): boolean {
   if (a.type !== b.type) return false;
   if (a.type === 'note' && b.type === 'note') return a.id === b.id;
@@ -113,7 +99,8 @@ export function ChatPanel({ notes, categories }: Props) {
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        streaming ? abort() : handleSend();
+        if (streaming) abort();
+        else handleSend();
       }
       if (e.key === 'Escape') setOpen(false);
     },

@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { FlashcardCacheRepository } from './flashcard-cache.repository';
 import { FlashcardReviewsRepository, type FlashcardReview } from './flashcard-reviews.repository';
-import { UserFlashcardsRepository, type UserFlashcardRow } from './user-flashcards.repository';
+import { UserFlashcardsRepository } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import type { GenSize, KnowledgeNote, NoteSource, Flashcard } from '../types';
 
@@ -106,7 +106,6 @@ export class FlashcardsService {
     allCards: Flashcard[];
     reviews: Map<string, FlashcardReview>;
   }> {
-    const noteIds = new Set(noteSources.map(({ note }) => note.id));
     const aiCards = await this.sync(userId, noteSources);
     const userCards = await this.userFlashcardsRepo.loadAll(userId);
     const hidden = await this.hiddenFlashcardsRepo.loadAll(userId);

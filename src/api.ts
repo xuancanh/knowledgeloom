@@ -3,7 +3,7 @@
  * Every exported function corresponds to one backend endpoint.
  * Error handling: throws on non-2xx responses with status code in message.
  */
-import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope, ChatMessage } from './types';
+import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope } from './types';
 import { ee } from './lib/ee';
 
 /** Returns auth headers from the EE auth adapter, or {} in local mode. */

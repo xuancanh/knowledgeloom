@@ -135,7 +135,7 @@ export class MeilisearchProvider implements SearchProvider {
     });
 
     const documents = await Promise.all(notes.map((n) => this.buildDocument(userId, n)));
-    let manifest = await this.loadManifest(userId);
+    const manifest = await this.loadManifest(userId);
 
     // Bootstrap: if local manifest is empty, seed from remote ids.
     if (!Object.keys(manifest).length) {

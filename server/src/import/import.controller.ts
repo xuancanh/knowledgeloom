@@ -59,8 +59,8 @@ export class ImportController {
     const category = typeof body?.category === 'string' ? body.category.trim() : '';
     const tags = this.parseTags(body?.tags);
 
-    let text = '';
-    let sourceName = '';
+    let text: string;
+    let sourceName: string;
     let sourceKind: 'text' | 'pdf' | 'audio' | 'image' = 'text';
 
     if (file) {
@@ -99,6 +99,7 @@ export class ImportController {
       throw new BadRequestException('provide a file upload or a "text" field');
     }
 
+    // eslint-disable-next-line no-control-regex -- NULs break sqlite/pg text columns
     text = text.replace(/\u0000/g, '').trim();
     if (text.length < 40) {
       throw new BadRequestException('could not extract enough text from the source (got fewer than 40 characters)');

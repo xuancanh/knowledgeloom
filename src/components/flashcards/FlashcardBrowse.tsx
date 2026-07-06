@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Flashcard, KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
@@ -291,7 +291,7 @@ export function FlashcardBrowse({
           </div>
 
           <div className="fc-grid">
-            {kindFilteredCards.map((card, index) => {
+            {kindFilteredCards.map((card) => {
               const kc = KIND_COLOR[card.kind] || 'var(--accent)';
               const rating = ratings[card.id];
               const due = isCardDue(card);

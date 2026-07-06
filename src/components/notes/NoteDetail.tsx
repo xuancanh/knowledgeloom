@@ -25,7 +25,7 @@ export default function NoteDetail({
   onOpenCategory,
   onOpenTag,
   onDelete,
-  onAssist,
+  onAssist: _onAssist,
   onCreateReminder,
   onCompleteReminder,
   onDeleteReminder,

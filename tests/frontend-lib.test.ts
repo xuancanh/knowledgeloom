@@ -22,7 +22,6 @@ import {
   makeCategoryTree,
 } from '../src/lib/view';
 import {
-  loadTemplates,
   addTemplate,
   updateTemplate,
   deleteTemplate,

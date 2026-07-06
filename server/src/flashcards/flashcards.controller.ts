@@ -7,7 +7,7 @@
  *   PUT    /api/flashcards/:id         — update a user-authored flashcard
  *   DELETE /api/flashcards/:id         — hide + delete a flashcard
  */
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
 import { FlashcardsService } from './flashcards.service';
 import { fsrsReview, seedFromLegacy, elapsedDaysBetween, type FsrsGrade } from '../scheduling/fsrs';
 import { UserFlashcardsRepository } from './user-flashcards.repository';

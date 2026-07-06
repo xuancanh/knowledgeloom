@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { WritableGuard } from '../server/src/common/guards/writable.guard';
 
-function mockContext(readOnly: boolean): any {
+function mockContext(_readOnly: boolean): any {
   return {
     switchToHttp: () => ({
       getRequest: () => ({}),

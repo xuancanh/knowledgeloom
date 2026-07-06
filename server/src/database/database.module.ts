@@ -39,7 +39,7 @@ import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCA
  * A proper typed union would require extracting a shared interface from both
  * Drizzle drivers, which is a breaking change upstream.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export type DrizzleDb = any;
 
 const drizzleProvider = {

@@ -50,11 +50,11 @@ export function FlashcardsRoute({
     tags?: string[];
   }) => {
     const next = new URLSearchParams(searchParams);
-    if (updates.search !== undefined) updates.search ? next.set('search', updates.search) : next.delete('search');
-    if (updates.kind !== undefined) updates.kind ? next.set('kind', updates.kind) : next.delete('kind');
-    if (updates.rating !== undefined) updates.rating ? next.set('rating', updates.rating) : next.delete('rating');
-    if (updates.cats !== undefined) updates.cats.length ? next.set('cats', updates.cats.map(encodeURIComponent).join(',')) : next.delete('cats');
-    if (updates.tags !== undefined) updates.tags.length ? next.set('tags', updates.tags.map(encodeURIComponent).join(',')) : next.delete('tags');
+    if (updates.search !== undefined) { if (updates.search) next.set('search', updates.search); else next.delete('search'); }
+    if (updates.kind !== undefined) { if (updates.kind) next.set('kind', updates.kind); else next.delete('kind'); }
+    if (updates.rating !== undefined) { if (updates.rating) next.set('rating', updates.rating); else next.delete('rating'); }
+    if (updates.cats !== undefined) { if (updates.cats.length) next.set('cats', updates.cats.map(encodeURIComponent).join(',')); else next.delete('cats'); }
+    if (updates.tags !== undefined) { if (updates.tags.length) next.set('tags', updates.tags.map(encodeURIComponent).join(',')); else next.delete('tags'); }
     // Preserve existing category/tag params
     if (category) next.set('category', category);
     if (tag) next.set('tag', tag);

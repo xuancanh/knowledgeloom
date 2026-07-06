@@ -27,7 +27,6 @@ import {
   noteRelativePath,
   uniqueNoteSlug,
 } from '../common/note-parser.util';
-import type { KnowledgeNote } from '../types';
 
 @Injectable()
 export class NotesService {

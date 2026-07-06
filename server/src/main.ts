@@ -22,7 +22,6 @@ import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import type { Request, Response, NextFunction } from 'express';
 
 /** Converts any unhandled exception into the { error: message } JSON shape. */
 @Catch()
