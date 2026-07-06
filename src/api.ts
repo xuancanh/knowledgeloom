@@ -416,6 +416,66 @@ export async function fetchPublicShare(id: string): Promise<PublicShare> {
   return response.json();
 }
 
+/* ── Marketplace ── */
+
+export type MarketplaceListing = {
+  id: string;
+  title: string;
+  description: string;
+  kind: 'note' | 'category';
+  tags: string[];
+  author: string;
+  imports: number;
+  publishedAt: string;
+};
+
+export async function browseMarketplace(q = '', kind = ''): Promise<{ listings: MarketplaceListing[] }> {
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (kind) params.set('kind', kind);
+  const response = await fetch(`/api/marketplace?${params}`);
+  if (!response.ok) throw new Error(`Failed to browse marketplace: ${response.status}`);
+  return response.json();
+}
+
+export async function fetchMyListings(): Promise<{ listings: MarketplaceListing[] }> {
+  const response = await apiFetch('/api/marketplace/mine');
+  if (!response.ok) throw new Error(`Failed to load your listings: ${response.status}`);
+  return response.json();
+}
+
+export async function fetchMyShares(): Promise<{ shares: { id: string; noteId: string; kind: string; createdAt: string }[] }> {
+  const response = await apiFetch('/api/shares');
+  if (!response.ok) throw new Error(`Failed to load shares: ${response.status}`);
+  return response.json();
+}
+
+export async function publishListing(input: { shareId: string; title: string; description?: string; tags?: string[]; author?: string }): Promise<{ listing: MarketplaceListing }> {
+  const response = await apiFetch('/api/marketplace/publish', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    let detail = text;
+    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
+    throw new Error(detail || `Failed to publish: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function importListing(id: string): Promise<{ imported: { notes: string[]; flashcards: number; quiz: number } }> {
+  const response = await apiFetch(`/api/marketplace/${encodeURIComponent(id)}/import`, { method: 'POST' });
+  if (!response.ok) throw new Error(`Failed to import: ${response.status}`);
+  return response.json();
+}
+
+export async function unpublishListing(id: string): Promise<void> {
+  const response = await apiFetch(`/api/marketplace/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(`Failed to unpublish: ${response.status}`);
+}
+
 /* ── Podcast text-to-speech ── */
 
 export async function fetchTtsConfig(): Promise<{ enabled: boolean }> {

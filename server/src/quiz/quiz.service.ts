@@ -27,6 +27,15 @@ export class QuizService {
 
   // Review scheduling moved to ../scheduling/fsrs.ts (FSRS-4.5).
 
+  /** Seeds the quiz cache for a note with pre-made questions (marketplace imports). */
+  async seedCache(userId: string, note: KnowledgeNote, markdown: string, rawQuestions: any[]): Promise<number> {
+    const questions = this.normalize(note, rawQuestions, 'large');
+    const cache = await this.cacheRepo.load(userId);
+    cache[note.id] = { hash: this.noteHash(note, markdown), questions, generatedAt: new Date().toISOString() };
+    await this.cacheRepo.replace(userId, cache);
+    return questions.length;
+  }
+
   async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<QuizQuestion[]> {
     const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;

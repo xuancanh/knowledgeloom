@@ -333,6 +333,53 @@ maybe('shares: category collection share is public and revocable', async () => {
   assert.equal((await get(`/api/shares/${share.id}/public`)).status, 404);
 });
 
+// ── marketplace ───────────────────────────────────────────────────────────────
+
+maybe('marketplace: publish → browse → import clones notes with seeded deck → unpublish', async () => {
+  // Fresh source note + user card so the imported deck has content.
+  const { json: src } = await post('/api/learn', {
+    mode: 'write', title: 'Marketplace Source', body: '# Source\n\nSpacing beats cramming for retention over weeks.',
+    category: 'Published/Decks', summary: 'Deck source', tags: ['market'],
+  });
+  const srcId = src.note.id;
+
+  const { json: share } = await post('/api/shares', { noteId: srcId });
+
+  // Publish requires title; duplicate publish of the same share is rejected.
+  assert.equal((await post('/api/marketplace/publish', { shareId: share.id })).status, 400);
+  const { status: pubStatus, json: pub } = await post('/api/marketplace/publish', {
+    shareId: share.id, title: 'Spacing Effect Deck', description: 'Learn why spacing wins.',
+    tags: ['memory'], author: 'e2e',
+  });
+  assert.equal(pubStatus, 201, JSON.stringify(pub));
+  const listingId = pub.listing.id;
+  assert.equal((await post('/api/marketplace/publish', { shareId: share.id, title: 'again' })).status, 400);
+
+  // Public browse + search + detail.
+  const { json: browse } = await get('/api/marketplace?q=spacing');
+  assert.ok(browse.listings.some((l) => l.id === listingId));
+  const { json: detail } = await get(`/api/marketplace/${listingId}`);
+  assert.equal(detail.payload.note.title, 'Marketplace Source');
+  assert.equal(detail.shareUrl, `/share/${share.id}`);
+
+  // Import: the note is cloned under a new id and appears in the vault.
+  const { status: impStatus, json: imp } = await post(`/api/marketplace/${listingId}/import`);
+  assert.equal(impStatus, 200, JSON.stringify(imp.imported ?? imp));
+  assert.equal(imp.imported.notes.length, 1);
+  const cloneId = imp.imported.notes[0];
+  assert.notEqual(cloneId, srcId, 'clone gets its own id');
+  const { json: cloneMd } = await get(`/api/notes/${cloneId}`);
+  assert.match(cloneMd.markdown, /Spacing beats cramming/);
+
+  // Import count incremented; unpublish removes it from the gallery.
+  const { json: after } = await get(`/api/marketplace/${listingId}`);
+  assert.equal(after.listing.imports, 1);
+  assert.equal((await del(`/api/marketplace/${listingId}`)).status, 200);
+  assert.equal((await get(`/api/marketplace/${listingId}`)).status, 404);
+  const { json: gone } = await get('/api/marketplace?q=spacing');
+  assert.ok(!gone.listings.some((l) => l.id === listingId));
+});
+
 // ── learn progress ────────────────────────────────────────────────────────────
 
 maybe('learn progress: award accumulates XP and starts a streak', async () => {

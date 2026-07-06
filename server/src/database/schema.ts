@@ -287,6 +287,35 @@ export const pgShares = pgTable('shares', {
   revokedAt: pgText('revokedAt'),
 });
 
+/** Marketplace: published shares browseable and importable by anyone. */
+export const sqliteMarketplaceListings = sqliteTable('marketplace_listings', {
+  id: sqliteText('id').primaryKey(),
+  shareId: sqliteText('shareId').notNull(),
+  userId: sqliteText('userId').notNull().default(''),
+  title: sqliteText('title').notNull(),
+  description: sqliteText('description').notNull().default(''),
+  kind: sqliteText('kind').notNull().default('note'),
+  tags: sqliteText('tags').notNull().default('[]'),
+  author: sqliteText('author').notNull().default(''),
+  imports: sqliteInteger('imports').notNull().default(0),
+  publishedAt: sqliteText('publishedAt').notNull(),
+  unpublishedAt: sqliteText('unpublishedAt'),
+});
+
+export const pgMarketplaceListings = pgTable('marketplace_listings', {
+  id: pgText('id').primaryKey(),
+  shareId: pgText('shareId').notNull(),
+  userId: pgText('userId').notNull().default(''),
+  title: pgText('title').notNull(),
+  description: pgText('description').notNull().default(''),
+  kind: pgText('kind').notNull().default('note'),
+  tags: pgText('tags').notNull().default('[]'),
+  author: pgText('author').notNull().default(''),
+  imports: pgInteger('imports').notNull().default(0),
+  publishedAt: pgText('publishedAt').notNull(),
+  unpublishedAt: pgText('unpublishedAt'),
+});
+
 export const pgLearnProgress = pgTable('learn_progress', {
   userId: pgText('userId').primaryKey(),
   xp: pgInteger('xp').notNull().default(0),

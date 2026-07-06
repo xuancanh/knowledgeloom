@@ -26,7 +26,7 @@ import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
 import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
-import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE, LEARN_PROGRESS_TABLE, REVIEW_EVENTS_TABLE, SHARES_TABLE } from './database.constants';
+import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE, LEARN_PROGRESS_TABLE, REVIEW_EVENTS_TABLE, SHARES_TABLE, MARKETPLACE_LISTINGS_TABLE } from './database.constants';
 
 /**
  * Drizzle database instance covering both SQLite and PG backends.
@@ -198,6 +198,15 @@ const sharesTableProvider = {
   },
 };
 
+const marketplaceListingsTableProvider = {
+  provide: MARKETPLACE_LISTINGS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgMarketplaceListings : schema.sqliteMarketplaceListings;
+  },
+};
+
 @Global()
 @Module({
   providers: [
@@ -216,6 +225,7 @@ const sharesTableProvider = {
     learnProgressTableProvider,
     reviewEventsTableProvider,
     sharesTableProvider,
+    marketplaceListingsTableProvider,
   ],
   exports: [
     DRIZZLE_DB,
@@ -233,6 +243,7 @@ const sharesTableProvider = {
     LEARN_PROGRESS_TABLE,
     REVIEW_EVENTS_TABLE,
     SHARES_TABLE,
+    MARKETPLACE_LISTINGS_TABLE,
   ],
 })
 export class DatabaseModule implements OnModuleInit {

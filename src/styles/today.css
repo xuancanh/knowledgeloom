@@ -393,3 +393,51 @@
 .share-collection-note summary { cursor: pointer; }
 .share-collection-note .share-body { margin-top: 12px; }
 .share-note-summary { color: var(--ink-soft, #888); font-size: 0.9rem; }
+
+/* Marketplace */
+
+.mkt-filters { display: flex; gap: 8px; }
+.mkt-filters input, .mkt-filters select, .mkt-publish-form input, .mkt-publish-form select {
+  border: 1px solid var(--line, #ddd);
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: var(--panel, #fff);
+  color: var(--ink, #222);
+  font: inherit;
+}
+.mkt-filters input { flex: 1; }
+
+.mkt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+.mkt-card {
+  border: 1px solid var(--line, #eee);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mkt-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.mkt-desc { margin: 0; font-size: 0.88rem; color: var(--ink-soft, #666); }
+.mkt-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.78rem; color: var(--ink-soft, #999); align-items: center; }
+.mkt-actions { margin-top: auto; }
+
+.mkt-tab { cursor: pointer; background: none; }
+.mkt-tab.active { border-color: var(--accent, #7c5cff); color: var(--accent, #7c5cff); }
+
+.mkt-message {
+  border: 1px solid var(--line, #eee);
+  border-left: 3px solid var(--accent, #7c5cff);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mkt-publish { margin-bottom: 8px; }
+.mkt-publish h3 { margin: 0 0 10px; font-size: 0.95rem; }
+.mkt-publish-form { display: flex; flex-direction: column; gap: 8px; max-width: 480px; }
