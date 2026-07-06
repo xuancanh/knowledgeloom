@@ -151,6 +151,42 @@ function TemplateEditor({
   );
 }
 
+// ── Web clipper bookmarklet ───────────────────────────────────────────────────
+
+function ClipperBookmarklet() {
+  const [copied, setCopied] = useState(false);
+  const origin = window.location.origin;
+  const code = `javascript:void(window.open('${origin}/clip?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`;
+
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+      <a
+        href={code}
+        onClick={(e) => e.preventDefault()}
+        draggable
+        style={{
+          padding: '8px 16px', border: '1px solid var(--accent)', borderRadius: 10,
+          color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', cursor: 'grab',
+        }}
+        title="Drag me to your bookmarks bar"
+      >
+        ✂ Clip to Loom
+      </a>
+      <button
+        style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line, #ddd)', background: 'none', cursor: 'pointer' }}
+        onClick={() => {
+          navigator.clipboard.writeText(code).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }).catch(() => {});
+        }}
+      >
+        {copied ? 'Copied ✓' : 'Copy bookmarklet code'}
+      </button>
+    </div>
+  );
+}
+
 // ── Settings page ─────────────────────────────────────────────────────────────
 
 type FilterMode = GuidanceMode | 'all';
@@ -235,6 +271,19 @@ export default function SettingsPage({
           </div>
         </div>
         <LanguageSwitcher />
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>Web clipper</h2>
+            <p className={styles.sectionDesc}>
+              Drag this bookmarklet to your bookmarks bar. Clicking it on any page sends
+              that page to Knowledge Loom as an AI link capture.
+            </p>
+          </div>
+        </div>
+        <ClipperBookmarklet />
       </section>
 
       <section className={styles.section}>

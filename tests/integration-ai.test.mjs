@@ -108,6 +108,7 @@ Distributed practice produced a large effect size in a 21k-learner meta-analysis
 `;
 
 const TRANSCRIPT = 'Welcome to the lecture. Today we cover the spacing effect: distributing study sessions over time produces far better retention than cramming the same hours into one sitting.';
+const IMAGE_TRANSCRIPTION = '## Whiteboard notes\n\n- Testing effect: retrieval beats re-reading\n- Interleaving > blocking for problem types\n- [diagram: forgetting curve with review spikes]';
 
 function startMockAi() {
   const server = createServer((req, res) => {
@@ -136,6 +137,14 @@ function startMockAi() {
     req.on('data', (d) => { raw += d; });
     req.on('end', () => {
       const body = JSON.parse(raw || '{}');
+
+      // Vision extraction: content parts include an image_url.
+      if ((body.messages || []).some((m) => Array.isArray(m.content) && m.content.some((p) => p.type === 'image_url'))) {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ choices: [{ message: { content: IMAGE_TRANSCRIPTION } }] }));
+        return;
+      }
+
       const prompt = (body.messages || []).map((m) => m.content).join('\n');
 
       if (prompt.includes('FAIL-THIS-JOB')) {
@@ -426,6 +435,19 @@ maybe('import: audio upload → transcription → note job', async () => {
   const json = await res.json();
   assert.equal(res.status, 202, JSON.stringify(json));
   assert.equal(json.extractedChars, TRANSCRIPT.length, 'transcript text is what gets imported');
+  await pollJob(json.jobId, 'done');
+});
+
+maybe('import: image upload → vision extraction → note job', async () => {
+  // 1x1 transparent PNG
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+  const form = new FormData();
+  form.append('file', new Blob([png], { type: 'image/png' }), 'whiteboard.png');
+  form.append('title', 'Whiteboard photo');
+  const res = await fetch(`${BASE}/api/import`, { method: 'POST', body: form });
+  const json = await res.json();
+  assert.equal(res.status, 202, JSON.stringify(json));
+  assert.equal(json.extractedChars, IMAGE_TRANSCRIPTION.length, 'vision transcription is what gets imported');
   await pollJob(json.jobId, 'done');
 });
 

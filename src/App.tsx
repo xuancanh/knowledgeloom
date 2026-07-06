@@ -15,6 +15,7 @@ import { AllTagsRoute } from './components/routes/AllTagsRoute';
 import { FlashcardsRoute } from './components/routes/FlashcardsRoute';
 import { QuizRoute } from './components/routes/QuizRoute';
 import { NewNoteRoute } from './components/routes/NewNoteRoute';
+import { ClipRoute } from './components/routes/ClipRoute';
 import ContextPanel from './components/ContextPanel';
 import { ChatPanel } from './components/chat/ChatPanel';
 import GraphPage from './components/graph/GraphPage';
@@ -281,6 +282,7 @@ function AuthenticatedApp() {
             <Route path="/marketplace" element={
               <MarketplacePage onOpenNote={openNote} />
             } />
+            <Route path="/clip" element={<ClipRoute />} />
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />
             } />

@@ -119,6 +119,13 @@ maybe('audio import without transcription config → 501 with a clear message', 
     body: JSON.stringify({ lines: [{ who: 'maya', text: 'hello' }] }),
   });
   assert.equal(tts.status, 501);
+
+  // Image import is dark too (codex CLI provider has no vision endpoint).
+  const imgForm = new FormData();
+  imgForm.append('file', new Blob([new Uint8Array(256)], { type: 'image/png' }), 'photo.png');
+  const img = await fetch(`${base}/api/import`, { method: 'POST', body: imgForm });
+  assert.equal(img.status, 501);
+  assert.match((await img.json()).error, /image import is not configured/);
 });
 
 maybe('read-only mode: reads succeed, writes are rejected', async () => {

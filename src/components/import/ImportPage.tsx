@@ -11,7 +11,7 @@ import { importSource, fetchJob } from '../../api';
 
 type Phase = 'idle' | 'uploading' | 'processing' | 'done' | 'error';
 
-const ACCEPT = '.pdf,.txt,.md,.markdown,.mp3,.m4a,.wav,.webm,.ogg,.flac,audio/*,application/pdf,text/plain,text/markdown';
+const ACCEPT = '.pdf,.txt,.md,.markdown,.mp3,.m4a,.wav,.webm,.ogg,.flac,.mp4,.png,.jpg,.jpeg,.webp,audio/*,video/mp4,video/webm,image/*,application/pdf,text/plain,text/markdown';
 
 export default function ImportPage({ onOpenNote }: { onOpenNote: (id: string) => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -77,7 +77,7 @@ export default function ImportPage({ onOpenNote }: { onOpenNote: (id: string) =>
     <div className="today-page import-page">
       <header className="today-head">
         <h1>Import</h1>
-        <p className="import-sub">Turn a PDF, lecture recording, or pasted text into a knowledge note — flashcards and quiz questions follow automatically.</p>
+        <p className="import-sub">Turn a PDF, lecture recording, photo of handwritten notes, or pasted text into a knowledge note — flashcards and quiz questions follow automatically.</p>
       </header>
 
       <div
@@ -99,7 +99,7 @@ export default function ImportPage({ onOpenNote }: { onOpenNote: (id: string) =>
           </>
         ) : (
           <>
-            <span>Drop a PDF, .md/.txt, or audio file here</span>
+            <span>Drop a PDF, text, audio/video recording, or photo of notes here</span>
             <label className="today-btn import-browse">
               Browse…
               <input
