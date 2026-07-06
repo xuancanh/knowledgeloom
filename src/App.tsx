@@ -20,6 +20,7 @@ import { ChatPanel } from './components/chat/ChatPanel';
 import GraphPage from './components/graph/GraphPage';
 import LearnPage from './components/learn/LearnPage';
 import TodayPage from './components/study/TodayPage';
+import ImportPage from './components/import/ImportPage';
 import { ee } from './lib/ee';
 
 // Extensions-only pages come from the extensions registry; in OSS builds these are
@@ -58,7 +59,7 @@ function AuthenticatedApp() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday,
+    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday, openImport,
     graphAddLink, graphRemoveLink, graphCreateNote, graphDeleteNote, graphRenameNote, graphSetCategory,
     handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
@@ -88,6 +89,7 @@ function AuthenticatedApp() {
         onGraph={openGraph}
         onLearn={openLearn}
         onToday={openToday}
+        onImport={openImport}
         onSettings={openSettings}
         openCategory={openCategory}
         openTag={openTag}
@@ -267,6 +269,9 @@ function AuthenticatedApp() {
             } />
             <Route path="/today" element={
               <TodayPage onOpenNote={openNote} />
+            } />
+            <Route path="/import" element={
+              <ImportPage onOpenNote={openNote} />
             } />
             <Route path="/settings" element={
               <SettingsPage templates={templates} onTemplatesChange={setTemplates} />

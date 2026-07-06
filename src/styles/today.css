@@ -217,3 +217,53 @@
 
 .today-reminder-msg { font-size: 0.92rem; color: var(--ink, #222); }
 .today-reminder-when { font-size: 0.75rem; color: var(--ink-soft, #999); }
+
+/* Import page */
+
+.import-sub { color: var(--ink-soft, #777); font-size: 0.92rem; margin: 4px 0 0; }
+
+.import-drop {
+  border: 2px dashed var(--line, #ccc);
+  border-radius: 14px;
+  padding: 36px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-soft, #888);
+  transition: border-color 0.15s ease;
+}
+
+.import-drop.over { border-color: var(--accent, #7c5cff); color: var(--accent, #7c5cff); }
+.import-drop.has-file { border-style: solid; }
+
+.import-file-name { font-weight: 600; color: var(--ink, #222); }
+.import-file-size { font-size: 0.8rem; }
+.import-browse { display: inline-block; cursor: pointer; }
+
+.import-text {
+  width: 100%;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--panel, #fff);
+  color: var(--ink, #222);
+  font: inherit;
+  resize: vertical;
+}
+
+.import-meta { display: flex; flex-direction: column; gap: 8px; }
+.import-meta input {
+  border: 1px solid var(--line, #ddd);
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: var(--panel, #fff);
+  color: var(--ink, #222);
+  font: inherit;
+}
+
+.import-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.import-status { font-size: 0.85rem; color: var(--ink-soft, #777); }
+.import-status.error { color: #c0392b; }
+.import-status.done { color: #1e8449; }
+.import-open { align-self: flex-start; }

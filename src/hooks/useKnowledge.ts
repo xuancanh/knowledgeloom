@@ -226,6 +226,7 @@ export function useKnowledge() {
   const openGraph = useCallback(() => navigate('/graph'), [navigate]);
   const openLearn = useCallback(() => navigate('/learn'), [navigate]);
   const openToday = useCallback(() => navigate('/today'), [navigate]);
+  const openImport = useCallback(() => navigate('/import'), [navigate]);
 
   async function graphAddLink(fromId: string, toId: string) {
     const note = state.notes.find((n) => n.id === fromId);
@@ -354,6 +355,7 @@ export function useKnowledge() {
     openGraph,
     openLearn,
     openToday,
+    openImport,
     graphAddLink,
     graphRemoveLink,
     graphCreateNote,

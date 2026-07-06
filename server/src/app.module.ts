@@ -46,6 +46,7 @@ import { SettingsModule } from './settings/settings.module';
 import { LearnProgressModule } from './learn-progress/learn-progress.module';
 import { UsageModule } from './usage/usage.module';
 import { StudyModule } from './study/study.module';
+import { ImportModule } from './import/import.module';
 
 const baseImports = [
     // Global providers — no need to import these in feature modules.
@@ -79,6 +80,7 @@ const baseImports = [
     SettingsModule,
     LearnProgressModule,
     StudyModule,
+    ImportModule,
 ];
 
 @Module({})

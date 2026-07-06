@@ -303,6 +303,39 @@ export async function fetchStudyToday(): Promise<StudyQueue> {
   return response.json();
 }
 
+/* ── Import ── */
+
+export async function importSource(input: {
+  file?: File;
+  text?: string;
+  title?: string;
+  category?: string;
+  tags?: string[];
+}): Promise<{ jobId: string; job: LearnJob; extractedChars: number; truncated: boolean }> {
+  let response: Response;
+  if (input.file) {
+    const form = new FormData();
+    form.append('file', input.file);
+    if (input.title) form.append('title', input.title);
+    if (input.category) form.append('category', input.category);
+    if (input.tags?.length) form.append('tags', input.tags.join(','));
+    response = await apiFetch('/api/import', { method: 'POST', body: form });
+  } else {
+    response = await apiFetch('/api/import', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: input.text, title: input.title, category: input.category, tags: input.tags }),
+    });
+  }
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    let detail = text;
+    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
+    throw new Error(detail || `Import failed: ${response.status}`);
+  }
+  return response.json();
+}
+
 /* ── Learn progress ── */
 
 export type LearnProgressDto = {

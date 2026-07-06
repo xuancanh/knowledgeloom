@@ -99,7 +99,7 @@ export interface KnowledgeState {
 }
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'error';
-export type JobMode = 'research' | 'link' | 'polish' | 'write' | 'regen';
+export type JobMode = 'research' | 'link' | 'polish' | 'write' | 'regen' | 'import';
 export type GenSize = 'small' | 'medium' | 'large';
 
 export interface Job {

@@ -105,6 +105,16 @@ export default () => {
     // Search provider: 'meilisearch' (default) or 'inmemory'
     searchProvider: process.env.SEARCH_PROVIDER || 'meilisearch',
 
+    // Audio transcription for import: 'openai' (Whisper-compatible HTTP API),
+    // 'cli' (local command, e.g. whisper.cpp), or 'none' (audio import disabled).
+    transcribeProvider: process.env.TRANSCRIBE_PROVIDER
+      || (process.env.TRANSCRIBE_API_KEY ? 'openai' : 'none'),
+    transcribeApiBase: process.env.TRANSCRIBE_API_BASE || 'https://api.openai.com/v1',
+    transcribeApiKey: process.env.TRANSCRIBE_API_KEY || '',
+    transcribeModel: process.env.TRANSCRIBE_MODEL || 'whisper-1',
+    // CLI template; {file} is replaced with the audio path. Must print the transcript to stdout.
+    transcribeCommand: process.env.TRANSCRIBE_COMMAND || '',
+
     // AI provider selection: 'codex' (default) or 'openrouter'
     aiProvider: process.env.AI_PROVIDER || 'codex',
     aiApiKey: process.env.AI_API_KEY || '',

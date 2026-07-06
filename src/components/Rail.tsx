@@ -80,6 +80,7 @@ export default function Rail({
   onGraph,
   onLearn,
   onToday,
+  onImport,
   onSettings,
   openCategory,
   openTag,
@@ -106,6 +107,7 @@ export default function Rail({
   onGraph: () => void;
   onLearn: () => void;
   onToday: () => void;
+  onImport: () => void;
   onSettings: () => void;
   openCategory: (id: string) => void;
   openTag: (tag: string) => void;
@@ -125,6 +127,7 @@ export default function Rail({
   const isGraph = path === '/graph';
   const isLearn = path === '/learn';
   const isToday = path === '/today';
+  const isImport = path === '/import';
   const activeCategoryId = path.startsWith('/categories/')
     ? path.slice('/categories/'.length).split('/').map(decodeURIComponent).join('/')
     : null;
@@ -198,6 +201,9 @@ export default function Rail({
           </button>
           <button className={`nav-item${isLearn ? ' active' : ''}`} onClick={() => { onLearn(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Learn
+          </button>
+          <button className={`nav-item${isImport ? ' active' : ''}`} onClick={() => { onImport(); closeRail(); }}>
+            <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⇪</span> Import
           </button>
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>
             <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⚙</span> {t('nav.settings')}
