@@ -23,7 +23,15 @@ import { KnowledgeModule } from '../knowledge/knowledge.module';
     }),
   ],
   controllers: [JobsController],
-  providers: [JobsService, JobRepository, JobsProcessor],
+  providers: [
+    JobsService,
+    JobRepository,
+    // SKIP_JOBS=1 boots without Redis: AppModule omits BullModule.forRoot,
+    // so the worker (which demands a connection at construction) must be
+    // omitted too. Queues stay registered — enqueueing simply fails until
+    // Redis exists, which is the documented degraded mode.
+    ...(process.env.SKIP_JOBS === '1' ? [] : [JobsProcessor]),
+  ],
   exports: [JobsService],
 })
 export class JobsModule {}
