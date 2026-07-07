@@ -487,6 +487,14 @@ maybe('images: rejects disallowed mime types', async () => {
   assert.equal(res.status, 400);
 });
 
+maybe('images: rejects a non-image body spoofing an allowed mime type', async () => {
+  const form = new FormData();
+  // Claims image/png but the bytes are a script — magic-byte sniffing must reject.
+  form.append('file', new Blob(['<script>alert(1)</script>'], { type: 'image/png' }), 'fake.png');
+  const res = await fetch(`${BASE}/api/images`, { method: 'POST', body: form });
+  assert.equal(res.status, 400);
+});
+
 // ── error paths ───────────────────────────────────────────────────────────────
 
 maybe('errors: empty write returns 400 with { error }', async () => {
