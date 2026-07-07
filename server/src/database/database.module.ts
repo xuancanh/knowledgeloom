@@ -26,7 +26,7 @@ import { dirname } from 'node:path';
 import * as schema from './schema';
 import { sqliteReminders as remindersTable } from './schema';
 import { runSqliteMigrations, runPgMigrations, migrateLocalNoteFiles } from './migrator';
-import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE, LEARN_PROGRESS_TABLE, REVIEW_EVENTS_TABLE, SHARES_TABLE, MARKETPLACE_LISTINGS_TABLE, MARKETPLACE_RATINGS_TABLE, SPACES_TABLE } from './database.constants';
+import { DRIZZLE_DB, JOBS_TABLE, REMINDERS_TABLE, FLASHCARD_CACHE_TABLE, FLASHCARD_REVIEWS_TABLE, USER_FLASHCARDS_TABLE, HIDDEN_FLASHCARDS_TABLE, QUIZ_CACHE_TABLE, QUIZ_REVIEWS_TABLE, QUIZ_HIDDEN_TABLE, NOTE_READS_TABLE, USER_SETTINGS_TABLE, LEARN_PROGRESS_TABLE, REVIEW_EVENTS_TABLE, SHARES_TABLE, MARKETPLACE_LISTINGS_TABLE, MARKETPLACE_RATINGS_TABLE, MARKETPLACE_REPORTS_TABLE, SPACES_TABLE } from './database.constants';
 
 /**
  * Drizzle database instance covering both SQLite and PG backends.
@@ -216,6 +216,15 @@ const marketplaceRatingsTableProvider = {
   },
 };
 
+const marketplaceReportsTableProvider = {
+  provide: MARKETPLACE_REPORTS_TABLE,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgMarketplaceReports : schema.sqliteMarketplaceReports;
+  },
+};
+
 const spacesTableProvider = {
   provide: SPACES_TABLE,
   inject: [ConfigService],
@@ -245,6 +254,7 @@ const spacesTableProvider = {
     sharesTableProvider,
     marketplaceListingsTableProvider,
     marketplaceRatingsTableProvider,
+    marketplaceReportsTableProvider,
     spacesTableProvider,
   ],
   exports: [
@@ -265,6 +275,7 @@ const spacesTableProvider = {
     SHARES_TABLE,
     MARKETPLACE_LISTINGS_TABLE,
     MARKETPLACE_RATINGS_TABLE,
+    MARKETPLACE_REPORTS_TABLE,
     SPACES_TABLE,
   ],
 })

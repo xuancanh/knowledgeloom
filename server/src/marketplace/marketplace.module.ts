@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { MarketplaceController, PublicMarketplaceController } from './marketplace.controller';
 import { MarketplaceRepository } from './marketplace.repository';
 import { MarketplaceRatingsRepository } from './marketplace-ratings.repository';
+import { MarketplaceReportsRepository } from './marketplace-reports.repository';
 import { SharesModule } from '../shares/shares.module';
 import { NotesFileModule } from '../notes/notes-file.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
@@ -12,6 +13,6 @@ import { QuizModule } from '../quiz/quiz.module';
 @Module({
   imports: [SharesModule, NotesFileModule, KnowledgeModule, FlashcardsModule, QuizModule],
   controllers: [MarketplaceController, PublicMarketplaceController],
-  providers: [MarketplaceRepository, MarketplaceRatingsRepository],
+  providers: [MarketplaceRepository, MarketplaceRatingsRepository, MarketplaceReportsRepository],
 })
 export class MarketplaceModule {}

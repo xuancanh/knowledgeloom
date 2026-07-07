@@ -17,3 +17,7 @@ export class RateListingDto {
   @IsOptional() @IsInt() @Min(1) @Max(5) stars?: number;
   @IsOptional() @IsString() @MaxLength(2000) comment?: string;
 }
+
+export class ReportListingDto {
+  @IsOptional() @IsString() @MaxLength(500) reason?: string;
+}

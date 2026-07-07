@@ -421,6 +421,21 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       addIfMissing(db, 'shares', 'expiresAt', 'TEXT');
     },
   },
+  {
+    id: '0016_marketplace_reports',
+    run(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS marketplace_reports (
+          listingId TEXT NOT NULL,
+          userId    TEXT NOT NULL,
+          reason    TEXT NOT NULL DEFAULT '',
+          createdAt TEXT NOT NULL,
+          PRIMARY KEY (listingId, userId)
+        );
+        CREATE INDEX IF NOT EXISTS idx_marketplace_reports_listing ON marketplace_reports(listingId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -819,6 +834,21 @@ const PG_MIGRATIONS: PgMigration[] = [
     id: '0016_share_expiry_pg',
     async run(pool) {
       await pgAddIfMissing(pool, 'shares', 'expiresAt', 'TEXT');
+    },
+  },
+  {
+    id: '0017_marketplace_reports_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS marketplace_reports (
+          "listingId" TEXT NOT NULL,
+          "userId"    TEXT NOT NULL,
+          reason      TEXT NOT NULL DEFAULT '',
+          "createdAt" TEXT NOT NULL,
+          PRIMARY KEY ("listingId", "userId")
+        );
+        CREATE INDEX IF NOT EXISTS idx_marketplace_reports_listing ON marketplace_reports("listingId");
+      `);
     },
   },
 ];

@@ -406,6 +406,14 @@ maybe('marketplace: publish → browse → import clones notes with seeded deck 
   assert.equal(selfRate.status, 400);
   assert.match(selfRate.json.error, /own listing/);
   assert.equal((await post('/api/marketplace/nope/rate', { stars: 4 })).status, 404);
+
+  // Reporting: the self-report guard holds (single-user local mode) and an
+  // unknown listing 404s. The auto-unpublish threshold needs distinct users.
+  const selfReport = await post(`/api/marketplace/${listingId}/report`, { reason: 'spam' });
+  assert.equal(selfReport.status, 400);
+  assert.match(selfReport.json.error, /own listing/);
+  assert.equal((await post('/api/marketplace/nope/report', { reason: 'x' })).status, 404);
+
   const { json: sorted } = await get('/api/marketplace?sort=rating');
   assert.ok(Array.isArray(sorted.listings));
   assert.equal((await del(`/api/marketplace/${listingId}`)).status, 200);

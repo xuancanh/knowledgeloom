@@ -350,6 +350,25 @@ export const pgMarketplaceRatings = pgTable('marketplace_ratings', {
   pk: pgPrimaryKey({ columns: [t.listingId, t.userId] }),
 }));
 
+/** One report per user per listing (dedup); enough reports auto-unpublish it. */
+export const sqliteMarketplaceReports = sqliteTable('marketplace_reports', {
+  listingId: sqliteText('listingId').notNull(),
+  userId: sqliteText('userId').notNull(),
+  reason: sqliteText('reason').notNull().default(''),
+  createdAt: sqliteText('createdAt').notNull(),
+}, (t) => ({
+  pk: sqlitePrimaryKey({ columns: [t.listingId, t.userId] }),
+}));
+
+export const pgMarketplaceReports = pgTable('marketplace_reports', {
+  listingId: pgText('listingId').notNull(),
+  userId: pgText('userId').notNull(),
+  reason: pgText('reason').notNull().default(''),
+  createdAt: pgText('createdAt').notNull(),
+}, (t) => ({
+  pk: pgPrimaryKey({ columns: [t.listingId, t.userId] }),
+}));
+
 /**
  * User-created spaces (isolated sub-workspaces). The default space is
  * implicit — it has no row here (see spaces/scope.util.ts).

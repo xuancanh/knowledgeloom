@@ -24,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import { join, basename } from 'node:path';
 import { MarketplaceRepository, ListingRow } from './marketplace.repository';
 import { MarketplaceRatingsRepository, RatingAggregate } from './marketplace-ratings.repository';
+import { MarketplaceReportsRepository } from './marketplace-reports.repository';
 import { SharesRepository } from '../shares/shares.repository';
 import { SharePayloadService, SharedNotePayload } from '../shares/share-payload.service';
 import { NoteFileRepository } from '../notes/note-file.repository';
@@ -36,9 +37,11 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { ownerOf } from '../spaces/scope.util';
 import { WritableGuard } from '../common/guards/writable.guard';
-import { PublishListingDto, RateListingDto } from './marketplace.dto';
+import { PublishListingDto, RateListingDto, ReportListingDto } from './marketplace.dto';
 
 const MAX_TAGS = 10;
+// Distinct users who must report a listing before it is auto-unpublished.
+const REPORT_THRESHOLD = 5;
 
 function publicListing(l: ListingRow, rating?: RatingAggregate) {
   return {
@@ -61,6 +64,7 @@ export class MarketplaceController {
   constructor(
     private readonly listings: MarketplaceRepository,
     private readonly ratings: MarketplaceRatingsRepository,
+    private readonly reports: MarketplaceReportsRepository,
     private readonly shares: SharesRepository,
     private readonly payloads: SharePayloadService,
     private readonly noteRepo: NoteFileRepository,
@@ -140,6 +144,30 @@ export class MarketplaceController {
     await this.ratings.rate(listing.id, userId, stars, String(body?.comment || '').trim().slice(0, 500));
     const agg = (await this.ratings.aggregates([listing.id])).get(listing.id);
     return { rated: listing.id, stars, avgStars: agg?.avgStars ?? stars, ratingCount: agg?.ratingCount ?? 1 };
+  }
+
+  @Post(':id/report')
+  @UseGuards(WritableGuard)
+  @HttpCode(200)
+  async report(
+    @CurrentUser() userId: string,
+    @Param('id') id: string,
+    @Body() body: ReportListingDto,
+  ) {
+    const listing = await this.listings.findActive(basename(id));
+    if (!listing) throw new NotFoundException('listing not found');
+    // Report identity is the user, so a report from another of your spaces
+    // doesn't let you flag your own listing.
+    if (ownerOf(listing.userId) === userId) throw new BadRequestException('you cannot report your own listing');
+
+    const count = await this.reports.report(listing.id, userId, String(body?.reason || '').trim().slice(0, 500));
+    // Community moderation: enough distinct reports takes it out of the gallery
+    // pending review. Owner can still see/manage it via "mine".
+    if (count >= REPORT_THRESHOLD) {
+      await this.listings.unpublish(listing.userId, listing.id);
+      return { reported: listing.id, reportCount: count, unpublished: true };
+    }
+    return { reported: listing.id, reportCount: count, unpublished: false };
   }
 
   @Post(':id/import')
