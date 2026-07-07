@@ -570,6 +570,24 @@ maybe('spaces: delete erases the space and its data', async () => {
   assert.equal((await apiIn(spaceId, 'GET', '/api/knowledge')).status, 404);
 });
 
+maybe('spaces: the plan limit counts the default space and is enforced', async () => {
+  const { json: before } = await get('/api/spaces');
+  const limit = before.limit;
+  if (limit === null) return; // unlimited in this build (no plan/MAX_SPACES) — nothing to enforce
+
+  // Fill up to the limit; the default space already counts toward it.
+  const created = [];
+  while (before.spaces.length + created.length < limit) {
+    const r = await post('/api/spaces', { name: `Limit ${created.length}` });
+    assert.equal(r.status, 201);
+    created.push(r.json.id);
+  }
+  // Total spaces now equals the limit — one more must be refused.
+  assert.equal((await post('/api/spaces', { name: 'One too many' })).status, 403);
+
+  for (const id of created) await del(`/api/spaces/${id}`);
+});
+
 // ── extension smoke (only when extensions/ is linked; deep coverage lives in
 //    the private repo's own suites) ────────────────────────────────────────────
 

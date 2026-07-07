@@ -365,3 +365,19 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* ── Spaces ── */
+.spaceCreate {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+.spaceCreate .editorInput {
+  flex: 1;
+}
+.spaceError {
+  color: var(--rust);
+  font-size: 12.5px;
+  margin: 8px 0 0;
+}

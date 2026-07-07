@@ -178,26 +178,23 @@ function FeatureTogglesSection({ userSettings }: { userSettings?: Record<string,
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className={styles.editorPrefs}>
       {(Object.keys(DEFAULT_FEATURES) as (keyof FeatureToggles)[]).map((key) => (
-        <label
-          key={key}
-          style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer' }}
-        >
-          <input
-            type="checkbox"
-            checked={local[key]}
-            onChange={() => void toggle(key)}
-            style={{ marginTop: 3 }}
-          />
-          <span>
-            <strong>{FEATURE_LABELS[key].label}</strong>
-            <br />
-            <span style={{ fontSize: '0.85rem', color: 'var(--ink-soft, #777)' }}>
-              {FEATURE_LABELS[key].description}
-            </span>
-          </span>
-        </label>
+        <div key={key} className={styles.prefRow}>
+          <div>
+            <div className={styles.prefLabel}>{FEATURE_LABELS[key].label}</div>
+            <div className={styles.prefDesc}>{FEATURE_LABELS[key].description}</div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={local[key]}
+            className={`${styles.toggle} ${local[key] ? styles.toggleOn : ''}`}
+            onClick={() => void toggle(key)}
+          >
+            {local[key] ? 'On' : 'Off'}
+          </button>
+        </div>
       ))}
     </div>
   );
@@ -228,81 +225,97 @@ function SpacesSection() {
     catch (err) { setError(err instanceof Error ? err.message : 'operation failed'); }
   };
 
+  const create = () => void run(async () => {
+    const s = await createSpace(newName);
+    switchSpace(s.id);
+  });
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {spaces.map((space) => (
-        <div key={space.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ width: 14, color: 'var(--accent)' }}>{space.id === activeId ? '✓' : ''}</span>
-          {renamingId === space.id ? (
-            <>
-              <input
-                autoFocus
-                value={renameDraft}
-                maxLength={60}
-                onChange={(e) => setRenameDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Escape') setRenamingId(null); }}
-                style={{ flex: 1, minWidth: 140, padding: '4px 8px' }}
-              />
-              <button onClick={() => void run(async () => { await renameSpace(space.id, renameDraft); setRenamingId(null); })}>Save</button>
-              <button onClick={() => setRenamingId(null)}>Cancel</button>
-            </>
-          ) : (
-            <>
-              <strong style={{ flex: 1 }}>
-                {space.name}
-                {space.builtin && <span style={{ fontWeight: 400, color: 'var(--ink-soft, #777)' }}> (default)</span>}
-              </strong>
-              {space.id !== activeId && (
-                <button onClick={() => switchSpace(space.id)}>Open</button>
+    <>
+      <div className={styles.templateList}>
+        {spaces.map((space) => (
+          <div key={space.id} className={styles.row}>
+            <div className={styles.rowBody}>
+              {renamingId === space.id ? (
+                <input
+                  className={styles.editorInput}
+                  autoFocus
+                  value={renameDraft}
+                  maxLength={60}
+                  onChange={(e) => setRenameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void run(async () => { await renameSpace(space.id, renameDraft); setRenamingId(null); });
+                    if (e.key === 'Escape') setRenamingId(null);
+                  }}
+                />
+              ) : (
+                <div className={styles.rowHeader}>
+                  <span className={styles.rowColorDot} style={{ background: space.id === activeId ? 'var(--accent)' : 'var(--rule-2)' }} />
+                  <span className={styles.rowLabel}>{space.name}</span>
+                  {space.builtin && <span className={styles.rowBuiltIn}>DEFAULT</span>}
+                  {space.id === activeId && <span className={styles.rowBuiltIn}>CURRENT</span>}
+                </div>
               )}
-              {!space.builtin && (
-                <button onClick={() => { setRenamingId(space.id); setRenameDraft(space.name); setConfirmDeleteId(null); }}>Rename</button>
-              )}
-              {!space.builtin && (confirmDeleteId === space.id ? (
+            </div>
+            <div className={styles.rowActions}>
+              {renamingId === space.id ? (
+                <>
+                  <button className={styles.rowBtn} onClick={() => void run(async () => { await renameSpace(space.id, renameDraft); setRenamingId(null); })}>Save</button>
+                  <button className={styles.rowBtn} onClick={() => setRenamingId(null)}>Cancel</button>
+                </>
+              ) : confirmDeleteId === space.id ? (
                 <>
                   <button
-                    style={{ color: 'var(--danger, #b3261e)', fontWeight: 600 }}
+                    className={`${styles.rowBtn} ${styles.rowBtnDelete}`}
                     onClick={() => void run(async () => {
                       await deleteSpace(space.id);
                       setConfirmDeleteId(null);
                       if (space.id === activeId) switchSpace(DEFAULT_SPACE_ID);
                     })}
                   >
-                    Really delete — all notes in it are erased
+                    Delete everything
                   </button>
-                  <button onClick={() => setConfirmDeleteId(null)}>Keep</button>
+                  <button className={styles.rowBtn} onClick={() => setConfirmDeleteId(null)}>Keep</button>
                 </>
               ) : (
-                <button style={{ color: 'var(--danger, #b3261e)' }} onClick={() => { setConfirmDeleteId(space.id); setRenamingId(null); }}>Delete</button>
-              ))}
-            </>
-          )}
-        </div>
-      ))}
+                <>
+                  {space.id !== activeId && (
+                    <button className={styles.rowBtn} onClick={() => switchSpace(space.id)}>Open</button>
+                  )}
+                  {!space.builtin && (
+                    <button className={styles.rowBtn} onClick={() => { setRenamingId(space.id); setRenameDraft(space.name); setConfirmDeleteId(null); }}>Rename</button>
+                  )}
+                  {!space.builtin && (
+                    <button className={`${styles.rowBtn} ${styles.rowBtnDelete}`} onClick={() => { setConfirmDeleteId(space.id); setRenamingId(null); }}>Delete</button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className={styles.spaceCreate}>
         <input
-          placeholder={atLimit ? `Space limit reached (${limit} on your plan)` : 'New space name'}
+          className={styles.editorInput}
+          placeholder="New space name"
           value={newName}
           maxLength={60}
           disabled={atLimit}
           onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && newName.trim()) {
-              void run(async () => { const s = await createSpace(newName); switchSpace(s.id); });
-            }
-          }}
-          style={{ flex: 1, minWidth: 180, padding: '4px 8px' }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && newName.trim()) create(); }}
         />
-        <button
-          disabled={atLimit || !newName.trim()}
-          onClick={() => void run(async () => { const s = await createSpace(newName); switchSpace(s.id); })}
-        >
+        <button className={styles.addBtn} disabled={atLimit || !newName.trim()} onClick={create}>
           Create space
         </button>
       </div>
-      {error && <div style={{ color: 'var(--danger, #b3261e)', fontSize: '0.85rem' }}>{error}</div>}
-    </div>
+      {atLimit && (
+        <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
+          You've reached your plan's limit of {limit} space{limit === 1 ? '' : 's'}. Delete one or upgrade to add more.
+        </p>
+      )}
+      {error && <p className={styles.spaceError}>{error}</p>}
+    </>
   );
 }
 

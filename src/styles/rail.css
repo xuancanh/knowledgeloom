@@ -350,24 +350,25 @@
 /* ——— Space switcher (top of rail) ——— */
 .space-switcher {
   position: relative;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .space-switcher-btn {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   width: 100%;
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--rule-2);
+  border: 1px solid var(--rule);
   border-radius: 6px;
-  padding: 6px 9px;
+  padding: 7px 10px;
   font-size: 12.5px;
   cursor: pointer;
   text-align: left;
+  transition: border-color 120ms;
 }
-.space-switcher-btn:hover { border-color: var(--accent); }
-.space-switcher-icon { color: var(--accent); flex-shrink: 0; }
+.space-switcher-btn:hover { border-color: var(--rule-2); }
+.space-switcher-icon { color: var(--accent); flex-shrink: 0; font-size: 12px; }
 .space-switcher-name {
   flex: 1;
   overflow: hidden;
@@ -375,60 +376,66 @@
   white-space: nowrap;
   font-weight: 600;
 }
-.space-switcher-caret { color: var(--muted); font-size: 10px; }
+.space-switcher-caret { color: var(--muted); font-size: 9px; }
 .space-switcher-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 5px);
   left: 0;
   right: 0;
   z-index: 40;
-  background: var(--paper);
+  background: var(--surface);
   border: 1px solid var(--rule-2);
   border-radius: 7px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-  padding: 4px;
+  box-shadow: var(--shadow);
+  padding: 5px;
   max-height: 300px;
   overflow-y: auto;
 }
 .space-switcher-item {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   width: 100%;
   background: none;
   border: none;
   color: var(--ink);
   border-radius: 5px;
-  padding: 6px 8px;
+  padding: 7px 8px;
   font-size: 12.5px;
   cursor: pointer;
   text-align: left;
+  transition: background 120ms;
 }
-.space-switcher-item:hover { background: var(--wash); }
+.space-switcher-item:hover { background: var(--surface-2); }
 .space-switcher-item.active { font-weight: 600; }
-.space-switcher-item:disabled { color: var(--muted); cursor: not-allowed; }
-.space-switcher-check { width: 14px; color: var(--accent); flex-shrink: 0; }
+.space-switcher-item:disabled { color: var(--muted); cursor: not-allowed; background: none; }
+.space-switcher-check { width: 12px; color: var(--accent); flex-shrink: 0; font-size: 11px; }
 .space-switcher-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.space-switcher-divider { border-top: 1px solid var(--rule); margin: 4px 2px; }
+.space-switcher-divider { border-top: 1px solid var(--rule); margin: 5px 3px; }
 .space-switcher-new { color: var(--muted); }
-.space-switcher-create { padding: 6px 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.space-switcher-new:hover:not(:disabled) { color: var(--accent); }
+.space-switcher-create { padding: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
 .space-switcher-create input {
   flex: 1;
   min-width: 0;
-  background: var(--wash);
+  background: var(--surface-2);
   color: var(--ink);
-  border: 1px solid var(--rule-2);
+  border: 1px solid var(--rule);
   border-radius: 5px;
-  padding: 5px 7px;
+  padding: 6px 8px;
   font-size: 12.5px;
 }
+.space-switcher-create input:focus { border-color: var(--accent); outline: none; }
 .space-switcher-create-go {
   background: var(--accent);
-  color: #fff;
+  color: #faf3e2;
   border: none;
   border-radius: 5px;
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
 }
-.space-switcher-error { width: 100%; color: var(--danger, #b3261e); font-size: 11.5px; }
+.space-switcher-error { width: 100%; color: var(--rust); font-size: 11.5px; }

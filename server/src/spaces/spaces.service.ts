@@ -94,9 +94,10 @@ export class SpacesService {
 
     const existing = await this.repo.listForUser(userId);
     const limit = await this.usage.spaceLimit(userId);
-    // The default space counts toward the limit, so a limit of 1 means
-    // "default space only".
-    if (limit !== null && existing.length + 1 >= limit + 1) {
+    // `existing` excludes the implicit default space, which counts toward the
+    // limit — so the total after creating would be existing.length + 2. A limit
+    // of 1 therefore means "default space only".
+    if (limit !== null && existing.length + 2 > limit) {
       throw new ForbiddenException(
         `space limit reached (${limit} on your plan) — upgrade or delete a space first`,
       );
