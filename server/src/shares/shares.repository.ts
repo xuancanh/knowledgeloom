@@ -19,6 +19,8 @@ export interface ShareRow {
   kind: ShareKind;
   createdAt: string;
   revokedAt: string | null;
+  /** Optional ISO expiry; null = never expires. */
+  expiresAt: string | null;
 }
 
 @Injectable()
@@ -33,7 +35,7 @@ export class SharesRepository {
     return this.config.get<string>('databaseDialect') || 'sqlite';
   }
 
-  async create(userId: string, target: string, kind: ShareKind = 'note'): Promise<ShareRow> {
+  async create(userId: string, target: string, kind: ShareKind = 'note', expiresAt: string | null = null): Promise<ShareRow> {
     const row: ShareRow = {
       id: randomBytes(16).toString('base64url'), // 128 bits, unguessable
       userId,
@@ -41,17 +43,21 @@ export class SharesRepository {
       kind,
       createdAt: new Date().toISOString(),
       revokedAt: null,
+      expiresAt,
     };
     if (this.dialect === 'postgres') await this.db.insert(this.table).values(row);
     else this.db.insert(this.table).values(row).run();
     return row;
   }
 
-  /** Active (non-revoked) share by id — the public lookup. */
+  /** Active (non-revoked, non-expired) share by id — the public lookup. */
   async findActive(id: string): Promise<ShareRow | null> {
     const rows = await this.db.select().from(this.table)
       .where(and(eq(this.table.id, id), isNull(this.table.revokedAt)));
-    return (rows[0] as ShareRow) ?? null;
+    const row = (rows[0] as ShareRow) ?? null;
+    // Expiry is ISO-8601, so a lexicographic compare is a correct time compare.
+    if (row?.expiresAt && row.expiresAt <= new Date().toISOString()) return null;
+    return row;
   }
 
   async listByUser(userId: string): Promise<ShareRow[]> {

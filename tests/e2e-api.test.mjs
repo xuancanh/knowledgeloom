@@ -324,6 +324,17 @@ maybe('shares: create → public read (no auth) → revoke → 404', async () =>
   assert.equal((await post('/api/shares', { noteId: 'no-such-note' })).status, 404);
 });
 
+maybe('shares: expiring link carries an expiry and is live until it lapses', async () => {
+  const { status, json: share } = await post('/api/shares', { noteId, expiresInDays: 7 });
+  assert.equal(status, 201);
+  assert.ok(share.expiresAt, 'response should include expiresAt');
+  assert.ok(Date.parse(share.expiresAt) > Date.now(), 'expiry should be in the future');
+  // Not yet expired → still publicly readable.
+  assert.equal((await get(`/api/shares/${share.id}/public`)).status, 200);
+  // Out-of-range TTL is rejected by validation.
+  assert.equal((await post('/api/shares', { noteId, expiresInDays: 9999 })).status, 400);
+});
+
 maybe('shares: category collection share is public and revocable', async () => {
   const { status, json: share } = await post('/api/shares', { category: 'Testing/E2E' });
   assert.equal(status, 201, JSON.stringify(share));

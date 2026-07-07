@@ -414,6 +414,13 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0015_share_expiry',
+    run(db) {
+      // Optional expiry for share links; null = never expires.
+      addIfMissing(db, 'shares', 'expiresAt', 'TEXT');
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -806,6 +813,12 @@ const PG_MIGRATIONS: PgMigration[] = [
           settings   TEXT NOT NULL DEFAULT '{}'
         );
       `);
+    },
+  },
+  {
+    id: '0016_share_expiry_pg',
+    async run(pool) {
+      await pgAddIfMissing(pool, 'shares', 'expiresAt', 'TEXT');
     },
   },
 ];

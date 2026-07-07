@@ -42,6 +42,9 @@ export class SharesController {
   @UseGuards(WritableGuard)
   async create(@CurrentScope() userId: string, @Body() body: CreateShareDto) {
     const category = typeof body?.category === 'string' ? body.category.trim() : '';
+    const expiresAt = Number.isInteger(body?.expiresInDays)
+      ? new Date(Date.now() + (body!.expiresInDays as number) * 86_400_000).toISOString()
+      : null;
 
     if (category) {
       const state = await this.knowledgeService.getState(userId);
@@ -49,16 +52,16 @@ export class SharesController {
         (n) => n.category === category || n.category.startsWith(`${category}/`),
       );
       if (!hasNotes) throw new NotFoundException('category has no notes');
-      const share = await this.shares.create(userId, category, 'category');
-      return { id: share.id, url: `/share/${share.id}`, kind: 'category', target: category };
+      const share = await this.shares.create(userId, category, 'category', expiresAt);
+      return { id: share.id, url: `/share/${share.id}`, kind: 'category', target: category, expiresAt };
     }
 
     const noteId = basename(String(body?.noteId || '').trim());
     if (!noteId) throw new BadRequestException('noteId or category is required');
     const file = await this.noteRepo.findById(userId, noteId);
     if (!file) throw new NotFoundException('note not found');
-    const share = await this.shares.create(userId, noteId, 'note');
-    return { id: share.id, url: `/share/${share.id}`, kind: 'note', target: noteId };
+    const share = await this.shares.create(userId, noteId, 'note', expiresAt);
+    return { id: share.id, url: `/share/${share.id}`, kind: 'note', target: noteId, expiresAt };
   }
 
   @Get()

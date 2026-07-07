@@ -286,6 +286,8 @@ export const sqliteShares = sqliteTable('shares', {
   kind: sqliteText('kind').notNull().default('note'),
   createdAt: sqliteText('createdAt').notNull(),
   revokedAt: sqliteText('revokedAt'),
+  // Optional ISO expiry; null = never expires. Enforced at lookup time.
+  expiresAt: sqliteText('expiresAt'),
 });
 
 export const pgShares = pgTable('shares', {
@@ -295,6 +297,7 @@ export const pgShares = pgTable('shares', {
   kind: pgText('kind').notNull().default('note'),
   createdAt: pgText('createdAt').notNull(),
   revokedAt: pgText('revokedAt'),
+  expiresAt: pgText('expiresAt'),
 });
 
 /** Marketplace: published shares browseable and importable by anyone. */
