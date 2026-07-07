@@ -167,4 +167,52 @@ export class JobsService implements OnModuleInit {
   async getJob(userId: string, id: string): Promise<Job | null> {
     return this.repo.findById(userId, id);
   }
+
+  /**
+   * Queue-health summary for the scope: counts by status, how long the oldest
+   * unfinished job has been waiting, how many jobs needed a retry, and the most
+   * recent failures. Gives monitoring a scrape target for queue depth / job age
+   * / retry / failure signals without exposing full payloads.
+   */
+  async metrics(userId: string): Promise<{
+    total: number;
+    byStatus: Record<Job['status'], number>;
+    pending: number;
+    failed: number;
+    oldestPendingAgeMs: number;
+    retriedJobs: number;
+    recentErrors: { id: string; mode: string; error: string; at: string }[];
+    generatedAt: string;
+  }> {
+    const jobs = await this.repo.listAll(userId);
+    const now = Date.now();
+    const byStatus: Record<Job['status'], number> = { queued: 0, running: 0, done: 0, error: 0 };
+    let oldestPendingAgeMs = 0;
+    let retriedJobs = 0;
+    const recentErrors: { id: string; mode: string; error: string; at: string }[] = [];
+
+    for (const j of jobs) {
+      byStatus[j.status] = (byStatus[j.status] ?? 0) + 1;
+      if (j.status === 'queued' || j.status === 'running') {
+        const age = now - Date.parse(j.createdAt);
+        if (Number.isFinite(age) && age > oldestPendingAgeMs) oldestPendingAgeMs = age;
+      }
+      if ((j.attempts ?? 0) > 1) retriedJobs += 1;
+      if (j.status === 'error' && j.error) {
+        recentErrors.push({ id: j.id, mode: j.mode, error: j.error.slice(0, 200), at: j.finishedAt || j.createdAt });
+      }
+    }
+    recentErrors.sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+
+    return {
+      total: jobs.length,
+      byStatus,
+      pending: byStatus.queued + byStatus.running,
+      failed: byStatus.error,
+      oldestPendingAgeMs,
+      retriedJobs,
+      recentErrors: recentErrors.slice(0, 10),
+      generatedAt: new Date().toISOString(),
+    };
+  }
 }

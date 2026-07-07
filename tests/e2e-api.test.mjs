@@ -494,6 +494,16 @@ maybe('jobs: list contains the write-mode activity records', async () => {
   assert.equal((await get('/api/jobs/nonexistent-job')).status, 404);
 });
 
+maybe('jobs: metrics summarize queue health (and "metrics" is not a job id)', async () => {
+  const { status, json } = await get('/api/jobs/metrics');
+  assert.equal(status, 200, 'metrics must resolve before the :id route');
+  assert.ok(json.total >= 1);
+  assert.ok(json.byStatus.done >= 1);
+  assert.equal(json.pending, json.byStatus.queued + json.byStatus.running);
+  assert.ok(Number.isFinite(json.oldestPendingAgeMs));
+  assert.ok(Array.isArray(json.recentErrors));
+});
+
 // ── images ────────────────────────────────────────────────────────────────────
 
 maybe('images: upload a PNG and serve it back', async () => {
