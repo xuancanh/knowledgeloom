@@ -7,9 +7,10 @@ import { NEW_NOTE_DRAFT_KEY } from '../routes/NewNoteRoute';
 import { assistDraft } from '../../api';
 import NoteEditor, { type NoteEditorHandle } from '../notes/NoteEditor';
 import MetaFields from '../notes/MetaFields';
+import ImportPanel from '../import/ImportPanel';
 import styles from './CaptureBox.module.css';
 
-type CaptureMode = 'research' | 'link' | 'write';
+type CaptureMode = 'research' | 'link' | 'write' | 'import';
 
 function splitList(value: string) {
   return [...new Set(value.split(',').map((s) => s.trim()).filter(Boolean))];
@@ -19,10 +20,12 @@ export default function CaptureBox({
   onSubmit,
   readOnly,
   templates,
+  onOpenNote,
 }: {
   onSubmit: (payload: CreateNoteRequest) => void;
   readOnly: boolean;
   templates: GuidanceTemplate[];
+  onOpenNote: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -62,7 +65,7 @@ export default function CaptureBox({
   const [aiRunning, setAiRunning] = useState(false);
   const [aiError, setAiError] = useState('');
 
-  const modeTemplates = mode !== 'write'
+  const modeTemplates = mode === 'research' || mode === 'link'
     ? templatesForMode(templates, mode === 'link' ? 'link' : 'research')
     : [];
 
@@ -188,7 +191,7 @@ export default function CaptureBox({
       {/* Tab strip */}
       <div className={styles.tabs}>
         {readOnly && <span className={styles.readOnlyTag}>{t('capture.readOnlyBanner')}</span>}
-        {(['research', 'link', 'write'] as CaptureMode[]).map((m) => (
+        {(['research', 'link', 'write', 'import'] as CaptureMode[]).map((m) => (
           <button
             key={m}
             type="button"
@@ -196,13 +199,17 @@ export default function CaptureBox({
             onClick={() => switchMode(m)}
             disabled={readOnly}
           >
-            {m === 'research' ? t('capture.btnResearch') : m === 'link' ? t('capture.btnLink') : t('capture.btnWrite')}
+            {m === 'research' ? t('capture.btnResearch') : m === 'link' ? t('capture.btnLink') : m === 'write' ? t('capture.btnWrite') : '⇪ Import'}
           </button>
         ))}
       </div>
 
       {/* Body */}
       <div className={styles.body}>
+        {mode === 'import' ? (
+          <ImportPanel onOpenNote={onOpenNote} />
+        ) : (
+        <>
 
         {/* ── Primary input ── */}
         <div className={styles.primaryZone}>
@@ -395,9 +402,12 @@ export default function CaptureBox({
             />
           </div>
         )}
+        </>
+        )}
       </div>
 
       {/* Footer */}
+      {mode !== 'import' && (
       <div className={styles.footer}>
         <span className={styles.hint}>
           {readOnly
@@ -408,6 +418,7 @@ export default function CaptureBox({
           {submitLabel}
         </button>
       </div>
+      )}
 
       {/* AI Assist popup */}
       {aiAssistOpen && (

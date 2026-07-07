@@ -133,7 +133,7 @@ export default function Home({
         </div>
       )}
 
-      <CaptureBox onSubmit={onSubmit} readOnly={readOnly} templates={templates} />
+      <CaptureBox onSubmit={onSubmit} readOnly={readOnly} templates={templates} onOpenNote={onOpen} />
 
       {/* ── Daily panel: overdue + upcoming ── */}
       {widgets.daily && (hasReviewItems || upcomingReminders.length > 0) && (

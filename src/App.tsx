@@ -65,7 +65,7 @@ function AuthenticatedApp() {
     templates, setTemplates, catSearch, setCatSearch, tagSearch, setTagSearch,
     categories, categoryTree, categoryById, tagCounts, currentNote,
     showContextPanel, inFlightCount, openNote, openCategory, openTag, goHome,
-    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday, openImport, openMarketplace,
+    openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday, openMarketplace,
     graphAddLink, graphRemoveLink, graphCreateNote, graphDeleteNote, graphRenameNote, graphSetCategory,
     handleDelete, handleSaveNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
@@ -99,7 +99,6 @@ function AuthenticatedApp() {
         onGraph={openGraph}
         onLearn={openLearn}
         onToday={openToday}
-        onImport={openImport}
         onMarketplace={openMarketplace}
         onSettings={openSettings}
         features={features}

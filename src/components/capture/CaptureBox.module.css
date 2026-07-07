@@ -12,6 +12,7 @@
 .mode-research { border-left: 3px solid var(--accent); }
 .mode-link     { border-left: 3px solid var(--indigo); }
 .mode-write    { border-left: 3px solid var(--moss); }
+.mode-import   { border-left: 3px solid var(--ochre); }
 
 /* ── Tab strip ── */
 .tabs {
@@ -40,6 +41,7 @@
 .tab-research.tabActive { color: var(--accent); border-bottom-color: var(--accent); }
 .tab-link.tabActive     { color: var(--indigo); border-bottom-color: var(--indigo); }
 .tab-write.tabActive    { color: var(--moss);   border-bottom-color: var(--moss); }
+.tab-import.tabActive   { color: var(--ochre);  border-bottom-color: var(--ochre); }
 
 .readOnlyTag {
   font-family: Inter, system-ui, sans-serif;

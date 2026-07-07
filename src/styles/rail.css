@@ -297,6 +297,9 @@
   padding-left: 4px;
   flex: 1;
 }
+/* ── Collapsible nav groups (Capture, Study) ── */
+.rail-group { margin: 0; }
+.rail-group-head { flex: 1; min-width: 0; }
 .nav-item .count {
   margin-left: auto;
   font-family: Inter, system-ui, sans-serif;
