@@ -76,10 +76,30 @@ export async function fetchStatus(): Promise<{ readOnly: boolean }> {
   return response.json();
 }
 
+// Conditional-fetch cache for the large knowledge payload. On an unchanged
+// poll the server returns 304 and we hand back the same object reference, so
+// the caller's setState bails out of a re-render (Object.is) and no body is
+// transferred or parsed. Keyed by space so switching scopes never serves stale
+// state (a different scope's ETag simply won't match).
+let knowledgeEtag: string | null = null;
+let knowledgeState: KnowledgeState | null = null;
+let knowledgeEtagSpace: string | null = null;
+
 export async function fetchKnowledge(): Promise<KnowledgeState> {
-  const response = await apiFetch('/api/knowledge');
+  const space = currentSpaceId();
+  const conditional: Record<string, string> = knowledgeEtag && knowledgeEtagSpace === space
+    ? { 'If-None-Match': knowledgeEtag }
+    : {};
+  // no-store keeps the browser's HTTP cache out of the way so our explicit
+  // If-None-Match / 304 handling is what runs (we cache in JS ourselves).
+  const response = await apiFetch('/api/knowledge', { headers: conditional, cache: 'no-store' });
+  if (response.status === 304 && knowledgeState) return knowledgeState;
   if (!response.ok) throw new Error(`Failed to load knowledge: ${response.status}`);
-  return response.json();
+  const state = (await response.json()) as KnowledgeState;
+  knowledgeEtag = response.headers.get('ETag');
+  knowledgeEtagSpace = space;
+  knowledgeState = state;
+  return state;
 }
 
 export async function fetchNoteMarkdown(id: string): Promise<string> {

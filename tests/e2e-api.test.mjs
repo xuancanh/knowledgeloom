@@ -171,6 +171,16 @@ maybe('knowledge: state includes notes and categories', async () => {
   assert.ok(Array.isArray(json.categories));
 });
 
+maybe('knowledge: conditional GET returns 304 when unchanged (ETag)', async () => {
+  const first = await fetch(`${BASE}/api/knowledge`);
+  assert.equal(first.status, 200);
+  const etag = first.headers.get('etag');
+  assert.ok(etag, 'response should carry an ETag');
+  const second = await fetch(`${BASE}/api/knowledge`, { headers: { 'If-None-Match': etag } });
+  assert.equal(second.status, 304);
+  assert.equal(await second.text(), '');
+});
+
 maybe('search: finds notes with the in-memory fallback engine', async () => {
   const { status, json } = await get('/api/search?q=updated');
   assert.equal(status, 200);
