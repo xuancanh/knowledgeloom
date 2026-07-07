@@ -15,11 +15,19 @@ import { writeFile, rm, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+/** Cap on transcript bytes buffered from a CLI processor — a runaway or hostile
+ *  command can't exhaust memory before the size or time limit trips. */
+const MAX_CLI_OUTPUT_BYTES = 5 * 1024 * 1024; // 5 MB of text
+
 @Injectable()
 export class TranscriptionService {
   private readonly logger = new Logger(TranscriptionService.name);
 
   constructor(private readonly config: ConfigService) {}
+
+  private get timeoutMs(): number {
+    return this.config.get<number>('transcribeTimeoutMs') || 120000;
+  }
 
   get enabled(): boolean {
     return this.config.get<string>('transcribeProvider') !== 'none';
@@ -44,6 +52,7 @@ export class TranscriptionService {
       method: 'POST',
       headers: key ? { authorization: `Bearer ${key}` } : {},
       body: form,
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
@@ -71,11 +80,22 @@ export class TranscriptionService {
         const proc = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
         let out = '';
         let err = '';
-        proc.stdout.on('data', (d) => { out += d; });
-        proc.stderr.on('data', (d) => { err += d; });
-        proc.on('error', reject);
+        let overflowed = false;
+        // Kill a hung/slow processor rather than let the request hang forever.
+        const timer = setTimeout(() => {
+          proc.kill('SIGKILL');
+          reject(Object.assign(new Error('transcription command timed out'), { status: 504 }));
+        }, this.timeoutMs);
+        proc.stdout.on('data', (d) => {
+          out += d;
+          if (out.length > MAX_CLI_OUTPUT_BYTES) { overflowed = true; proc.kill('SIGKILL'); }
+        });
+        proc.stderr.on('data', (d) => { if (err.length < 4096) err += d; });
+        proc.on('error', (e) => { clearTimeout(timer); reject(e); });
         proc.on('close', (code) => {
-          if (code === 0 && out.trim()) resolvePromise(out.trim());
+          clearTimeout(timer);
+          if (overflowed) reject(Object.assign(new Error('transcription output exceeded size limit'), { status: 502 }));
+          else if (code === 0 && out.trim()) resolvePromise(out.trim());
           else reject(Object.assign(new Error(`transcription command failed (${code}): ${err.slice(0, 200)}`), { status: 502 }));
         });
       });

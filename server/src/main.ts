@@ -137,6 +137,28 @@ async function bootstrap() {
   const port = config.get<number>('port');
   const readOnly = config.get<boolean>('readOnly');
 
+  // Production-readiness warnings: surface footguns that are fine locally but
+  // dangerous on an exposed host. Non-fatal by design (self-hosters run all
+  // kinds of setups); set the opt-out envs to silence a deliberate choice.
+  if (process.env.NODE_ENV === 'production') {
+    const authProvider = config.get<string>('authProvider');
+    const authSecret = config.get<string>('authSecret');
+    const localMode = !authProvider || authProvider === 'local';
+    if (localMode && !authSecret && process.env.ALLOW_UNAUTHENTICATED_LOCAL !== '1') {
+      console.warn(
+        '⚠️  SECURITY: running in production with local auth and no AUTH_SECRET — ' +
+        'every request is treated as the owner and writes are unauthenticated. ' +
+        'Set AUTH_SECRET (or AUTH_PROVIDER), or ALLOW_UNAUTHENTICATED_LOCAL=1 to silence.',
+      );
+    }
+    if (!process.env.CORS_ORIGIN) {
+      console.warn(
+        '⚠️  SECURITY: CORS_ORIGIN is unset in production (defaults to "*") — ' +
+        'any origin can call the API. Set CORS_ORIGIN to your web origin(s).',
+      );
+    }
+  }
+
   await app.listen(port);
   console.log(`Knowledge API listening on http://localhost:${port}`);
   if (readOnly) console.log('Knowledge API is running in read-only mode');

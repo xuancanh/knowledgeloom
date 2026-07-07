@@ -114,6 +114,9 @@ export default () => {
     transcribeModel: process.env.TRANSCRIBE_MODEL || 'whisper-1',
     // CLI template; {file} is replaced with the audio path. Must print the transcript to stdout.
     transcribeCommand: process.env.TRANSCRIBE_COMMAND || '',
+    // Wall-clock cap for a single transcription (HTTP request or CLI process),
+    // bounding the blast radius of a slow/hostile upload. Default 2 minutes.
+    transcribeTimeoutMs: Number(process.env.TRANSCRIBE_TIMEOUT_MS || 120000),
 
     // Vision extraction for image/handwriting import. Defaults to the main AI
     // provider's HTTP credentials when it is OpenAI-compatible (openrouter).
