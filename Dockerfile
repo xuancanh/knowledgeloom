@@ -1,8 +1,7 @@
 # Knowledge Loom — all-in-one image: NestJS API + built web app.
 # The server serves the SPA when /app/dist exists, so this single container is
 # a complete self-hosted install (pair with redis + meilisearch via
-# docker-compose.yml). Cloud deployments may still serve the SPA from
-# Cloudflare Pages instead — see docs/tech/DEPLOYMENT.md.
+# docker-compose.yml). See docs/tech/SELF_HOSTING.md.
 
 # ── build stage ───────────────────────────────────────────────────────────────
 FROM node:22-slim AS build
@@ -11,8 +10,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# extensions tree is optional: when the private repo is merged/linked into server/src/ee
-# the build includes extensions modules; without it this is a pure OSS image.
+# The extensions tree is optional: when a private repo is merged/linked into
+# server/src/extensions the build includes those modules; without it this is a
+# pure open-source image.
 COPY . .
 RUN npm run build
 
