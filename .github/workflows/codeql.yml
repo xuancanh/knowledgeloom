@@ -15,7 +15,7 @@ permissions:
 jobs:
   analyze:
     # Code-scanning upload on private repos requires GitHub Advanced Security;
-    # this activates automatically once the repo is public (planned: SSPL source-available core).
+    # this activates automatically once the repo is public (planned: AGPL-3.0 open-source core).
     if: github.event.repository.private == false
     runs-on: ubuntu-latest
     steps:

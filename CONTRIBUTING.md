@@ -1,7 +1,7 @@
 # Contributing to Knowledge Loom
 
 Thanks for contributing! By submitting a contribution you agree to license it
-under the repository's license (**SSPL-1.0**, see `LICENSE`) and certify the
+under the repository's license (**AGPL-3.0-or-later**, see `LICENSE`) and certify the
 [Developer Certificate of Origin](https://developercertificate.org/) — sign
 commits with `git commit -s` if asked.
 

@@ -124,11 +124,11 @@ people's decks — imported notes arrive with flashcards and quizzes intact.
 
 ## Auth & licensing
 
-This repository is the public core, licensed under the **Server Side Public
-License v1 (SSPL-1.0)** — see `LICENSE`. You can use, modify, self-host, and
-redistribute it freely; if you offer Knowledge Loom itself to third parties
-as a managed service, SSPL requires you to open the source of your entire
-service stack. (SSPL is source-available, not OSI-approved open source.)
+This repository is the public core, licensed under the **GNU Affero General
+Public License v3.0 or later (AGPL-3.0-or-later)** — see `LICENSE`. You can
+use, modify, self-host, and redistribute it freely; if you run a modified
+version to offer a network service, the AGPL requires you to make that
+modified source available to its users.
 It runs in single-user local mode by default: no login, all data under
 `userId="local"`. `AUTH_SECRET` adds bearer-token protection for exposed
 instances.

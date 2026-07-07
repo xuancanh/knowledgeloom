@@ -85,5 +85,5 @@
     "dompurify": "^3.4.11",
     "lodash": "^4.17.24"
   },
-  "license": "SSPL-1.0"
+  "license": "AGPL-3.0-or-later"
 }
