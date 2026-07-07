@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, FLASHCARD_REVIEWS_TABLE } from '../database/database.constants';
+import { runWrite, getOne } from '../database/exec.util';
 
 export interface FlashcardReview {
   cardId: string;
@@ -60,11 +61,10 @@ export class FlashcardReviewsRepository {
 
   async find(userId: string, cardId: string): Promise<FlashcardReview | null> {
     if (this.config.get<boolean>('readOnly') || !this.db) return null;
-    const row = await this.db
+    const row = await getOne(this.db
       .select()
       .from(this.table)
-      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId)))
-      .get();
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId))));
     if (!row) return null;
     return {
       cardId: row.cardId,
@@ -102,13 +102,12 @@ export class FlashcardReviewsRepository {
       difficulty: review.difficulty != null ? review.difficulty.toFixed(4) : null,
       lapses: review.lapses ?? 0,
     };
-    const existing = await this.db
+    const existing = await getOne(this.db
       .select()
       .from(this.table)
-      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId)))
-      .get();
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId))));
     if (existing) {
-      await this.db
+      await runWrite(this.db
         .update(this.table)
         .set({
           easeFactor: review.easeFactor,
@@ -119,10 +118,9 @@ export class FlashcardReviewsRepository {
           lastRating: review.lastRating,
           ...fsrsFields,
         })
-        .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId)))
-        .run();
+        .where(and(eq(this.table.userId, userId), eq(this.table.cardId, review.cardId))));
     } else {
-      await this.db
+      await runWrite(this.db
         .insert(this.table)
         .values({
           cardId: review.cardId,
@@ -136,16 +134,14 @@ export class FlashcardReviewsRepository {
           lastReviewAt: review.lastReviewAt,
           lastRating: review.lastRating,
           ...fsrsFields,
-        })
-        .run();
+        }));
     }
   }
 
   async delete(userId: string, cardId: string): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
-    await this.db
+    await runWrite(this.db
       .delete(this.table)
-      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId)))
-      .run();
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId))));
   }
 }

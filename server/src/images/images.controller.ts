@@ -41,7 +41,7 @@ function detectImageKind(buf: Buffer): 'jpeg' | 'png' | 'gif' | 'webp' | 'svg' |
   if (buf.length >= 4 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return 'gif';
   if (buf.length >= 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'webp';
   // SVG is XML text: allow a leading BOM/whitespace, then require an <?xml or <svg opener.
-  const head = buf.toString('utf8', 0, Math.min(buf.length, 1024)).replace(/^﻿/, '').trimStart().toLowerCase();
+  const head = buf.toString('utf8', 0, Math.min(buf.length, 1024)).replace(/^\uFEFF/, '').trimStart().toLowerCase();
   if (head.startsWith('<?xml') || head.startsWith('<svg') || head.startsWith('<!doctype svg')) return 'svg';
   return null;
 }

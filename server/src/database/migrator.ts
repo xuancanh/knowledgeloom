@@ -56,8 +56,11 @@ function addIfMissing(db: Database.Database, table: string, column: string, defi
 
 async function pgAddIfMissing(pool: Pool, table: string, column: string, definition: string): Promise<void> {
   const cols = await pgColumns(pool, table);
+  // The column identifier MUST be quoted: an unquoted camelCase name like
+  // userId folds to lowercase (userid), but every index/query references the
+  // quoted "userId" — the mismatch made PG boot fail at the first CREATE INDEX.
   if (!cols.has(column)) {
-    await pool.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    await pool.query(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${definition}`);
   }
 }
 

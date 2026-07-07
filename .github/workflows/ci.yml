@@ -24,6 +24,20 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      # Postgres parity gate: the e2e suite is re-run against this service with
+      # DATABASE_DIALECT=postgres so dialect regressions (sqlite-only .run()/.get(),
+      # unquoted identifiers, missing PG migrations) fail CI instead of shipping.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: knowledge
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +59,12 @@ jobs:
       # Every suite isolates itself: temp KNOWLEDGE_ROOT, dedicated REDIS_DB.
       - name: Test
         run: npm run test:all
+
+      # Re-run the full e2e API suite against Postgres to prove dialect parity.
+      - name: Test (Postgres dialect)
+        run: npm run test:e2e:postgres
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/knowledge
 
   docker-image:
     runs-on: ubuntu-latest

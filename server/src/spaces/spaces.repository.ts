@@ -12,6 +12,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { DRIZZLE_DB, SPACES_TABLE } from '../database/database.constants';
 import type { DrizzleDb } from '../database/database.module';
+import { runWrite } from '../database/exec.util';
 
 export interface SpaceRow {
   id: string;
@@ -64,26 +65,24 @@ export class SpacesRepository {
 
   async insert(row: SpaceRow): Promise<void> {
     if (!this.db) return;
-    await this.db.insert(this.table).values(row).run();
+    await runWrite(this.db.insert(this.table).values(row));
     this.cache.delete(row.userId);
   }
 
   async rename(userId: string, spaceId: string, name: string): Promise<void> {
     if (!this.db) return;
-    await this.db
+    await runWrite(this.db
       .update(this.table)
       .set({ name })
-      .where(and(eq(this.table.userId, userId), eq(this.table.id, spaceId)))
-      .run();
+      .where(and(eq(this.table.userId, userId), eq(this.table.id, spaceId))));
     this.cache.delete(userId);
   }
 
   async delete(userId: string, spaceId: string): Promise<void> {
     if (!this.db) return;
-    await this.db
+    await runWrite(this.db
       .delete(this.table)
-      .where(and(eq(this.table.userId, userId), eq(this.table.id, spaceId)))
-      .run();
+      .where(and(eq(this.table.userId, userId), eq(this.table.id, spaceId))));
     this.cache.delete(userId);
   }
 }

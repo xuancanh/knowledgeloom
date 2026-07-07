@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, NOTE_READS_TABLE } from '../database/database.constants';
+import { runWrite } from '../database/exec.util';
 
 @Injectable()
 export class NoteReadsRepository {
@@ -29,17 +30,15 @@ export class NoteReadsRepository {
       .where(and(eq(this.table.userId, userId), eq(this.table.noteId, noteId)));
 
     if (existing.length > 0) {
-      await this.db
+      await runWrite(this.db
         .update(this.table)
         .set({ readCount: existing[0].readCount + 1, lastReadAt: now })
-        .where(and(eq(this.table.userId, userId), eq(this.table.noteId, noteId)))
-        .run();
+        .where(and(eq(this.table.userId, userId), eq(this.table.noteId, noteId))));
     } else {
-      await this.db
+      await runWrite(this.db
         .insert(this.table)
         .values({ userId, noteId, readCount: 1, firstReadAt: now, lastReadAt: now })
-        .onConflictDoNothing()
-        .run();
+        .onConflictDoNothing());
     }
   }
 

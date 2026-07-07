@@ -9,6 +9,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE_DB, USER_SETTINGS_TABLE } from '../database/database.constants';
 import type { DrizzleDb } from '../database/database.module';
+import { runWrite } from '../database/exec.util';
 
 @Injectable()
 export class UserSettingsRepository {
@@ -31,9 +32,9 @@ export class UserSettingsRepository {
     const json = JSON.stringify(merged);
     const rows = await this.db.select().from(this.table).where(eq(this.table.userId, userId));
     if (rows.length > 0) {
-      await this.db.update(this.table).set({ settings: json }).where(eq(this.table.userId, userId)).run();
+      await runWrite(this.db.update(this.table).set({ settings: json }).where(eq(this.table.userId, userId)));
     } else {
-      await this.db.insert(this.table).values({ userId, settings: json }).onConflictDoNothing().run();
+      await runWrite(this.db.insert(this.table).values({ userId, settings: json }).onConflictDoNothing());
     }
     return merged;
   }

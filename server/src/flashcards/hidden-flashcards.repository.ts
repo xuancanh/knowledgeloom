@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { eq, and } from 'drizzle-orm';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, HIDDEN_FLASHCARDS_TABLE } from '../database/database.constants';
+import { runWrite } from '../database/exec.util';
 
 @Injectable()
 export class HiddenFlashcardsRepository {
@@ -27,18 +28,16 @@ export class HiddenFlashcardsRepository {
 
   async hide(userId: string, cardId: string): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
-    await this.db
+    await runWrite(this.db
       .insert(this.table)
       .values({ cardId, userId, createdAt: new Date().toISOString() })
-      .onConflictDoNothing()
-      .run();
+      .onConflictDoNothing());
   }
 
   async unhide(userId: string, cardId: string): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
-    await this.db
+    await runWrite(this.db
       .delete(this.table)
-      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId)))
-      .run();
+      .where(and(eq(this.table.userId, userId), eq(this.table.cardId, cardId))));
   }
 }

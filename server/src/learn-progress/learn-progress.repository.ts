@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE_DB, LEARN_PROGRESS_TABLE } from '../database/database.constants';
 import type { DrizzleDb } from '../database/database.module';
+import { runWrite } from '../database/exec.util';
 import { applyDayRollover } from './progress-rollover';
 
 export interface LearnProgress {
@@ -49,7 +50,7 @@ export class LearnProgressRepository {
 
     if (!rows.length) {
       const row = { userId, xp: amount, todayXp: amount, dailyGoalXp: 100, streak: 1, lastActiveDate: today, mastery: '{}' };
-      await this.db.insert(this.table).values(row).run();
+      await runWrite(this.db.insert(this.table).values(row));
       return { xp: amount, todayXp: amount, dailyGoalXp: 100, streak: 1, mastery: {} };
     }
 
@@ -68,10 +69,9 @@ export class LearnProgressRepository {
     const streak = cur.lastActiveDate === today ? rolled.streak : rolled.streak + 1;
 
     const xp = (cur.xp ?? 0) + amount;
-    await this.db.update(this.table)
+    await runWrite(this.db.update(this.table)
       .set({ xp, todayXp, streak, lastActiveDate: today })
-      .where(eq(this.table.userId, userId))
-      .run();
+      .where(eq(this.table.userId, userId)));
 
     let mastery: Record<string, 'mastered'> = {};
     try { mastery = JSON.parse(cur.mastery); } catch { /* ignore */ }
@@ -83,7 +83,7 @@ export class LearnProgressRepository {
     const rows = await this.db.select().from(this.table).where(eq(this.table.userId, userId));
     if (!rows.length) {
       const mastery = JSON.stringify({ [noteId]: 'mastered' });
-      await this.db.insert(this.table).values({ userId, xp: 0, todayXp: 0, dailyGoalXp: 100, streak: 0, mastery }).run();
+      await runWrite(this.db.insert(this.table).values({ userId, xp: 0, todayXp: 0, dailyGoalXp: 100, streak: 0, mastery }));
       return { xp: 0, todayXp: 0, dailyGoalXp: 100, streak: 0, mastery: { [noteId]: 'mastered' } };
     }
 
@@ -91,10 +91,9 @@ export class LearnProgressRepository {
     let mastery: Record<string, 'mastered'> = {};
     try { mastery = JSON.parse(cur.mastery); } catch { /* ignore */ }
     mastery[noteId] = 'mastered';
-    await this.db.update(this.table)
+    await runWrite(this.db.update(this.table)
       .set({ mastery: JSON.stringify(mastery) })
-      .where(eq(this.table.userId, userId))
-      .run();
+      .where(eq(this.table.userId, userId)));
 
     return {
       xp: cur.xp ?? 0,

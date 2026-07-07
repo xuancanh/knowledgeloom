@@ -8,6 +8,7 @@ import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, USER_FLASHCARDS_TABLE } from '../database/database.constants';
+import { runWrite } from '../database/exec.util';
 
 export interface UserFlashcardRow {
   id: string;
@@ -51,24 +52,22 @@ export class UserFlashcardsRepository {
       createdAt: now,
       updatedAt: now,
     };
-    await this.db.insert(this.table).values(row).run();
+    await runWrite(this.db.insert(this.table).values(row));
     return row;
   }
 
   async update(userId: string, id: string, data: { prompt: string; lesson: string; kind: string }): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
-    await this.db
+    await runWrite(this.db
       .update(this.table)
       .set({ ...data, updatedAt: new Date().toISOString() })
-      .where(and(eq(this.table.userId, userId), eq(this.table.id, id)))
-      .run();
+      .where(and(eq(this.table.userId, userId), eq(this.table.id, id))));
   }
 
   async delete(userId: string, id: string): Promise<void> {
     if (this.config.get<boolean>('readOnly') || !this.db) return;
-    await this.db
+    await runWrite(this.db
       .delete(this.table)
-      .where(and(eq(this.table.userId, userId), eq(this.table.id, id)))
-      .run();
+      .where(and(eq(this.table.userId, userId), eq(this.table.id, id))));
   }
 }

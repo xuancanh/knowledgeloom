@@ -19,6 +19,7 @@
     "db:studio": "drizzle-kit studio",
     "db:migrate-local": "node scripts/migrate-local-user.mjs",
     "test:e2e": "npm run server:build && node --test --test-force-exit tests/e2e-api.test.mjs",
+    "test:e2e:postgres": "npm run server:build && DATABASE_DIALECT=postgres node --test --test-force-exit tests/e2e-api.test.mjs",
     "test:integration": "npm run server:build && node --test --test-concurrency=1 --test-force-exit tests/integration-ai.test.mjs tests/integration-modes.test.mjs tests/integration-mcp.test.mjs",
     "mcp": "node mcp/knowledge-loom-mcp.mjs"
   },
