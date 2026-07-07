@@ -7,6 +7,7 @@
 import { Controller, Get, Patch, Body, UseGuards, HttpCode } from '@nestjs/common';
 import { UserSettingsRepository } from './user-settings.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
+import { WritableGuard } from '../common/guards/writable.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('api/settings')
@@ -20,6 +21,7 @@ export class SettingsController {
   }
 
   @Patch()
+  @UseGuards(WritableGuard)
   @HttpCode(200)
   patchSettings(@CurrentUser() userId: string, @Body() body: Record<string, unknown>) {
     return this.settingsRepo.patch(userId, body);

@@ -15,10 +15,14 @@ import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import { FlashcardReviewsRepository } from './flashcard-reviews.repository';
 import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
+import { WritableGuard } from '../common/guards/writable.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 
+// Every route here mutates durable state, so the whole controller is gated on
+// WritableGuard — read-only deployments reject writes with 403 instead of
+// silently no-opping when the DB handle is null.
 @Controller('api/flashcards')
-@UseGuards(ApiAuthGuard)
+@UseGuards(ApiAuthGuard, WritableGuard)
 export class FlashcardsController {
   constructor(
     private readonly flashcardsService: FlashcardsService,

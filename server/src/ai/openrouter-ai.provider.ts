@@ -18,16 +18,28 @@
  * The provider sends a single-turn chat completion. For models that reason
  * better with a system message, set AI_SYSTEM_PROMPT accordingly.
  */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AiProvider, AiCompletionOptions, AiMessage } from './ai-provider.interface';
 
 @Injectable()
 export class OpenRouterAiProvider implements AiProvider {
+  private readonly logger = new Logger(OpenRouterAiProvider.name);
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly model: string;
   private readonly systemPrompt: string | undefined;
+
+  /**
+   * Upstream error bodies can carry provider-side detail (keys, account
+   * identifiers, prompt echoes) that must not reach API clients through the
+   * global exception filter. Log a truncated copy server-side and surface only
+   * the status category to the caller.
+   */
+  private upstreamError(status: number, body: string): Error {
+    this.logger.error(`AI upstream ${status}: ${body.slice(0, 500)}`);
+    return new Error(`AI provider request failed (HTTP ${status})`);
+  }
 
   constructor(config: ConfigService) {
     this.apiKey = config.get<string>('aiApiKey') || '';
@@ -63,7 +75,7 @@ export class OpenRouterAiProvider implements AiProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`AI API ${response.status}: ${text}`);
+      throw this.upstreamError(response.status, text);
     }
 
     const data: any = await response.json();
@@ -95,7 +107,7 @@ export class OpenRouterAiProvider implements AiProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`AI API ${response.status}: ${text}`);
+      throw this.upstreamError(response.status, text);
     }
 
     const reader = response.body!.getReader();

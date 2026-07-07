@@ -157,8 +157,8 @@ const noteReadsTableProvider = {
   provide: NOTE_READS_TABLE,
   inject: [ConfigService],
   useFactory: (config: ConfigService) => {
-    const _dialect = config.get<string>('databaseDialect') || 'sqlite';
-    return schema.sqliteNoteReads;
+    const dialect = config.get<string>('databaseDialect') || 'sqlite';
+    return dialect === 'postgres' ? schema.pgNoteReads : schema.sqliteNoteReads;
   },
 };
 

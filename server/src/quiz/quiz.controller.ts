@@ -13,10 +13,14 @@ import { QuizReviewsRepository } from './quiz-reviews.repository';
 import { QuizHiddenRepository } from './quiz-hidden.repository';
 import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
+import { WritableGuard } from '../common/guards/writable.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 
+// All routes here mutate durable state (reviews, hide, restore), so the whole
+// controller is gated on WritableGuard — read-only deployments reject writes
+// with 403 instead of silently no-opping.
 @Controller('api/quiz')
-@UseGuards(ApiAuthGuard)
+@UseGuards(ApiAuthGuard, WritableGuard)
 export class QuizController {
   constructor(
     private readonly quizService: QuizService,

@@ -108,6 +108,7 @@ export class MarketplaceController {
   }
 
   @Delete(':id')
+  @UseGuards(WritableGuard)
   @HttpCode(200)
   async unpublish(@CurrentUser() userId: string, @Param('id') id: string) {
     // Owner check is per user, not per space — you can unpublish a listing
@@ -120,6 +121,7 @@ export class MarketplaceController {
   }
 
   @Post(':id/rate')
+  @UseGuards(WritableGuard)
   @HttpCode(200)
   async rate(
     @CurrentUser() userId: string,

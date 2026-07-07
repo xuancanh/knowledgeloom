@@ -214,6 +214,16 @@ export const sqliteNoteReads = sqliteTable('note_reads', {
   pk: sqlitePrimaryKey({ columns: [t.userId, t.noteId] }),
 }));
 
+export const pgNoteReads = pgTable('note_reads', {
+  userId: pgText('userId').notNull().default(''),
+  noteId: pgText('noteId').notNull(),
+  readCount: pgInteger('readCount').notNull().default(1),
+  firstReadAt: pgText('firstReadAt').notNull(),
+  lastReadAt: pgText('lastReadAt').notNull(),
+}, (t) => ({
+  pk: pgPrimaryKey({ columns: [t.userId, t.noteId] }),
+}));
+
 /** Per-user arbitrary settings stored as a JSON blob. */
 export const sqliteUserSettings = sqliteTable('user_settings', {
   userId: sqliteText('userId').primaryKey(),

@@ -25,13 +25,17 @@ import { ImagesService } from './images.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { WritableGuard } from '../common/guards/writable.guard';
 
+/** Hard cap on uploaded image size — rejects oversized/decompression payloads
+ *  at the multipart layer before the buffer is ever held in memory. */
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
+
 @Controller('api/images')
 export class ImagesController {
   constructor(private readonly imagesService: ImagesService) {}
 
   @Post()
   @UseGuards(ApiAuthGuard, WritableGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_BYTES, files: 1 } }))
   async upload(@UploadedFile() file: { originalname: string; buffer: Buffer; mimetype: string }) {
     if (!file) throw new BadRequestException('No file uploaded');
     const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];

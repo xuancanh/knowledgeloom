@@ -779,6 +779,32 @@ const PG_MIGRATIONS: PgMigration[] = [
       `);
     },
   },
+  {
+    // note_reads and user_settings were only ever created in the SQLite
+    // migrations (0004/0005); the PG array skipped them, so read-tracking and
+    // per-user settings were broken on Postgres. Create both here to reach
+    // parity with the SQLite schema. Idempotent via IF NOT EXISTS.
+    id: '0015_note_reads_and_settings_pg',
+    async run(pool) {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS note_reads (
+          "userId"      TEXT NOT NULL DEFAULT '',
+          "noteId"      TEXT NOT NULL,
+          "readCount"   INTEGER NOT NULL DEFAULT 1,
+          "firstReadAt" TEXT NOT NULL,
+          "lastReadAt"  TEXT NOT NULL,
+          PRIMARY KEY ("userId", "noteId")
+        );
+        CREATE INDEX IF NOT EXISTS idx_note_reads_user_id ON note_reads("userId");
+        CREATE INDEX IF NOT EXISTS idx_note_reads_note_id ON note_reads("noteId");
+
+        CREATE TABLE IF NOT EXISTS user_settings (
+          "userId"   TEXT PRIMARY KEY,
+          settings   TEXT NOT NULL DEFAULT '{}'
+        );
+      `);
+    },
+  },
 ];
 
 export async function runPgMigrations(pool: Pool, logger: Logger): Promise<void> {
