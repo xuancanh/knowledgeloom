@@ -5,7 +5,7 @@
  */
 import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, or, isNull, like, sql } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import { DrizzleDb } from '../database/database.module';
 import { DRIZZLE_DB, MARKETPLACE_LISTINGS_TABLE } from '../database/database.constants';
@@ -76,6 +76,23 @@ export class MarketplaceRepository {
   /** All active listings, newest first (filtering/search happens in JS — volumes are small). */
   async listActive(): Promise<ListingRow[]> {
     const rows = await this.db.select().from(this.table).where(isNull(this.table.unpublishedAt));
+    return rows.map(fromRow).sort((a: ListingRow, b: ListingRow) => b.publishedAt.localeCompare(a.publishedAt));
+  }
+
+  /**
+   * Active listings owned by a user across all of their spaces. The stored
+   * userId is the scope key — either the bare userId (default space) or
+   * `userId~spaceId` — so we match the exact id plus that prefix. Uses the
+   * userId index instead of scanning every listing in the gallery.
+   * (User ids are 'local' or UUIDs, so they carry no LIKE wildcards.)
+   */
+  async listByOwner(userId: string): Promise<ListingRow[]> {
+    const rows = await this.db.select().from(this.table).where(
+      and(
+        isNull(this.table.unpublishedAt),
+        or(eq(this.table.userId, userId), like(this.table.userId, `${userId}~%`)),
+      ),
+    );
     return rows.map(fromRow).sort((a: ListingRow, b: ListingRow) => b.publishedAt.localeCompare(a.publishedAt));
   }
 

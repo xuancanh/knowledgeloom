@@ -101,9 +101,10 @@ export class MarketplaceController {
 
   @Get('mine')
   async mine(@CurrentUser() userId: string) {
-    // Listings published from any of the user's spaces.
-    const all = await this.listings.listActive();
-    return { listings: all.filter((l) => ownerOf(l.userId) === userId).map((l) => publicListing(l)) };
+    // Listings published from any of the user's spaces — a userId-scoped query
+    // (not a scan of the whole gallery).
+    const own = await this.listings.listByOwner(userId);
+    return { listings: own.map((l) => publicListing(l)) };
   }
 
   @Delete(':id')
@@ -204,7 +205,16 @@ export class PublicMarketplaceController {
   ) {}
 
   @Get()
-  async browse(@Query('q') q = '', @Query('kind') kind = '', @Query('sort') sort = '') {
+  async browse(
+    @Query('q') q = '',
+    @Query('kind') kind = '',
+    @Query('sort') sort = '',
+    @Query('limit') limitRaw = '',
+    @Query('offset') offsetRaw = '',
+  ) {
+    const limit = Math.min(Math.max(Number(limitRaw) || 50, 1), 50);
+    const offset = Math.max(Number(offsetRaw) || 0, 0);
+
     let items = await this.listings.listActive();
     if (kind === 'note' || kind === 'category') items = items.filter((l) => l.kind === kind);
     const needle = q.trim().toLowerCase();
@@ -213,16 +223,36 @@ export class PublicMarketplaceController {
         `${l.title} ${l.description} ${l.tags.join(' ')} ${l.author}`.toLowerCase().includes(needle));
     }
 
-    const aggs = await this.ratings.aggregates(items.map((l) => l.id));
-    let out = items.map((l) => publicListing(l, aggs.get(l.id)));
-    if (sort === 'rating') {
-      // Bayesian-ish tiebreak: unrated listings sink below rated ones.
-      out = out.sort((a, b) => (b.avgStars ?? 0) * Math.log1p(b.ratingCount)
-        - (a.avgStars ?? 0) * Math.log1p(a.ratingCount));
-    } else if (sort === 'imports') {
-      out = out.sort((a, b) => b.imports - a.imports);
+    // Sort the id list before hydrating ratings, then paginate — so ratings are
+    // aggregated only for the page being returned, not the whole result set.
+    if (sort === 'imports') {
+      items = items.sort((a, b) => b.imports - a.imports);
+    } else if (sort !== 'rating') {
+      // default: already newest-first from listActive(); keep as-is.
     }
-    return { listings: out.slice(0, 50) };
+
+    const total = items.length;
+
+    if (sort === 'rating') {
+      // Rating sort needs every candidate's aggregate to order correctly, so it
+      // hydrates the filtered set before paging. Bayesian-ish tiebreak: unrated
+      // listings sink below rated ones.
+      const aggsAll = await this.ratings.aggregates(items.map((l) => l.id));
+      const ordered = items
+        .map((l) => publicListing(l, aggsAll.get(l.id)))
+        .sort((a, b) => (b.avgStars ?? 0) * Math.log1p(b.ratingCount)
+          - (a.avgStars ?? 0) * Math.log1p(a.ratingCount));
+      return { listings: ordered.slice(offset, offset + limit), total, limit, offset };
+    }
+
+    const page = items.slice(offset, offset + limit);
+    const aggs = await this.ratings.aggregates(page.map((l) => l.id));
+    return {
+      listings: page.map((l) => publicListing(l, aggs.get(l.id))),
+      total,
+      limit,
+      offset,
+    };
   }
 
   @Get(':id')

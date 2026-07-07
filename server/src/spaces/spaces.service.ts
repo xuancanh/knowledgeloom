@@ -51,6 +51,7 @@ const NAME_MAX = 60;
 export class SpacesService {
   private readonly usersDir: string;
   private readonly readOnly: boolean;
+  private readonly dialect: string;
 
   constructor(
     private readonly repo: SpacesRepository,
@@ -75,6 +76,7 @@ export class SpacesService {
   ) {
     this.usersDir = config.get<string>('usersDir');
     this.readOnly = config.get<boolean>('readOnly');
+    this.dialect = config.get<string>('databaseDialect') || 'sqlite';
   }
 
   /** All spaces for the user, default space first. */
@@ -145,7 +147,8 @@ export class SpacesService {
     // 2. Note files + per-scope JSON artefacts.
     await rm(join(this.usersDir, scope), { recursive: true, force: true });
 
-    // 3. Per-scope DB rows across every scoped table.
+    // 3. Per-scope DB rows across every scoped table — atomically, so a
+    //    mid-loop failure can't leave a half-deleted space behind.
     if (this.db) {
       const scopedTables = [
         this.jobsTable,
@@ -163,8 +166,18 @@ export class SpacesService {
         this.sharesTable,
         this.marketplaceListingsTable,
       ];
-      for (const table of scopedTables) {
-        await this.db.delete(table).where(eq(table.userId, scope)).run();
+      if (this.dialect === 'postgres') {
+        await this.db.transaction(async (tx: any) => {
+          for (const table of scopedTables) {
+            await tx.delete(table).where(eq(table.userId, scope));
+          }
+        });
+      } else {
+        this.db.transaction((tx: any) => {
+          for (const table of scopedTables) {
+            tx.delete(table).where(eq(table.userId, scope)).run();
+          }
+        });
       }
     }
 

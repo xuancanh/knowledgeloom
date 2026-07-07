@@ -104,7 +104,11 @@ async function bootstrap() {
     next();
   });
 
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: false }));
+  // whitelist strips properties not declared on a validated DTO, so any future
+  // class-validated body is protected from mass-assignment by default. (Current
+  // controllers read `any` bodies and validate by hand; this is a safe default
+  // for both.)
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));

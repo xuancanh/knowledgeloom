@@ -398,6 +398,19 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0014_missing_scope_indexes',
+    run(db) {
+      // Tables scoped by userId that were missing their per-user index, so
+      // every read did a full table scan. learn_progress and the marketplace
+      // tables are the hot paths (learn dashboard, "my listings", ratings).
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_learn_progress_user_id        ON learn_progress(userId);
+        CREATE INDEX IF NOT EXISTS idx_marketplace_listings_user_id  ON marketplace_listings(userId);
+        CREATE INDEX IF NOT EXISTS idx_marketplace_ratings_listing   ON marketplace_ratings(listingId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -751,6 +764,18 @@ const PG_MIGRATIONS: PgMigration[] = [
           "createdAt" TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_spaces_user ON spaces("userId");
+      `);
+    },
+  },
+  {
+    id: '0014_missing_scope_indexes_pg',
+    async run(pool) {
+      // See the SQLite 0014 note: per-user indexes that were missing on
+      // userId-scoped tables, turning routine reads into sequential scans.
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_learn_progress_user_id        ON learn_progress("userId");
+        CREATE INDEX IF NOT EXISTS idx_marketplace_listings_user_id  ON marketplace_listings("userId");
+        CREATE INDEX IF NOT EXISTS idx_marketplace_ratings_listing   ON marketplace_ratings("listingId");
       `);
     },
   },

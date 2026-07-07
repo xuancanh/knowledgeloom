@@ -21,10 +21,25 @@ export interface SpaceRow {
 }
 
 const CACHE_TTL_MS = 30_000;
+// Bound the owner cache so it can't grow without limit on a multi-user host.
+// Keys only ever overwrite/delete otherwise, so distinct users would
+// accumulate forever. When the cap is hit we drop expired entries first, then
+// fall back to clearing the whole map (a cold rebuild is cheap: one indexed
+// query per user).
+const CACHE_MAX_ENTRIES = 10_000;
 
 @Injectable()
 export class SpacesRepository {
   private readonly cache = new Map<string, { rows: SpaceRow[]; expires: number }>();
+
+  private evictIfFull(): void {
+    if (this.cache.size < CACHE_MAX_ENTRIES) return;
+    const now = Date.now();
+    for (const [key, entry] of this.cache) {
+      if (entry.expires <= now) this.cache.delete(key);
+    }
+    if (this.cache.size >= CACHE_MAX_ENTRIES) this.cache.clear();
+  }
 
   constructor(
     @Inject(DRIZZLE_DB) private readonly db: DrizzleDb,
@@ -37,6 +52,7 @@ export class SpacesRepository {
     if (cached && cached.expires > Date.now()) return cached.rows;
     const rows = (await this.db.select().from(this.table).where(eq(this.table.userId, userId))) as SpaceRow[];
     rows.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    this.evictIfFull();
     this.cache.set(userId, { rows, expires: Date.now() + CACHE_TTL_MS });
     return rows;
   }
