@@ -2,6 +2,7 @@ import { Controller, Get, Post, Param, Body, UseGuards, Inject, Logger, BadReque
 import { createHash } from 'node:crypto';
 import { LearnProgressRepository } from './learn-progress.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
+import { WritableGuard } from '../common/guards/writable.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NotesService } from '../notes/notes.service';
@@ -31,12 +32,14 @@ export class LearnProgressController {
   }
 
   @Post('award')
+  @UseGuards(WritableGuard)
   award(@CurrentScope() userId: string, @Body() body: AwardXpDto) {
     const amount = Math.max(0, Math.min(1000, Number(body?.xp) || 0));
     return this.repo.award(userId, amount);
   }
 
   @Post('master/:noteId')
+  @UseGuards(WritableGuard)
   master(@CurrentScope() userId: string, @Param('noteId') noteId: string) {
     return this.repo.master(userId, noteId);
   }
