@@ -1,11 +1,50 @@
 /**
  * Typed HTTP client for all backend API calls.
  * Every exported function corresponds to one backend endpoint.
- * Error handling: throws on non-2xx responses with status code in message.
+ *
+ * Error handling is centralized in apiError(): failed responses throw an Error
+ * whose message is the server's own message when present, otherwise normalized
+ * per-status copy. The status and any structured payload (e.g. quota errors
+ * carrying { quota, used, plan }) are attached so callers — upgrade prompts,
+ * read-only banners — can react without re-parsing.
  */
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope } from './types';
 import { ext } from './lib/extensions';
 import { currentSpaceId, setCurrentSpaceId, DEFAULT_SPACE_ID, type Space } from './lib/spaces';
+
+/** Error thrown by the API client; carries the HTTP status and server payload. */
+export interface ApiError extends Error {
+  status: number;
+  payload?: Record<string, unknown>;
+}
+
+/** Normalized, user-facing copy for statuses the server doesn't describe itself. */
+const STATUS_COPY: Record<number, string> = {
+  401: 'Please sign in and try again.',
+  403: 'You don’t have permission to do that.',
+  404: 'That item could not be found.',
+  409: 'That changed somewhere else — reload and try again.',
+  413: 'That file is too large.',
+  429: 'You’ve hit a limit — try again shortly.',
+};
+
+/**
+ * Build a normalized Error from a failed response. `action` is a short verb
+ * phrase (e.g. "load spaces") used only as the last-resort message.
+ */
+export async function apiError(response: Response, action: string): Promise<ApiError> {
+  let payload: Record<string, unknown> | null = null;
+  try { payload = await response.clone().json(); } catch { /* non-JSON body */ }
+  const serverMsg = payload && (typeof payload.error === 'string' ? payload.error
+    : typeof payload.message === 'string' ? payload.message : '');
+  const statusCopy = STATUS_COPY[response.status]
+    ?? (response.status >= 500 ? 'Something went wrong on our end — please try again.' : '');
+  const message = serverMsg || statusCopy || `Couldn’t ${action} (${response.status}).`;
+  const err = new Error(message) as ApiError;
+  err.status = response.status;
+  if (payload && typeof payload === 'object') err.payload = payload;
+  return err;
+}
 
 /** Returns auth headers from the extension auth adapter, or {} in local mode. */
 async function authHeaders(): Promise<Record<string, string>> {
@@ -38,7 +77,7 @@ export async function apiFetch(url: string, init: RequestInit = {}): Promise<Res
 
 export async function fetchSpaces(): Promise<{ spaces: Space[]; limit: number | null }> {
   const response = await apiFetch('/api/spaces');
-  if (!response.ok) throw new Error(`Failed to load spaces: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load spaces');
   return response.json();
 }
 
@@ -48,10 +87,7 @@ export async function createSpace(name: string): Promise<Space> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(String(body?.message ?? `Failed to create space: ${response.status}`));
-  }
+  if (!response.ok) throw await apiError(response, 'create space');
   return response.json();
 }
 
@@ -61,18 +97,18 @@ export async function renameSpace(id: string, name: string): Promise<Space> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name }),
   });
-  if (!response.ok) throw new Error(`Failed to rename space: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'rename space');
   return response.json();
 }
 
 export async function deleteSpace(id: string): Promise<void> {
   const response = await apiFetch(`/api/spaces/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to delete space: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'delete space');
 }
 
 export async function fetchStatus(): Promise<{ readOnly: boolean }> {
   const response = await fetch('/api/status');
-  if (!response.ok) throw new Error(`Failed to load service status: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load service status');
   return response.json();
 }
 
@@ -94,7 +130,7 @@ export async function fetchKnowledge(): Promise<KnowledgeState> {
   // If-None-Match / 304 handling is what runs (we cache in JS ourselves).
   const response = await apiFetch('/api/knowledge', { headers: conditional, cache: 'no-store' });
   if (response.status === 304 && knowledgeState) return knowledgeState;
-  if (!response.ok) throw new Error(`Failed to load knowledge: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load knowledge');
   const state = (await response.json()) as KnowledgeState;
   knowledgeEtag = response.headers.get('ETag');
   knowledgeEtagSpace = space;
@@ -104,14 +140,14 @@ export async function fetchKnowledge(): Promise<KnowledgeState> {
 
 export async function fetchNoteMarkdown(id: string): Promise<string> {
   const response = await apiFetch(`/api/notes/${encodeURIComponent(id)}`);
-  if (!response.ok) throw new Error(`Failed to load note: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load note');
   const data = await response.json();
   return data.markdown;
 }
 
 export async function deleteNote(id: string): Promise<{ deleted: string; state: KnowledgeState }> {
   const response = await apiFetch(`/api/notes/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to delete note: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'delete note');
   return response.json();
 }
 
@@ -133,7 +169,7 @@ export async function fetchReminders(filters: { noteId?: string; status?: 'activ
   if (filters.status) params.set('status', filters.status);
   const suffix = params.toString() ? `?${params.toString()}` : '';
   const response = await apiFetch(`/api/reminders${suffix}`);
-  if (!response.ok) throw new Error(`Failed to load reminders: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load reminders');
   return response.json();
 }
 
@@ -143,7 +179,7 @@ export async function createReminder(payload: { noteId: string; remindAt: string
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Failed to create reminder: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'create reminder');
   return response.json();
 }
 
@@ -153,13 +189,13 @@ export async function updateReminder(id: string, update: { completed?: boolean; 
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(update),
   });
-  if (!response.ok) throw new Error(`Failed to update reminder: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'update reminder');
   return response.json();
 }
 
 export async function deleteReminder(id: string): Promise<{ deleted: string }> {
   const response = await apiFetch(`/api/reminders/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to delete reminder: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'delete reminder');
   return response.json();
 }
 
@@ -169,7 +205,7 @@ export async function createFlashcard(payload: {
   const response = await apiFetch('/api/flashcards', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Failed to create flashcard: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'create flashcard');
   return response.json();
 }
 
@@ -177,20 +213,20 @@ export async function updateFlashcard(id: string, payload: { prompt: string; les
   const response = await apiFetch(`/api/flashcards/${encodeURIComponent(id)}`, {
     method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Failed to update flashcard: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'update flashcard');
   return response.json();
 }
 
 export async function deleteFlashcard(id: string): Promise<void> {
   const response = await apiFetch(`/api/flashcards/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to delete flashcard: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'delete flashcard');
 }
 
 export async function reviewFlashcard(id: string, payload: { rating: 'again' | 'hard' | 'good'; noteId: string; isUserCard?: boolean }): Promise<{ review: any }> {
   const response = await apiFetch(`/api/flashcards/${encodeURIComponent(id)}/review`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Failed to submit review: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'submit review');
   return response.json();
 }
 
@@ -198,18 +234,18 @@ export async function reviewQuiz(id: string, payload: { rating: 'correct' | 'wro
   const response = await apiFetch(`/api/quiz/${encodeURIComponent(id)}/review`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Failed to submit quiz review: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'submit quiz review');
   return response.json();
 }
 
 export async function hideQuiz(id: string): Promise<void> {
   const response = await apiFetch(`/api/quiz/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to hide quiz question: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'hide quiz question');
 }
 
 export async function restoreQuiz(id: string): Promise<void> {
   const response = await apiFetch(`/api/quiz/${encodeURIComponent(id)}/restore`, { method: 'POST' });
-  if (!response.ok) throw new Error(`Failed to restore quiz question: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'restore quiz question');
 }
 
 export async function regenerateNote(id: string, target: 'flashcards' | 'quiz' | 'all', size: import('./types').GenSize = 'small'): Promise<{ job: import('./types').LearnJob }> {
@@ -218,7 +254,7 @@ export async function regenerateNote(id: string, target: 'flashcards' | 'quiz' |
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ target, size }),
   });
-  if (!response.ok) throw new Error(`Failed to regenerate: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'regenerate');
   return response.json();
 }
 
@@ -241,12 +277,7 @@ export async function assistDraft(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ prompt, draft }),
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    let detail = text;
-    try { detail = JSON.parse(text).error || text; } catch { /* keep raw text */ }
-    throw new Error(`AI Assist failed: ${response.status}${detail ? ` - ${detail}` : ''}`);
-  }
+  if (!response.ok) throw await apiError(response, 'run AI assist');
   return response.json();
 }
 
@@ -256,12 +287,7 @@ export async function assistNoteEdit(id: string, prompt: string, draft: NoteUpda
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ prompt, draft }),
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    let detail = text;
-    try { detail = JSON.parse(text).error || text; } catch { /* keep raw text */ }
-    throw new Error(`Failed to run AI edit: ${response.status}${detail ? ` - ${detail}` : ''}`);
-  }
+  if (!response.ok) throw await apiError(response, 'run the AI edit');
   return response.json();
 }
 
@@ -271,7 +297,7 @@ export async function updateNote(id: string, update: NoteUpdate): Promise<{ note
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(update),
   });
-  if (!response.ok) throw new Error(`Failed to update note: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'update note');
   return response.json();
 }
 
@@ -281,13 +307,13 @@ export async function patchNote(id: string, patch: Partial<NoteUpdate>): Promise
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(patch),
   });
-  if (!response.ok) throw new Error(`Failed to patch note: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'patch note');
   return response.json();
 }
 
 export async function backfillBilinks(): Promise<{ pairsConverted: number; state: KnowledgeState }> {
   const response = await apiFetch('/api/notes/backfill-bilinks', { method: 'POST' });
-  if (!response.ok) throw new Error(`Failed to backfill bilinks: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'backfill bilinks');
   return response.json();
 }
 
@@ -295,7 +321,7 @@ export async function uploadImage(file: File): Promise<{ url: string; filename: 
   const form = new FormData();
   form.append('file', file);
   const response = await apiFetch('/api/images', { method: 'POST', body: form });
-  if (!response.ok) throw new Error(`Failed to upload image: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'upload image');
   return response.json();
 }
 
@@ -305,26 +331,26 @@ export async function submitLearning(payload: CreateNoteRequest): Promise<{ jobI
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`Failed to create note: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'create note');
   return response.json();
 }
 
 export async function fetchJob(jobId: string): Promise<LearnJob> {
   const response = await apiFetch(`/api/jobs/${encodeURIComponent(jobId)}`);
-  if (!response.ok) throw new Error(`Failed to load job: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load job');
   return response.json();
 }
 
 export async function fetchJobs(): Promise<{ jobs: LearnJob[] }> {
   const response = await apiFetch('/api/jobs');
-  if (!response.ok) throw new Error(`Failed to load jobs: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load jobs');
   return response.json();
 }
 
 export async function searchKnowledge(query: string, category: string): Promise<{ engine: string; hits: KnowledgeNote[]; warning?: string }> {
   const params = new URLSearchParams({ q: query, category });
   const response = await apiFetch(`/api/search?${params.toString()}`);
-  if (!response.ok) throw new Error(`Failed to search: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'search');
   return response.json();
 }
 
@@ -342,10 +368,7 @@ export async function* streamRagAnswer(
     body: JSON.stringify({ question, scope, history, mode }),
     signal,
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`RAG stream failed: ${response.status}${text ? ` — ${text}` : ''}`);
-  }
+  if (!response.ok) throw await apiError(response, 'start the chat response');
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   while (true) {
@@ -370,7 +393,7 @@ export type StudyQueue = {
 
 export async function fetchStudyToday(): Promise<StudyQueue> {
   const response = await apiFetch('/api/study/today');
-  if (!response.ok) throw new Error(`Failed to load study queue: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load study queue');
   return response.json();
 }
 
@@ -402,18 +425,13 @@ export async function createExamPlan(examDate: string, scope?: { category?: stri
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ examDate, scope }),
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    let detail = text;
-    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
-    throw new Error(detail || `Failed to build exam plan: ${response.status}`);
-  }
+  if (!response.ok) throw await apiError(response, 'build the exam plan');
   return response.json();
 }
 
 export async function fetchStudyStats(days = 30): Promise<StudyStats> {
   const response = await apiFetch(`/api/study/stats?days=${days}`);
-  if (!response.ok) throw new Error(`Failed to load study stats: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load study stats');
   return response.json();
 }
 
@@ -441,12 +459,7 @@ export async function importSource(input: {
       body: JSON.stringify({ text: input.text, title: input.title, category: input.category, tags: input.tags }),
     });
   }
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    let detail = text;
-    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
-    throw new Error(detail || `Import failed: ${response.status}`);
-  }
+  if (!response.ok) throw await apiError(response, 'import that');
   return response.json();
 }
 
@@ -458,13 +471,13 @@ export async function createShare(target: { noteId: string } | { category: strin
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(target),
   });
-  if (!response.ok) throw new Error(`Failed to create share link: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'create share link');
   return response.json();
 }
 
 export async function revokeShare(id: string): Promise<void> {
   const response = await apiFetch(`/api/shares/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to revoke share: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'revoke share');
 }
 
 export type SharedNote = { title: string; category: string; summary: string; tags: string[]; body: string; createdAt: string };
@@ -482,7 +495,10 @@ export type PublicShare = {
 /** Public — no auth; anyone with the link. */
 export async function fetchPublicShare(id: string): Promise<PublicShare> {
   const response = await fetch(`/api/shares/${encodeURIComponent(id)}/public`);
-  if (!response.ok) throw new Error(response.status === 404 ? 'This share link does not exist or was revoked.' : `Failed to load share: ${response.status}`);
+  if (response.status === 404) {
+    throw Object.assign(new Error('This share link does not exist or was revoked.'), { status: 404 });
+  }
+  if (!response.ok) throw await apiError(response, 'load the shared page');
   return response.json();
 }
 
@@ -507,12 +523,7 @@ export async function rateListing(id: string, stars: number, comment = ''): Prom
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ stars, comment }),
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    let detail = text;
-    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
-    throw new Error(detail || `Failed to rate: ${response.status}`);
-  }
+  if (!response.ok) throw await apiError(response, 'submit your rating');
   return response.json();
 }
 
@@ -521,19 +532,19 @@ export async function browseMarketplace(q = '', kind = ''): Promise<{ listings: 
   if (q) params.set('q', q);
   if (kind) params.set('kind', kind);
   const response = await fetch(`/api/marketplace?${params}`);
-  if (!response.ok) throw new Error(`Failed to browse marketplace: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'browse marketplace');
   return response.json();
 }
 
 export async function fetchMyListings(): Promise<{ listings: MarketplaceListing[] }> {
   const response = await apiFetch('/api/marketplace/mine');
-  if (!response.ok) throw new Error(`Failed to load your listings: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load your listings');
   return response.json();
 }
 
 export async function fetchMyShares(): Promise<{ shares: { id: string; noteId: string; kind: string; createdAt: string }[] }> {
   const response = await apiFetch('/api/shares');
-  if (!response.ok) throw new Error(`Failed to load shares: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load shares');
   return response.json();
 }
 
@@ -543,24 +554,19 @@ export async function publishListing(input: { shareId: string; title: string; de
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    let detail = text;
-    try { detail = JSON.parse(text).error || text; } catch { /* raw */ }
-    throw new Error(detail || `Failed to publish: ${response.status}`);
-  }
+  if (!response.ok) throw await apiError(response, 'publish that');
   return response.json();
 }
 
 export async function importListing(id: string): Promise<{ imported: { notes: string[]; flashcards: number; quiz: number } }> {
   const response = await apiFetch(`/api/marketplace/${encodeURIComponent(id)}/import`, { method: 'POST' });
-  if (!response.ok) throw new Error(`Failed to import: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'import');
   return response.json();
 }
 
 export async function unpublishListing(id: string): Promise<void> {
   const response = await apiFetch(`/api/marketplace/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error(`Failed to unpublish: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'unpublish');
 }
 
 /* ── Podcast text-to-speech ── */
@@ -603,7 +609,7 @@ export type LearnProgressDto = {
 
 export async function fetchLearnProgress(): Promise<LearnProgressDto> {
   const response = await apiFetch('/api/learn-progress');
-  if (!response.ok) throw new Error(`Failed to load learn progress: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'load learn progress');
   return response.json();
 }
 
@@ -613,13 +619,13 @@ export async function awardLearnXp(xp: number): Promise<LearnProgressDto> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ xp }),
   });
-  if (!response.ok) throw new Error(`Failed to award XP: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'award XP');
   return response.json();
 }
 
 export async function masterLearnNote(noteId: string): Promise<LearnProgressDto> {
   const response = await apiFetch(`/api/learn-progress/master/${encodeURIComponent(noteId)}`, { method: 'POST' });
-  if (!response.ok) throw new Error(`Failed to mark mastered: ${response.status}`);
+  if (!response.ok) throw await apiError(response, 'mark mastered');
   return response.json();
 }
 

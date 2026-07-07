@@ -286,6 +286,38 @@ test('deleteTemplate removes by id', () => {
   assert.equal(result[0].id, '2');
 });
 
+// ── apiError (centralized API error normalization) ───────────────────────────
+import { apiError } from '../src/api';
+
+const jsonResponse = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+
+test('apiError: prefers the server-provided error message', async () => {
+  const err = await apiError(jsonResponse(400, { error: 'shareId and title are required' }), 'publish that');
+  assert.equal(err.message, 'shareId and title are required');
+  assert.equal(err.status, 400);
+});
+
+test('apiError: falls back to normalized copy per status when no message', async () => {
+  const err = await apiError(jsonResponse(403, {}), 'do that');
+  assert.match(err.message, /permission/i);
+  const err5xx = await apiError(new Response('', { status: 500 }), 'do that');
+  assert.match(err5xx.message, /our end/i);
+});
+
+test('apiError: last-resort message uses the action and status', async () => {
+  const err = await apiError(new Response('', { status: 418 }), 'brew coffee');
+  assert.match(err.message, /brew coffee/);
+  assert.match(err.message, /418/);
+});
+
+test('apiError: preserves the structured payload for quota/upgrade flows', async () => {
+  const err = await apiError(jsonResponse(429, { error: 'monthly limit reached', quota: 50, used: 50, plan: 'free' }), 'run AI');
+  assert.equal(err.status, 429);
+  assert.equal(err.payload?.plan, 'free');
+  assert.equal(err.payload?.quota, 50);
+});
+
 // loadTemplates reads window.localStorage — not testable in Node without DOM.
 // The function falls back to DEFAULT_TEMPLATES on any error (covered by the
 // other guidance.ts tests which exercise the pure logic: add/update/delete/filter).
