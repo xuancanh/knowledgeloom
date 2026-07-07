@@ -72,9 +72,10 @@ namespace. Plural keys follow i18next conventions (`key_plural`).
 
 ## Boundaries that CI enforces
 
-- **Never import from `extensions/`** in OSS code (ESLint fence). Extensions modules
-  attach only through the seams: the frontend extensions registry (`src/lib/extensions.ts`),
-  `AUTH_STRATEGY`, `USAGE_SERVICE`, and `AppModule.forRoot()`.
+- **Never import from `extensions/`** in core code (ESLint fence). Optional
+  private modules attach only through the seams: the frontend extension
+  registry (`src/lib/extensions.ts`), `AUTH_STRATEGY`, `USAGE_SERVICE`, and
+  `AppModule.forRoot()`.
 - **Never edit or reorder existing migrations** in
   `server/src/database/migrator.ts` — append a new one (sqlite + pg).
 - Lint must pass with 0 errors (`any` and the React-compiler rules are
@@ -92,6 +93,5 @@ namespace. Plural keys follow i18next conventions (`key_plural`).
 
 ## Where things are documented
 
-Product: [docs/product/](docs/product/) · Tech: [docs/tech/](docs/tech/) ·
-AI-agent guide: [AGENTS.md](AGENTS.md) · Security policy:
-[SECURITY.md](SECURITY.md)
+Docs: [docs/](docs/README.md) · AI-agent guide: [AGENTS.md](AGENTS.md) ·
+Security policy: [SECURITY.md](SECURITY.md)

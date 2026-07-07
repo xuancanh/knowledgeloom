@@ -122,7 +122,7 @@ and ignore the header.
 | `POST /api/marketplace/:id/rate` | `{ stars: 1–5, comment? }` — one per user, no self-rating |
 | `GET /api/marketplace/mine` · `DELETE /api/marketplace/:id` | Own listings / unpublish |
 
-## Extensions (when `extensions/` is present)
+## Extension endpoints (when `extensions/` is present)
 
-`/api/billing/*` (plans, checkout, Stripe webhook) and `/api/admin/*`
-(`ADMIN_TOKEN` bearer; `503` when unset). See the private repo.
+Optional private extension modules add further endpoint groups (e.g. billing
+and admin). They are not part of the open-source build; see the private repo.

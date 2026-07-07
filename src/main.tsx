@@ -4,13 +4,13 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './i18n';
 import './index.css';
-import { ee } from './lib/ee';
+import { ext } from './lib/extensions';
 
-// Extensions builds add src/extensions/ (merged from the private repo); its register
-// module populates the extensions registry before React renders. In OSS builds the
-// glob matches nothing and this is a no-op.
-const eeModules = import.meta.glob<{ register?: (api: typeof ee) => void }>('./extensions/register.{ts,tsx}', { eager: true });
-Object.values(eeModules).forEach((mod) => mod.register?.(ee));
+// Extended builds add src/extensions/ (from a private repo); its register
+// module populates the extension registry before React renders. In OSS
+// builds the glob matches nothing and this is a no-op.
+const extModules = import.meta.glob<{ register?: (api: typeof ext) => void }>('./extensions/register.{ts,tsx}', { eager: true });
+Object.values(extModules).forEach((mod) => mod.register?.(ext));
 
 // PWA: offline shell + cached static assets (production builds only — the SW
 // would fight Vite's dev-server module graph otherwise).

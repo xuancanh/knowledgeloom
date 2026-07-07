@@ -5,17 +5,18 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'server/dist', 'knowledge', 'src/ee', 'server/src/ee'] },
+  { ignores: ['dist', 'server/dist', 'knowledge', 'src/extensions', 'server/src/extensions'] },
   {
-    // OSS code must never import extensions modules; only the designated
-    // seams (main.tsx glob, AuthModule dynamic import) may load extensions/ at runtime.
+    // Core code must never import extension modules; only the designated
+    // seams (main.tsx glob, AuthModule dynamic import) may load extensions/
+    // at runtime.
     files: ['**/*.{ts,tsx}'],
     ignores: ['src/extensions/**', 'server/src/extensions/**'],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
           group: ['**/extensions/**'],
-          message: 'OSS code must not import from extensions/ — extensions modules load via the extensions registry / AUTH_STRATEGY seams.',
+          message: 'Core code must not import from extensions/ — modules load via the extension registry / AUTH_STRATEGY seams.',
         }],
       }],
     },

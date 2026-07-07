@@ -58,8 +58,8 @@ CVE-2025-6514 in the `mcp-remote` proxy, CVSS 9.6).
    path segment is additionally sanitized server-side (`basename`).
 6. **Quota and auth are enforced server-side.** The MCP layer holds no
    privileged path into the app: it speaks to the same authenticated HTTP API
-   as the frontend, so extensions plan quotas (AI calls) and read-only mode apply
-   unchanged.
+   as the frontend, so any configured plan quotas (AI calls) and read-only
+   mode apply unchanged.
 
 ## Run standalone (debugging)
 

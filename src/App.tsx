@@ -24,13 +24,13 @@ import TodayPage from './components/study/TodayPage';
 import ImportPage from './components/import/ImportPage';
 import SharePage from './components/share/SharePage';
 import MarketplacePage from './components/marketplace/MarketplacePage';
-import { ee } from './lib/ee';
+import { ext } from './lib/extensions';
 import { getFeatures } from './lib/features';
 
-// Extensions-only pages come from the extensions registry; in OSS builds these are
+// These pages come from the extension registry; in OSS builds they are
 // undefined and the app boots straight into local mode at /home.
-const LandingPage = ee.component('LandingPage');
-const LoginPage = ee.component('LoginPage');
+const LandingPage = ext.component('LandingPage');
+const LoginPage = ext.component('LoginPage');
 
 export default function App() {
   const { authenticated, loading: authLoading } = useAuth();

@@ -60,7 +60,7 @@ class AllExceptionsFilter implements ExceptionFilter {
 
 async function bootstrap() {
   // rawBody exposes the unparsed request body (req.rawBody) for handlers that
-  // verify payload signatures — e.g. payment-provider webhooks in extensions builds.
+  // verify payload signatures — e.g. payment-provider webhooks in extended builds.
   const app = await NestFactory.create(await AppModule.forRoot(), { logger: ['log', 'warn', 'error'], rawBody: true });
 
   // CORS_ORIGIN restricts browser callers in production (default * preserves

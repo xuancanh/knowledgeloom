@@ -1,0 +1,78 @@
+name: Publish API image
+
+# Builds the API container and publishes it to GHCR on every push to main that
+# touches the server or image definition. Anyone self-hosting can pull the
+# image; there is no provider-specific deploy logic in this repo.
+#
+# If the INFRA_DISPATCH_TOKEN secret is set, the job then notifies the private
+# infrastructure repo (repository_dispatch) so it can roll the new image out.
+# Without that secret the notify step is skipped, so this workflow is a
+# self-contained no-op-beyond-publish in forks and the open-source tree.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/publish-image.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-image
+  cancel-in-progress: false
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/knowledge-loom-api" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        run: |
+          IMAGE="${{ steps.meta.outputs.image }}"
+          docker build -t "$IMAGE:${{ steps.meta.outputs.tag }}" -t "$IMAGE:latest" .
+          docker push "$IMAGE:${{ steps.meta.outputs.tag }}"
+          docker push "$IMAGE:latest"
+
+  notify-infra:
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch deploy to the infrastructure repo
+        env:
+          INFRA_DISPATCH_TOKEN: ${{ secrets.INFRA_DISPATCH_TOKEN }}
+          INFRA_REPO: ${{ vars.INFRA_REPO }}
+          IMAGE_TAG: ${{ needs.build-push.outputs.tag }}
+        run: |
+          if [ -z "$INFRA_DISPATCH_TOKEN" ] || [ -z "$INFRA_REPO" ]; then
+            echo "INFRA_DISPATCH_TOKEN / INFRA_REPO not set — image published, deploy not triggered."
+            exit 0
+          fi
+          curl -sSf -X POST \
+            -H "Authorization: Bearer ${INFRA_DISPATCH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${INFRA_REPO}/dispatches" \
+            -d "{\"event_type\":\"image-published\",\"client_payload\":{\"image_tag\":\"${IMAGE_TAG}\"}}"

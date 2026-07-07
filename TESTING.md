@@ -36,9 +36,9 @@ prerequisites are missing.
 Spawned servers derive **all paths from `KNOWLEDGE_ROOT`** (never cwd) and
 each suite sets it to a fresh temp dir — a test must never touch the real
 `knowledge/` vault. Redis is isolated per suite via `REDIS_DB` (ai=15 and
-flushed, modes=12, MCP=11, extensions=13); quota counters get unique
-`EXT_QUOTA_PREFIX`es. AI is either `CODEX_COMMAND=false` (fail fast, zero
-spend) or pointed at the suite's local mock server.
+flushed, modes=12, MCP=11); when the extension modules are linked their quota
+counters get a unique `EXT_QUOTA_PREFIX`. AI is either `CODEX_COMMAND=false`
+(fail fast, zero spend) or pointed at the suite's local mock server.
 
 ## Conventions
 
@@ -55,7 +55,7 @@ spend) or pointed at the suite's local mock server.
 - Fixtures live in `tests/fixtures/` (e.g. a real one-page PDF — hand-rolled
   minimal PDFs parse nondeterministically in pdf.js).
 
-## extensions suites
+## Extension suites
 
-The extensions repo has its own `tests/` (unit + integration) run by
-`knowledge-loom-private/scripts/test.sh` against a linked build of this repo.
+The private extension repo has its own `tests/` (unit + integration), run
+against a linked build of this repo. They live outside this tree.

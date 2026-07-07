@@ -6,8 +6,8 @@
  *
  * Requirements: `npm run server:build` first, and redis on localhost (BullMQ,
  * same as `npm run dev`) — the suite skips itself if either is missing.
- * When the extensions extensions/ tree is linked, its data is isolated to the temp
- * dir and a couple of extensions smoke assertions run; without extensions/ they are skipped.
+ * When the private extensions/ tree is linked, its data is isolated to the
+ * temp dir and a couple of smoke assertions run; without it they are skipped.
  *
  * Run: npm run test:e2e
  */
@@ -24,7 +24,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ENTRY = join(ROOT, 'server/dist/main.js');
 const PORT = 8790 + (process.pid % 100);
 const BASE = `http://localhost:${PORT}`;
-const hasEe = existsSync(join(ROOT, 'server/dist/extensions'));
+const hasExtensions = existsSync(join(ROOT, 'server/dist/extensions'));
 
 function redisUp() {
   return new Promise((resolve) => {
@@ -570,19 +570,19 @@ maybe('spaces: delete erases the space and its data', async () => {
   assert.equal((await apiIn(spaceId, 'GET', '/api/knowledge')).status, 404);
 });
 
-// ── extensions smoke (only when extensions/ is linked; deep coverage lives in the
-//    knowledge-loom-private repo's own suites) ──────────────────────────────────────
+// ── extension smoke (only when extensions/ is linked; deep coverage lives in
+//    the private repo's own suites) ────────────────────────────────────────────
 
-const eeMaybe = (name, fn) => test(name, { skip: ready && hasEe ? false : 'extensions/ not linked' }, fn);
+const extMaybe = (name, fn) => test(name, { skip: ready && hasExtensions ? false : 'extensions/ not linked' }, fn);
 
-eeMaybe('ee smoke: billing catalog is served and admin API is token-gated', async () => {
+extMaybe('extensions smoke: billing catalog is served and admin API is token-gated', async () => {
   const { status, json } = await get('/api/billing/plans');
   assert.equal(status, 200);
   assert.equal(json.plans.length, 4);
   assert.equal((await get('/api/admin/overview')).status, 401);
 });
 
-eeMaybe('ee smoke: AI write-mode capture tracks usage for the local account', async () => {
+extMaybe('extensions smoke: AI write-mode capture tracks usage for the local account', async () => {
   await post('/api/learn', { mode: 'write', title: 'Usage Ping', body: '# U', category: 'Testing', summary: '', tags: [] });
   const { json } = await get('/api/billing/subscription');
   assert.equal(json.plan.id, 'thread');

@@ -4,9 +4,9 @@ dist
 .DS_Store
 
 # Runtime knowledge data — managed by the app, not source-controlled
-knowledge/app.sqlite
-knowledge/app.sqlite-shm
-knowledge/app.sqlite-wal
+knowledge/*.sqlite
+knowledge/*.sqlite-shm
+knowledge/*.sqlite-wal
 knowledge/index.json
 knowledge/jobs.json
 knowledge/flashcards.json
@@ -18,17 +18,12 @@ knowledge/users/
 # Keep placeholder files
 !knowledge/notes/.gitkeep
 !knowledge/categories/.gitkeep
-knowledge/reminders.sqlite
-knowledge/reminders.sqlite-shm
-knowledge/reminders.sqlite-wal
 
-# Extensions modules — linked/merged from the private knowledge-loom-private repo,
-# never committed to the public tree
-src/extensions/
-server/src/extensions/
-knowledge/ee.sqlite
-knowledge/ee.sqlite-shm
-knowledge/ee.sqlite-wal
+# Optional extension modules — linked (symlink) or merged from a private repo,
+# never committed to the public tree. No trailing slash so the dev symlink is
+# ignored too, not just a merged directory.
+src/extensions
+server/src/extensions
 
 # Agent/session state and internal design sources — never in the public tree
 .omo/

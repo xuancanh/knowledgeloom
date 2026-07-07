@@ -2,9 +2,9 @@
  * UsageService — seam for AI usage tracking and quota enforcement.
  *
  * OSS builds get NoopUsageService: no tracking, no limits — self-hosters own
- * their AI spend. Extensions builds (server/src/extensions/, private repo) provide an
- * implementation that records usage events and enforces per-plan monthly
- * quotas for AI features.
+ * their AI spend. Extended builds (server/src/extensions/, private repo)
+ * provide an implementation that records usage events and enforces per-plan
+ * monthly quotas for AI features.
  *
  * Call sites (all AI-consuming endpoints):
  *   - POST /api/learn (research/polish/link)    → feature 'codex.research'

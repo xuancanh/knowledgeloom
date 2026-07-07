@@ -69,7 +69,7 @@ export class LearnController {
       throw new BadRequestException('body is required for polish mode');
     }
 
-    // AI modes consume the plan's monthly research quota (enforced in extensions builds).
+    // AI modes consume the plan's monthly research quota (enforced in extended builds).
     await this.usage.checkQuota(userId, 'codex.research');
     await this.usage.track(userId, 'codex.research', { mode });
 

@@ -10,7 +10,7 @@
  *  - AUTH_SECRET set: requests must carry `Authorization: Bearer <secret>`.
  *    For self-hosters who expose the instance to the internet. The comparison
  *    is constant-time to prevent timing attacks. Still single-user ('local');
- *    multi-user identity is an extensions concern.
+ *    multi-user identity is handled by the optional extension modules.
  */
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

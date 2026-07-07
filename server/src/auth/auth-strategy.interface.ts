@@ -8,9 +8,9 @@
  *  - LocalAuthStrategy    — OSS default: single-user local mode, with an
  *                           optional AUTH_SECRET bearer token.
  *  - SupabaseAuthStrategy — Supabase JWT verification (cloud deployments;
- *                           slated for extraction to the private extensions repo).
+ *                           lives in the private extension modules).
  *
- * A future extensions module overrides AUTH_STRATEGY (e.g. SSO/OIDC) without touching
+ * An extension module overrides AUTH_STRATEGY (e.g. SSO/OIDC) without touching
  * any controller.
  */
 import type { Request } from 'express';

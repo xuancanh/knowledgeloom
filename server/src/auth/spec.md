@@ -13,7 +13,10 @@ pluggable pattern as `AiProvider` / `NoteStorageProvider` / `SearchProvider`.
 The module is `@Global()` so the guard and decorator are available everywhere
 without explicit imports.
 
-See `docs/tech/OPEN_SOURCE_DECISION.md` for the OSS/extensions split this design serves.
+The guard also resolves the active space (see `spaces/scope.util.ts`): it
+reads the optional `x-space-id` header, verifies the space belongs to the
+caller, and attaches the data-scope key to `request.scopeId`. Controllers read
+that via `@CurrentScope()`.
 
 ---
 
@@ -29,7 +32,7 @@ Implementations:
     A log line notes local mode at startup.
   - `AUTH_SECRET` set → requires `Authorization: Bearer <secret>`; the
     comparison is constant-time (`crypto.timingSafeEqual`). Still single-user.
-- **SupabaseAuthStrategy** (extensions — `server/src/extensions/auth/`, private repo)
+- **SupabaseAuthStrategy** (private extension modules — `server/src/extensions/auth/`)
   - Verifies the Supabase JWT locally (HS256, `SUPABASE_JWT_SECRET`), enforces
     expiry, and returns the `sub` claim. 401 for missing/malformed/expired
     tokens or a missing `sub`.
@@ -41,7 +44,7 @@ Implementations:
 | `AUTH_PROVIDER=supabase` or `SUPABASE_JWT_SECRET` set | SupabaseAuthStrategy (dynamic import from `extensions/`) |
 | otherwise | LocalAuthStrategy |
 
-If an extensions provider is requested but `extensions/` is not present in the build, **boot
+If the Supabase provider is requested but `extensions/` is not present in the build, **boot
 fails loudly** — the server never silently degrades to unauthenticated local
 mode.
 
@@ -97,7 +100,7 @@ type parameter for `ExecutionContext.switchToHttp().getRequest<AuthenticatedRequ
 ### Feature: Local authentication (OSS)
 
 **Scenario: Local mode when no secret is configured**
-- GIVEN `AUTH_SECRET` is not set (and no extensions provider is selected)
+- GIVEN `AUTH_SECRET` is not set (and no Supabase provider is selected)
 - WHEN any request reaches a guarded route
 - THEN the guard sets `request.userId = 'local'` and returns `true`
 
@@ -111,17 +114,17 @@ type parameter for `ExecutionContext.switchToHttp().getRequest<AuthenticatedRequ
 - WHEN a request arrives with no token, a wrong token, or a non-Bearer scheme
 - THEN the guard throws `UnauthorizedException`
 
-### Feature: extensions provider selection
+### Feature: Supabase provider selection
 
 **Scenario: Supabase requested without extensions/**
 - GIVEN `AUTH_PROVIDER=supabase` (or `SUPABASE_JWT_SECRET` set) in an OSS build
 - WHEN the server boots
-- THEN boot fails with an error naming the missing extensions modules
+- THEN boot fails with an error naming the missing extension modules
 
-### Feature: JWT authentication (extensions — SupabaseAuthStrategy)
+### Feature: JWT authentication (SupabaseAuthStrategy)
 
 **Scenario: Valid Bearer token**
-- GIVEN `SUPABASE_JWT_SECRET` is set and the extensions modules are present
+- GIVEN `SUPABASE_JWT_SECRET` is set and the extension modules are present
 - WHEN a request arrives with a valid, unexpired JWT whose `sub` is a non-empty string
 - THEN the guard sets `request.userId` to the `sub` value
 

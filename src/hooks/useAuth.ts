@@ -2,11 +2,11 @@
  * useAuth — auth state for the app shell.
  *
  * OSS builds have no identity provider: the hook reports local mode and the
- * backend treats every request as userId='local'. Extensions builds register
- * an EeAuthAdapter (see src/lib/extensions.ts) whose useAuth implementation takes
- * over entirely.
+ * backend treats every request as userId='local'. Extended builds register
+ * an ExtAuthAdapter (see src/lib/extensions.ts) whose useAuth implementation
+ * takes over entirely.
  */
-import { ee } from '../lib/ee';
+import { ext } from '../lib/extensions';
 
 export interface AuthState {
   /** Provider-specific user object, or null in local mode. */
@@ -28,7 +28,7 @@ const LOCAL_STATE: AuthState = {
 };
 
 export function useAuth(): AuthState {
-  const adapter = ee.authAdapter();
+  const adapter = ext.authAdapter();
   // The adapter is registered before React renders (main.tsx) and never
   // changes afterwards, so this branch is stable across renders and does not
   // violate the rules of hooks.

@@ -60,14 +60,13 @@ tests/                   unit + integration + e2e suites (see TESTING.md)
 knowledge/               your data (gitignored) — notes, sqlite, search manifests
 docker-compose.yml       one-command self-hosted stack
 docker-compose.dev.yml   infra only, for npm run dev
-infra/, Dockerfile       production deployment — docs/tech/DEPLOYMENT.md
+Dockerfile               container image — docs/tech/SELF_HOSTING.md
 ```
 
-Documentation lives in [docs/](docs/README.md) — product
-([features](docs/product/FEATURES.md), [roadmap](docs/product/ROADMAP.md))
-and tech ([architecture](docs/tech/ARCHITECTURE.md),
+Documentation lives in [docs/](docs/README.md):
+[architecture](docs/tech/ARCHITECTURE.md),
 [API reference](docs/tech/API.md), [AI spec](docs/tech/AI_SPEC.md),
-[deployment](docs/tech/DEPLOYMENT.md), [MCP](docs/tech/MCP.md)).
+[self-hosting](docs/tech/SELF_HOSTING.md), [MCP](docs/tech/MCP.md).
 Contributors: [CONTRIBUTING.md](CONTRIBUTING.md) · AI agents: [AGENTS.md](AGENTS.md)
 
 ## Feature walkthrough
@@ -135,9 +134,10 @@ It runs in single-user local mode by default: no login, all data under
 instances.
 
 Multi-user auth (Supabase), billing, quota, and the admin console live in a
-private extensions repo merged into this tree at build time. OSS code never
-imports `extensions/` (ESLint-enforced); extensions modules attach through explicit
-seams. See `docs/tech/OPEN_SOURCE_DECISION.md` for the full structure.
+private repo whose modules attach at build time through explicit seams
+(`AUTH_STRATEGY`, the usage service, and the frontend extension registry).
+Core code never imports `extensions/` — an ESLint rule enforces it — so the
+open-source build is complete and self-contained on its own.
 
 ## Tests
 

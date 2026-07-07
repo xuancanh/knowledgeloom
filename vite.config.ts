@@ -6,9 +6,9 @@ const apiPort = process.env.PORT || '8787';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    // src/ee may be a symlink into the private extensions repo during development
-    // (knowledge-loom-private/scripts/link-dev.sh); resolve imports against the
-    // link location so extensions files can reference OSS modules relatively.
+    // src/extensions may be a symlink into a private repo during development;
+    // resolve imports against the link location so extension files can
+    // reference core modules relatively.
     preserveSymlinks: true,
   },
   server: {

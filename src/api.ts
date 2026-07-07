@@ -4,12 +4,12 @@
  * Error handling: throws on non-2xx responses with status code in message.
  */
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder, RagScope } from './types';
-import { ee } from './lib/ee';
+import { ext } from './lib/extensions';
 import { currentSpaceId, setCurrentSpaceId, DEFAULT_SPACE_ID, type Space } from './lib/spaces';
 
-/** Returns auth headers from the extensions auth adapter, or {} in local mode. */
+/** Returns auth headers from the extension auth adapter, or {} in local mode. */
 async function authHeaders(): Promise<Record<string, string>> {
-  const adapter = ee.authAdapter();
+  const adapter = ext.authAdapter();
   if (!adapter) return {};
   const token = await adapter.getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};

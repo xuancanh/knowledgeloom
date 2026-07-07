@@ -1,10 +1,10 @@
 /**
  * UsageModule — provides the active UsageService.
  *
- * Mirrors AuthModule's strategy selection: the extensions implementation is
+ * Mirrors AuthModule's strategy selection: the extended implementation is
  * loaded via a dynamic import (variable path, so tsc never resolves it
- * statically) and only when the extensions/ tree is present. OSS builds always get
- * the no-op service.
+ * statically) and only when the extensions/ tree is present. OSS builds
+ * always get the no-op service.
  */
 import { Global, Module, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -14,10 +14,10 @@ const usageServiceProvider = {
   provide: USAGE_SERVICE,
   inject: [ConfigService],
   useFactory: async (config: ConfigService) => {
-    const eeUsagePath = '../extensions/usage/extensions-usage.service';
+    const usageServicePath = '../extensions/usage/usage.service';
     try {
-      const mod = await import(eeUsagePath);
-      new Logger('UsageModule').log('Usage tracking: extensions (quota enforcement active)');
+      const mod = await import(usageServicePath);
+      new Logger('UsageModule').log('Usage tracking: extended (quota enforcement active)');
       return new mod.ExtensionsUsageService(config);
     } catch {
       return new NoopUsageService(config.get<number>('maxSpaces') || 0);

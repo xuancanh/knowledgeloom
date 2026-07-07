@@ -73,8 +73,9 @@ smart-knowledge-app/
 │   │   ├── shares/         # Public share links (note + category collections)
 │   │   ├── study/          # Today queue, exam-plan builder, retention stats
 │   │   ├── tts/            # Podcast text-to-speech (OpenAI-compatible)
-│   │   ├── usage/          # USAGE_SERVICE quota seam (noop in OSS)
-│   │   ├── auth/           # AUTH_STRATEGY seam (local / AUTH_SECRET / extensions supabase)
+│   │   ├── usage/          # USAGE_SERVICE quota + space-limit seam (noop in OSS)
+│   │   ├── auth/           # AUTH_STRATEGY seam + x-space-id scope resolution
+│   │   ├── spaces/         # Isolated sub-workspaces; scope.util.ts keys all data
 │   │   ├── settings/       # GET/PATCH /api/settings — per-user JSON blob in user_settings table
 │   │   ├── status/         # Health endpoint
 │   │   ├── storage/        # Pluggable note storage (local / S3)
@@ -92,7 +93,7 @@ smart-knowledge-app/
 │   ├── e2e-api.test.mjs    # Spawned server + temp vault, every API area
 │   └── integration-*.mjs   # Mock-AI pipeline, server modes, MCP client
 ├── mcp/                    # MCP server (stdio) — docs/tech/MCP.md
-├── infra/, Dockerfile      # Production deployment — docs/tech/DEPLOYMENT.md
+├── Dockerfile              # Container image — docs/tech/SELF_HOSTING.md
 ├── knowledge/              # Runtime data (NOT committed except schema)
 │   ├── notes/              # Markdown source of truth (category sub-folders)
 │   ├── categories/         # Generated category markdown files
@@ -285,8 +286,11 @@ npm run server
 - [ ] AI-consuming endpoint? Route it through the USAGE_SERVICE seam
       (`checkQuota` before, `track` after) and add the feature name to
       `AI_FEATURES` in `server/src/usage/usage.interface.ts`
-- [ ] Never import from `extensions/` in OSS code (ESLint-enforced); use the seams
-      (frontend extensions registry, AUTH_STRATEGY, USAGE_SERVICE, AppModule.forRoot)
+- [ ] Never import from `extensions/` in core code (ESLint-enforced); use the
+      seams (frontend extension registry, AUTH_STRATEGY, USAGE_SERVICE,
+      AppModule.forRoot)
+- [ ] Data endpoint? Use `@CurrentScope()` (space-aware), not `@CurrentUser()`.
+      Keep `@CurrentUser()` for settings, quotas, and space management.
 
 ---
 

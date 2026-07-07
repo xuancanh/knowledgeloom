@@ -94,19 +94,19 @@ const baseImports = [
 @Module({})
 export class AppModule {
   /**
-   * Builds the root module, appending the extensions ExtensionsModule when the extensions/
-   * tree is present (merged from the private repo — docs/tech/OPEN_SOURCE_DECISION.md).
-   * The variable path keeps tsc from resolving the module statically; OSS
-   * builds simply run without it.
+   * Builds the root module, appending the optional ExtensionsModule when the
+   * extensions/ tree is present (linked/merged from a private repo). The
+   * variable path keeps tsc from resolving the module statically; OSS builds
+   * simply run without it.
    */
   static async forRoot(): Promise<DynamicModule> {
     const imports = [...baseImports];
-    const eeModulePath = './extensions/extensions.module';
+    const extensionsModulePath = './extensions/extensions.module';
     try {
-      const mod = await import(eeModulePath);
+      const mod = await import(extensionsModulePath);
       imports.push(mod.ExtensionsModule);
-      new Logger('AppModule').log('Extensions modules loaded (extensions/)');
-    } catch { /* OSS build — extensions/ not present */ }
+      new Logger('AppModule').log('Extension modules loaded (extensions/)');
+    } catch { /* extensions/ not present */ }
     return { module: AppModule, imports };
   }
 }
