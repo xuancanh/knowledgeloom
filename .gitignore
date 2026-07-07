@@ -28,3 +28,6 @@ server/src/extensions
 # Agent/session state and internal design sources — never in the public tree
 .omo/
 design/
+
+# Docker Compose bind-mount data folder (notes, sqlite, redis, search index)
+/data/

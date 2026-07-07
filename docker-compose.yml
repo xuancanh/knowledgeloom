@@ -4,8 +4,15 @@
 #   open http://localhost:8787
 #
 # Runs the full stack: app (web + API in one container), Redis (job queue),
-# and Meilisearch (full-text search). Notes and databases persist in named
-# volumes. Add an AI key to unlock research/import/deck generation:
+# and Meilisearch (full-text search). All data persists in a host folder —
+# ./data by default (override with LOOM_DATA_DIR) — so your notes, databases,
+# and search index are easy to find and back up:
+#
+#   ./data/app     markdown vault + sqlite databases (the important stuff)
+#   ./data/redis   job queue
+#   ./data/meili   search index (rebuildable)
+#
+# Add an AI key to unlock research/import/deck generation:
 #
 #   AI_API_KEY=sk-... docker compose up -d
 #
@@ -35,7 +42,7 @@ services:
       # Set a long random value when exposing beyond localhost
       AUTH_SECRET: ${AUTH_SECRET:-}
     volumes:
-      - loom-data:/data
+      - ${LOOM_DATA_DIR:-./data}/app:/data
     depends_on:
       redis:
         condition: service_healthy
@@ -47,7 +54,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - loom-redis:/data
+      - ${LOOM_DATA_DIR:-./data}/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -61,9 +68,4 @@ services:
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-loom-dev-master-key}
       MEILI_NO_ANALYTICS: "true"
     volumes:
-      - loom-meili:/meili_data
-
-volumes:
-  loom-data:
-  loom-redis:
-  loom-meili:
+      - ${LOOM_DATA_DIR:-./data}/meili:/meili_data

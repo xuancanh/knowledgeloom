@@ -39,9 +39,14 @@ ENV WEB_DIST=/app/dist
 RUN mkdir -p /data/knowledge && chown -R loom:loom /data /app
 ENV KNOWLEDGE_ROOT=/data
 
-USER loom
+# The container starts as root so the entrypoint can make a freshly bind-mounted
+# /data writable, then drops to the unprivileged `loom` user to run the server.
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD node -e "fetch('http://localhost:'+(process.env.PORT||8787)+'/api/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "server/dist/main.js"]

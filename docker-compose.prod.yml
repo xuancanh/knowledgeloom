@@ -1,5 +1,8 @@
 # Self-hosted production stack (VM / any Docker host).
 # See docs/tech/SELF_HOSTING.md for environment and backend options.
+#
+# All data persists in a host folder — ./data by default, override with
+# LOOM_DATA_DIR (e.g. LOOM_DATA_DIR=/srv/loom) to point at a dedicated disk.
 services:
   api:
     build: .
@@ -33,7 +36,7 @@ services:
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       AUTH_SECRET: ${AUTH_SECRET:-}
     volumes:
-      - loom-data:/data
+      - ${LOOM_DATA_DIR:-./data}/app:/data
     depends_on:
       redis:
         condition: service_healthy
@@ -43,13 +46,9 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - loom-redis:/data
+      - ${LOOM_DATA_DIR:-./data}/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
-
-volumes:
-  loom-data:
-  loom-redis:
