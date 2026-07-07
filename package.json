@@ -15,6 +15,7 @@
     "test:ui": "TSX_TSCONFIG_PATH=tsconfig.app.json npx tsx --test tests/frontend-ui.test.tsx",
     "test:all": "npm test && npm run test:frontend && npm run test:ui && npm run test:e2e && node --test --test-concurrency=1 --test-force-exit tests/integration-ai.test.mjs tests/integration-modes.test.mjs tests/integration-mcp.test.mjs",
     "smoke:meili": "npx tsx scripts/smoke-meili-sync.ts",
+    "benchmark:vault": "npm run server:build && node scripts/benchmark-vault.mjs",
     "preview": "vite preview",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
