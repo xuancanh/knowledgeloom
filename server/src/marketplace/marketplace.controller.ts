@@ -36,6 +36,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { ownerOf } from '../spaces/scope.util';
 import { WritableGuard } from '../common/guards/writable.guard';
+import { PublishListingDto, RateListingDto } from './marketplace.dto';
 
 const MAX_TAGS = 10;
 
@@ -73,7 +74,7 @@ export class MarketplaceController {
   @UseGuards(WritableGuard)
   async publish(
     @CurrentScope() userId: string,
-    @Body() body: { shareId?: string; title?: string; description?: string; tags?: string[]; author?: string },
+    @Body() body: PublishListingDto,
   ) {
     const shareId = String(body?.shareId || '').trim();
     const title = String(body?.title || '').trim();
@@ -126,7 +127,7 @@ export class MarketplaceController {
   async rate(
     @CurrentUser() userId: string,
     @Param('id') id: string,
-    @Body() body: { stars?: number; comment?: string },
+    @Body() body: RateListingDto,
   ) {
     const stars = Math.round(Number(body?.stars));
     if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new BadRequestException('stars must be 1–5');

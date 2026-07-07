@@ -17,6 +17,7 @@ import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
+import { CreateFlashcardDto, UpdateFlashcardDto, ReviewFlashcardDto } from './flashcards.dto';
 
 // Every route here mutates durable state, so the whole controller is gated on
 // WritableGuard — read-only deployments reject writes with 403 instead of
@@ -35,9 +36,9 @@ export class FlashcardsController {
   @Post()
   async create(
     @CurrentScope() userId: string,
-    @Body() body: { noteId: string; prompt: string; lesson: string; kind: string },
+    @Body() body: CreateFlashcardDto,
   ) {
-    const card = await this.userFlashcardsRepo.create(userId, body);
+    const card = await this.userFlashcardsRepo.create(userId, body as any);
     return { flashcard: card };
   }
 
@@ -45,9 +46,9 @@ export class FlashcardsController {
   async update(
     @CurrentScope() userId: string,
     @Param('id') id: string,
-    @Body() body: { prompt: string; lesson: string; kind: string },
+    @Body() body: UpdateFlashcardDto,
   ) {
-    await this.userFlashcardsRepo.update(userId, id, body);
+    await this.userFlashcardsRepo.update(userId, id, body as any);
     return { updated: id };
   }
 
@@ -64,7 +65,7 @@ export class FlashcardsController {
   async review(
     @CurrentScope() userId: string,
     @Param('id') cardId: string,
-    @Body() body: { rating: 'again' | 'hard' | 'good'; noteId: string; isUserCard?: boolean },
+    @Body() body: ReviewFlashcardDto,
   ) {
     // FSRS scheduling. Prior state is loaded server-side (the old code always
     // scheduled from scratch, so intervals never grew); legacy SM-2 rows are

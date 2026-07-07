@@ -15,6 +15,7 @@ import { TtsService, PodcastLine } from './tts.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
+import { PodcastDto } from './tts.dto';
 
 const MAX_LINES = 40;
 const MAX_LINE_CHARS = 600;
@@ -35,7 +36,7 @@ export class TtsController {
   @Post('podcast')
   async podcast(
     @CurrentScope() userId: string,
-    @Body() body: { lines?: Array<{ who?: string; text?: string }> },
+    @Body() body: PodcastDto,
     @Res() res: Response,
   ) {
     if (!this.tts.enabled) throw new NotImplementedException('text-to-speech is not configured (set TTS_API_KEY)');

@@ -17,6 +17,7 @@ import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
+import { RegenerateDto } from './notes.dto';
 
 @Controller('api/notes')
 @UseGuards(ApiAuthGuard)
@@ -93,7 +94,7 @@ export class NotesController {
   async regenerate(
     @CurrentScope() userId: string,
     @Param('id') id: string,
-    @Body() body: { target?: string; size?: string },
+    @Body() body: RegenerateDto,
   ) {
     const target = body?.target === 'quiz' ? 'quiz' : body?.target === 'flashcards' ? 'flashcards' : 'all';
     const size = body?.size === 'medium' ? 'medium' : body?.size === 'large' ? 'large' : 'small';

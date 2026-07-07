@@ -19,6 +19,7 @@ import { ReviewEventsRepository } from './review-events.repository';
 import { UserFlashcardsRepository } from '../flashcards/user-flashcards.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
+import { ExamPlanDto } from './study.dto';
 
 /** New (never-reviewed) items are throttled so day one isn't a 500-card wall. */
 const NEW_ITEMS_CAP = 20;
@@ -173,7 +174,7 @@ export class StudyController {
   @Post('exam-plan')
   async examPlan(
     @CurrentScope() userId: string,
-    @Body() body: { examDate?: string; scope?: { category?: string; tag?: string; noteIds?: string[] } },
+    @Body() body: ExamPlanDto,
   ) {
     const examDate = typeof body?.examDate === 'string' ? body.examDate.trim() : '';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(examDate)) throw new BadRequestException('examDate must be YYYY-MM-DD');

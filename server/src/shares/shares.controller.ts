@@ -26,6 +26,7 @@ import { KnowledgeService } from '../knowledge/knowledge.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
+import { CreateShareDto } from './shares.dto';
 import { basename } from 'node:path';
 
 @Controller('api/shares')
@@ -39,7 +40,7 @@ export class SharesController {
 
   @Post()
   @UseGuards(WritableGuard)
-  async create(@CurrentScope() userId: string, @Body() body: { noteId?: string; category?: string }) {
+  async create(@CurrentScope() userId: string, @Body() body: CreateShareDto) {
     const category = typeof body?.category === 'string' ? body.category.trim() : '';
 
     if (category) {

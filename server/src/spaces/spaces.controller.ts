@@ -14,6 +14,7 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode 
 import { SpacesService } from './spaces.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { SpaceNameDto } from './spaces.dto';
 
 @Controller('api/spaces')
 @UseGuards(ApiAuthGuard)
@@ -26,13 +27,13 @@ export class SpacesController {
   }
 
   @Post()
-  create(@CurrentUser() userId: string, @Body() body: { name?: string }) {
+  create(@CurrentUser() userId: string, @Body() body: SpaceNameDto) {
     return this.spaces.create(userId, body?.name);
   }
 
   @Patch(':id')
   @HttpCode(200)
-  rename(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: { name?: string }) {
+  rename(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: SpaceNameDto) {
     return this.spaces.rename(userId, id, body?.name);
   }
 

@@ -15,6 +15,7 @@ import { ReviewEventsRepository } from '../study/review-events.repository';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
+import { ReviewQuizDto } from './quiz.dto';
 
 // All routes here mutate durable state (reviews, hide, restore), so the whole
 // controller is gated on WritableGuard — read-only deployments reject writes
@@ -34,7 +35,7 @@ export class QuizController {
   async review(
     @CurrentScope() userId: string,
     @Param('id') questionId: string,
-    @Body() body: { rating: 'correct' | 'wrong'; noteId: string; currentStreak?: number },
+    @Body() body: ReviewQuizDto,
   ) {
     // FSRS scheduling (correct=3, wrong=1); streak stays as a UI counter.
     // Prior state comes from the DB, not the client — legacy rows (no FSRS

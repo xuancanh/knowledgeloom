@@ -10,6 +10,7 @@ import { RemindersService } from './reminders.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
+import { CreateReminderDto, PatchReminderDto } from './reminders.dto';
 
 @Controller('api/reminders')
 @UseGuards(ApiAuthGuard)
@@ -27,13 +28,13 @@ export class RemindersController {
 
   @Post()
   @UseGuards(WritableGuard)
-  async create(@CurrentScope() userId: string, @Body() body: any) {
+  async create(@CurrentScope() userId: string, @Body() body: CreateReminderDto) {
     return { reminder: await this.remindersService.create(userId, body || {}) };
   }
 
   @Patch(':id')
   @UseGuards(WritableGuard)
-  async patch(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
+  async patch(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: PatchReminderDto) {
     return { reminder: await this.remindersService.patch(userId, id, body || {}) };
   }
 

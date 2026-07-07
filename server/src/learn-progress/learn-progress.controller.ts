@@ -7,6 +7,7 @@ import { AI_PROVIDER, AiProvider } from '../ai/ai-provider.interface';
 import { NotesService } from '../notes/notes.service';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { AiDeck, parseAiJson, sanitizeAiDeck } from './deck-sanitizer';
+import { AwardXpDto, GenerateDeckDto } from './learn-progress.dto';
 
 /** Generated decks are cached per note content so replaying a lesson does not re-bill the AI provider. */
 const DECK_CACHE_MAX = 200;
@@ -30,7 +31,7 @@ export class LearnProgressController {
   }
 
   @Post('award')
-  award(@CurrentScope() userId: string, @Body() body: { xp: number }) {
+  award(@CurrentScope() userId: string, @Body() body: AwardXpDto) {
     const amount = Math.max(0, Math.min(1000, Number(body?.xp) || 0));
     return this.repo.award(userId, amount);
   }
@@ -43,7 +44,7 @@ export class LearnProgressController {
   @Post('generate-deck')
   async generateDeck(
     @CurrentScope() userId: string,
-    @Body() body: { noteId?: string; title?: string; category?: string; summary?: string; tags?: string[] },
+    @Body() body: GenerateDeckDto,
   ): Promise<AiDeck | null> {
     const noteId = typeof body?.noteId === 'string' ? body.noteId.trim() : '';
     if (!noteId) throw new BadRequestException('noteId is required');
