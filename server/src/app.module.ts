@@ -43,6 +43,7 @@ import { ImagesModule } from './images/images.module';
 import { RagModule } from './rag/rag.module';
 import { QuizModule } from './quiz/quiz.module';
 import { SettingsModule } from './settings/settings.module';
+import { ExportModule } from './export/export.module';
 import { LearnProgressModule } from './learn-progress/learn-progress.module';
 import { UsageModule } from './usage/usage.module';
 import { StudyModule } from './study/study.module';
@@ -89,6 +90,7 @@ const baseImports = [
     SharesModule,
     MarketplaceModule,
     SpacesModule,
+    ExportModule,
 ];
 
 @Module({})

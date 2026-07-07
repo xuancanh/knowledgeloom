@@ -504,6 +504,18 @@ maybe('jobs: metrics summarize queue health (and "metrics" is not a job id)', as
   assert.ok(Array.isArray(json.recentErrors));
 });
 
+maybe('export: downloadable backup bundles every note + settings', async () => {
+  const res = await fetch(`${BASE}/api/export`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-disposition') ?? '', /attachment; filename=.*backup.*\.json/);
+  const bundle = await res.json();
+  assert.equal(bundle.format, 'knowledge-loom-export/v1');
+  assert.ok(bundle.noteCount >= 1);
+  assert.equal(bundle.notes.length, bundle.noteCount);
+  assert.ok(bundle.notes[0].file && typeof bundle.notes[0].markdown === 'string');
+  assert.ok(bundle.settings && typeof bundle.settings === 'object');
+});
+
 // ── images ────────────────────────────────────────────────────────────────────
 
 maybe('images: upload a PNG and serve it back', async () => {
