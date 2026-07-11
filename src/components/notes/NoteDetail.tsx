@@ -12,6 +12,7 @@ import { type NoteEditorHandle } from './NoteEditor';
 import NoteViewer from './NoteViewer';
 import { NoteEditorForm } from './NoteEditorForm';
 import { ReminderSection } from './ReminderSection';
+import { ShareDialog, type ShareOptions } from '../share/ShareDialog';
 
 /**
  * Note reader and editor. Edits are saved back to the markdown source file,
@@ -55,6 +56,7 @@ export default function NoteDetail({
   const { t } = useTranslation();
   const [showSource, setShowSource] = useState(false);
   const [shareState, setShareState] = useState<'idle' | 'working' | 'copied'>('idle');
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [reading, setReading] = useState(false);
   const [readTheme, setReadTheme] = useState<'light' | 'white' | 'dark' | 'midnight'>(() => {
@@ -230,6 +232,19 @@ export default function NoteDetail({
     }
   }
 
+  async function shareNote(options: ShareOptions) {
+    setShareState('working');
+    try {
+      const share = await createShare({ noteId: note.id, ...options });
+      await navigator.clipboard.writeText(`${window.location.origin}${share.url}`).catch(() => {});
+      setShareState('copied');
+      setTimeout(() => setShareState('idle'), 2500);
+    } catch (error) {
+      setShareState('idle');
+      throw error;
+    }
+  }
+
   return (
     <div className="note-detail">
       <div className="crumbs">
@@ -253,21 +268,10 @@ export default function NoteDetail({
           <button
             className="read-inline"
             disabled={readOnly || shareState === 'working'}
-            onClick={async () => {
-              setShareState('working');
-              try {
-                const share = await createShare({ noteId: note.id });
-                const url = `${window.location.origin}${share.url}`;
-                await navigator.clipboard.writeText(url).catch(() => {});
-                setShareState('copied');
-                setTimeout(() => setShareState('idle'), 2500);
-              } catch {
-                setShareState('idle');
-              }
-            }}
-            title="Create a public read-only link to this note and its study deck"
+            onClick={() => setShareDialogOpen(true)}
+            title={t('share.noteTitle')}
           >
-            {shareState === 'copied' ? 'Link copied ✓' : shareState === 'working' ? 'Sharing…' : 'Share'}
+            {shareState === 'copied' ? t('share.linkCopied') : shareState === 'working' ? t('share.creating') : t('share.action')}
           </button>
           {!readOnly && (
             <span className="regen-wrap">
@@ -408,6 +412,7 @@ export default function NoteDetail({
           <div className="read-progress" style={{ width: `${progress}%` }} />
         </>
       )}
+      {shareDialogOpen && <ShareDialog onClose={() => setShareDialogOpen(false)} onCreate={shareNote} />}
     </div>
   );
 }

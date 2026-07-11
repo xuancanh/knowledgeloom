@@ -1,0 +1,95 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 42%);
+}
+
+.dialog {
+  width: min(440px, 100%);
+  padding: 20px;
+  border: 1px solid var(--rule-2);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 24%);
+}
+
+.header,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+}
+
+.close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.35rem;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  margin-top: 18px;
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-2);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.error {
+  margin-top: 12px;
+  color: var(--danger, #b42318);
+  font-size: 0.82rem;
+}
+
+.actions {
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.actions button {
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid var(--rule-2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.actions .primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.actions button:disabled,
+.close:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

@@ -1,0 +1,66 @@
+.locked {
+  display: grid;
+  min-height: 70vh;
+  place-items: center;
+}
+
+.unlock {
+  width: min(420px, 100%);
+  padding: 28px;
+  border: 1px solid var(--rule-2);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.unlock h1 {
+  margin: 12px 0 8px;
+  font-size: 1.4rem;
+  letter-spacing: 0;
+}
+
+.unlock p {
+  margin: 0 0 22px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.unlock label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.unlock input {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-2);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.unlock button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 16px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+}
+
+.unlock button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.error {
+  margin-top: 10px;
+  color: var(--danger, #b42318);
+  font-size: 0.82rem;
+}

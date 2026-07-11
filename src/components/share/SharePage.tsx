@@ -1,47 +1,111 @@
-/**
- * SharePage — public read-only view of a shared note + its study deck.
- * Reached via /share/:id with no authentication; the 128-bit id is the key.
- */
-import { useEffect, useState } from 'react';
+/** Public read-only view of a shared note or collection and its study deck. */
+import { useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchPublicShare, type PublicShare } from '../../api';
+import { useTranslation } from 'react-i18next';
+import { fetchPublicShare, type ApiError, type PublicShare } from '../../api';
 import { parseMarkdownBlocks } from '../../lib/view';
+import styles from './SharePage.module.css';
+
+type LoadError = 'notFound' | 'generic' | '';
 
 export default function SharePage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [share, setShare] = useState<PublicShare | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<LoadError>('');
+  const [passwordRequired, setPasswordRequired] = useState(false);
+  const [password, setPassword] = useState('');
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState(false);
   const [flipped, setFlipped] = useState<Set<number>>(new Set());
   const [picked, setPicked] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    if (!id) return;
-    fetchPublicShare(id).then(setShare).catch((e) => setError(e instanceof Error ? e.message : 'Failed to load.'));
+    if (!id) {
+      setError('notFound');
+      return;
+    }
+    fetchPublicShare(id)
+      .then(setShare)
+      .catch((cause: ApiError) => {
+        if (cause.status === 401 && cause.payload?.passwordRequired === true) {
+          setPasswordRequired(true);
+        } else {
+          setError(cause.status === 404 ? 'notFound' : 'generic');
+        }
+      });
   }, [id]);
+
+  async function unlock(event: FormEvent) {
+    event.preventDefault();
+    if (!id || !password) return;
+    setUnlocking(true);
+    setUnlockError(false);
+    try {
+      setShare(await fetchPublicShare(id, password));
+      setPasswordRequired(false);
+      setPassword('');
+    } catch (cause) {
+      const apiError = cause as ApiError;
+      if (apiError.status === 404) setError('notFound');
+      else setUnlockError(true);
+    } finally {
+      setUnlocking(false);
+    }
+  }
 
   if (error) {
     return (
       <div className="today-page share-page">
-        <div className="today-empty">{error}</div>
+        <div className="today-empty">{t(error === 'notFound' ? 'share.notFound' : 'share.loadError')}</div>
       </div>
     );
   }
-  if (!share) return <div className="today-page share-page"><div className="today-empty">Loading…</div></div>;
+
+  if (passwordRequired) {
+    return (
+      <main className={`today-page share-page ${styles.locked}`}>
+        <form className={styles.unlock} onSubmit={unlock}>
+          <h1>{t('share.protectedTitle')}</h1>
+          <p>{t('share.protectedDescription')}</p>
+          <label>
+            <span>{t('share.passwordLabel')}</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              autoFocus
+              disabled={unlocking}
+            />
+          </label>
+          {unlockError && <div className={styles.error} role="alert">{t('share.invalidPassword')}</div>}
+          <button type="submit" disabled={unlocking || !password}>
+            {unlocking ? t('share.unlocking') : t('share.unlock')}
+          </button>
+        </form>
+      </main>
+    );
+  }
+
+  if (!share) {
+    return <div className="today-page share-page"><div className="today-empty">{t('common.loading')}</div></div>;
+  }
 
   const isCollection = share.kind === 'category';
   const headerNote = share.note;
 
   return (
-    <div className="today-page share-page">
+    <main className="today-page share-page">
       <header className="today-head">
-        <div className="share-badge">{isCollection ? 'Shared collection · read-only' : 'Shared note · read-only'}</div>
+        <div className="share-badge">{t(isCollection ? 'share.collectionBadge' : 'share.noteBadge')}</div>
         {isCollection ? (
           <>
             <h1>{share.collection?.name}</h1>
             <div className="today-counts">
-              <span className="today-chip">{share.collection?.noteCount} notes</span>
-              <span className="today-chip">{share.flashcards.length} flashcards</span>
-              <span className="today-chip">{share.quiz.length} quiz questions</span>
+              <span className="today-chip">{t('share.notesCount', { count: share.collection?.noteCount ?? 0 })}</span>
+              <span className="today-chip">{t('share.flashcardsCount', { count: share.flashcards.length })}</span>
+              <span className="today-chip">{t('share.quizCount', { count: share.quiz.length })}</span>
             </div>
           </>
         ) : headerNote && (
@@ -49,7 +113,7 @@ export default function SharePage() {
             <h1>{headerNote.title}</h1>
             <div className="today-counts">
               <span className="today-chip">{headerNote.category}</span>
-              {headerNote.tags.map((t) => <span key={t} className="today-chip">#{t}</span>)}
+              {headerNote.tags.map((tag) => <span key={tag} className="today-chip">#{tag}</span>)}
             </div>
             {headerNote.summary && <p className="import-sub">{headerNote.summary}</p>}
           </>
@@ -58,17 +122,17 @@ export default function SharePage() {
 
       {isCollection ? (
         <section>
-          {(share.notes || []).map((n, ni) => (
-            <details key={ni} className="share-collection-note">
+          {(share.notes || []).map((note) => (
+            <details key={`${note.title}-${note.createdAt}`} className="share-collection-note">
               <summary>
-                <strong>{n.title}</strong>
-                {n.summary && <span className="share-note-summary"> — {n.summary}</span>}
+                <strong>{note.title}</strong>
+                {note.summary && <span className="share-note-summary"> - {note.summary}</span>}
               </summary>
               <div className="share-body">
-                {parseMarkdownBlocks(n.body).map((b, i) =>
-                  b.type === 'h' ? <h3 key={i}>{b.text}</h3>
-                  : b.type === 'q' ? <blockquote key={i}>{b.text}</blockquote>
-                  : <p key={i}>{b.text}</p>,
+                {parseMarkdownBlocks(note.body).map((block, index) =>
+                  block.type === 'h' ? <h3 key={index}>{block.text}</h3>
+                  : block.type === 'q' ? <blockquote key={index}>{block.text}</blockquote>
+                  : <p key={index}>{block.text}</p>,
                 )}
               </div>
             </details>
@@ -76,31 +140,37 @@ export default function SharePage() {
         </section>
       ) : headerNote && (
         <section className="share-body">
-          {parseMarkdownBlocks(headerNote.body).map((b, i) =>
-            b.type === 'h' ? <h3 key={i}>{b.text}</h3>
-            : b.type === 'q' ? <blockquote key={i}>{b.text}</blockquote>
-            : <p key={i}>{b.text}</p>,
+          {parseMarkdownBlocks(headerNote.body).map((block, index) =>
+            block.type === 'h' ? <h3 key={index}>{block.text}</h3>
+            : block.type === 'q' ? <blockquote key={index}>{block.text}</blockquote>
+            : <p key={index}>{block.text}</p>,
           )}
         </section>
       )}
 
       {share.flashcards.length > 0 && (
         <section>
-          <h3 className="share-section-title">Flashcards ({share.flashcards.length})</h3>
+          <h2 className="share-section-title">{t('share.flashcardsHeading', { count: share.flashcards.length })}</h2>
           <div className="share-cards">
-            {share.flashcards.map((c, i) => (
+            {share.flashcards.map((card, index) => (
               <div
-                key={i}
+                key={`${card.prompt}-${index}`}
                 className="today-card share-flash"
                 role="button"
                 tabIndex={0}
-                onClick={() => setFlipped((prev) => new Set(prev).add(i))}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped((prev) => new Set(prev).add(i)); } }}
+                aria-label={t('share.revealCard')}
+                onClick={() => setFlipped((previous) => new Set(previous).add(index))}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setFlipped((previous) => new Set(previous).add(index));
+                  }
+                }}
               >
-                <div className="today-card-prompt">{c.prompt}</div>
-                {flipped.has(i)
-                  ? <div className="today-card-lesson">{c.lesson}</div>
-                  : <div className="today-card-hint">Tap to reveal</div>}
+                <div className="today-card-prompt">{card.prompt}</div>
+                {flipped.has(index)
+                  ? <div className="today-card-lesson">{card.lesson}</div>
+                  : <div className="today-card-hint">{t('share.tapReveal')}</div>}
               </div>
             ))}
           </div>
@@ -109,34 +179,34 @@ export default function SharePage() {
 
       {share.quiz.length > 0 && (
         <section>
-          <h3 className="share-section-title">Quiz ({share.quiz.length})</h3>
-          {share.quiz.map((q, i) => (
-            <div key={i} className="today-card static share-quiz">
-              <div className="today-card-prompt">{q.question}</div>
-              {q.type === 'multiple-choice' && q.choices ? (
+          <h2 className="share-section-title">{t('share.quizHeading', { count: share.quiz.length })}</h2>
+          {share.quiz.map((question, index) => (
+            <div key={`${question.question}-${index}`} className="today-card static share-quiz">
+              <div className="today-card-prompt">{question.question}</div>
+              {question.type === 'multiple-choice' && question.choices ? (
                 <div className="today-choices">
-                  {q.choices.map((choice, ci) => {
-                    const revealed = picked[i] != null;
-                    const isCorrect = revealed && ci === q.correctIndex;
-                    const isWrong = revealed && picked[i] === ci && ci !== q.correctIndex;
+                  {question.choices.map((choice, choiceIndex) => {
+                    const revealed = picked[index] != null;
+                    const isCorrect = revealed && choiceIndex === question.correctIndex;
+                    const isWrong = revealed && picked[index] === choiceIndex && choiceIndex !== question.correctIndex;
                     return (
                       <button
-                        key={ci}
+                        key={choice}
                         className={`today-choice${isCorrect ? ' correct' : ''}${isWrong ? ' wrong' : ''}`}
                         disabled={revealed}
-                        onClick={() => setPicked((prev) => ({ ...prev, [i]: ci }))}
+                        onClick={() => setPicked((previous) => ({ ...previous, [index]: choiceIndex }))}
                       >
                         {choice}
                       </button>
                     );
                   })}
-                  {picked[i] != null && q.explanation && <p className="today-explain">{q.explanation}</p>}
+                  {picked[index] != null && question.explanation && <p className="today-explain">{question.explanation}</p>}
                 </div>
               ) : (
                 <div className="today-choices">
-                  {picked[i] != null
-                    ? <p className="today-answer">{q.answer}</p>
-                    : <button className="today-btn" onClick={() => setPicked((prev) => ({ ...prev, [i]: 0 }))}>Show answer</button>}
+                  {picked[index] != null
+                    ? <p className="today-answer">{question.answer}</p>
+                    : <button className="today-btn" onClick={() => setPicked((previous) => ({ ...previous, [index]: 0 }))}>{t('share.showAnswer')}</button>}
                 </div>
               )}
             </div>
@@ -144,9 +214,7 @@ export default function SharePage() {
         </section>
       )}
 
-      <footer className="share-footer">
-        Built with Knowledge Loom — a second brain that makes you learn.
-      </footer>
-    </div>
+      <footer className="share-footer">{t('share.footer')}</footer>
+    </main>
   );
 }

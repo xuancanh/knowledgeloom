@@ -7,6 +7,7 @@ import NoteList, { type ViewMode } from '../NoteList';
 import { createShare } from '../../api';
 import { NEW_NOTE_DRAFT_KEY } from '../routes/NewNoteRoute';
 import styles from './CategoryIndex.module.css';
+import { ShareDialog, type ShareOptions } from '../share/ShareDialog';
 
 const COLOR_VAR: Record<string, string> = {
   oxblood: 'var(--accent)',
@@ -48,8 +49,22 @@ export default function CategoryIndex({
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [shareState, setShareState] = useState<'idle' | 'working' | 'copied'>('idle');
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   const readSet = useMemo(() => new Set(readNoteIds || []), [readNoteIds]);
+
+  async function shareCategory(options: ShareOptions) {
+    setShareState('working');
+    try {
+      const share = await createShare({ category: category.name, ...options });
+      await navigator.clipboard.writeText(`${window.location.origin}${share.url}`).catch(() => {});
+      setShareState('copied');
+      setTimeout(() => setShareState('idle'), 2500);
+    } catch (error) {
+      setShareState('idle');
+      throw error;
+    }
+  }
 
   const inCat = useMemo(
     () =>
@@ -157,20 +172,10 @@ export default function CategoryIndex({
           <button
             className={styles.newNoteBtn}
             disabled={shareState === 'working'}
-            onClick={async () => {
-              setShareState('working');
-              try {
-                const share = await createShare({ category: category.name });
-                await navigator.clipboard.writeText(`${window.location.origin}${share.url}`).catch(() => {});
-                setShareState('copied');
-                setTimeout(() => setShareState('idle'), 2500);
-              } catch {
-                setShareState('idle');
-              }
-            }}
-            title="Create a public read-only link to this collection and its study deck"
+            onClick={() => setShareDialogOpen(true)}
+            title={t('share.collectionTitle')}
           >
-            {shareState === 'copied' ? 'Link copied ✓' : shareState === 'working' ? 'Sharing…' : 'Share'}
+            {shareState === 'copied' ? t('share.linkCopied') : shareState === 'working' ? t('share.creating') : t('share.action')}
           </button>
           <button className={styles.newNoteBtn} onClick={newNoteInCategory}>{t('categories.newNote')}</button>
         </div>
@@ -283,6 +288,7 @@ export default function CategoryIndex({
       ) : (
         <NoteList notes={filtered} categories={categories} onOpen={onOpen} onOpenTag={onOpenTag} viewMode={viewMode} />
       )}
+      {shareDialogOpen && <ShareDialog onClose={() => setShareDialogOpen(false)} onCreate={shareCategory} />}
     </div>
   );
 }

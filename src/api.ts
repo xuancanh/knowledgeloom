@@ -465,7 +465,12 @@ export async function importSource(input: {
 
 /* ── Share links ── */
 
-export async function createShare(target: { noteId: string } | { category: string }): Promise<{ id: string; url: string; kind: 'note' | 'category'; target: string }> {
+export type CreateShareInput = ({ noteId: string } | { category: string }) & {
+  expiresInDays?: number;
+  password?: string;
+};
+
+export async function createShare(target: CreateShareInput): Promise<{ id: string; url: string; kind: 'note' | 'category'; target: string; expiresAt: string | null; passwordProtected: boolean }> {
   const response = await apiFetch('/api/shares', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -493,11 +498,12 @@ export type PublicShare = {
 };
 
 /** Public — no auth; anyone with the link. */
-export async function fetchPublicShare(id: string): Promise<PublicShare> {
-  const response = await fetch(`/api/shares/${encodeURIComponent(id)}/public`);
-  if (response.status === 404) {
-    throw Object.assign(new Error('This share link does not exist or was revoked.'), { status: 404 });
-  }
+export async function fetchPublicShare(id: string, password?: string): Promise<PublicShare> {
+  const response = await fetch(`/api/shares/${encodeURIComponent(id)}/public`, password === undefined ? undefined : {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
   if (!response.ok) throw await apiError(response, 'load the shared page');
   return response.json();
 }
