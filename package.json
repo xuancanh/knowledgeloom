@@ -8,7 +8,7 @@
     "server": "node server/dist/main.js",
     "server:build": "rm -rf server/dist && tsc -p server/tsconfig.json",
     "server:dev": "ts-node --project server/tsconfig.json server/src/main.ts",
-    "build": "npm run server:build && tsc -b && vite build",
+    "build": "npm run server:build && tsc -b && vite build && node scripts/check-bundle-size.mjs",
     "lint": "eslint .",
     "test": "npx tsx --test tests/backend-storage.test.ts tests/backend-note-parser.test.ts tests/backend-guards.test.ts tests/backend-reminders.test.ts tests/backend-services.test.ts tests/backend-fsrs.test.ts tests/backend-exam-plan.test.ts tests/backend-feature-toggles.test.ts tests/backend-learn-progress.test.ts tests/backend-share-password.test.ts tests/backend-spaces.test.ts",
     "test:frontend": "npx tsx --test tests/frontend-lib.test.ts tests/frontend-learn.test.ts tests/frontend-i18n.test.ts",

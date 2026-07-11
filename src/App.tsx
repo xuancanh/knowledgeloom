@@ -1,31 +1,38 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useKnowledge, themeLabels, fontStyleLabels, type Theme } from './hooks/useKnowledge';
 import { useAuth } from './hooks/useAuth';
-import ActivityPage from './components/activity/ActivityPage';
-import Home from './components/Home';
 import Rail from './components/Rail';
 import SearchOverlay from './components/SearchOverlay';
-import SettingsPage from './components/settings/SettingsPage';
-import { NoteRoute } from './components/routes/NoteRoute';
-import { CategoryRoute } from './components/routes/CategoryRoute';
-import { TagRoute } from './components/routes/TagRoute';
-import { AllCategoriesRoute } from './components/routes/AllCategoriesRoute';
-import { AllTagsRoute } from './components/routes/AllTagsRoute';
-import { FlashcardsRoute } from './components/routes/FlashcardsRoute';
-import { QuizRoute } from './components/routes/QuizRoute';
-import { NewNoteRoute } from './components/routes/NewNoteRoute';
-import { ClipRoute } from './components/routes/ClipRoute';
 import ContextPanel from './components/ContextPanel';
-import { ChatPanel } from './components/chat/ChatPanel';
-import GraphPage from './components/graph/GraphPage';
-import LearnPage from './components/learn/LearnPage';
-import TodayPage from './components/study/TodayPage';
-import ImportPage from './components/import/ImportPage';
-import SharePage from './components/share/SharePage';
-import MarketplacePage from './components/marketplace/MarketplacePage';
 import { ext } from './lib/extensions';
 import { getFeatures } from './lib/features';
+
+const ActivityPage = lazy(() => import('./components/activity/ActivityPage'));
+const Home = lazy(() => import('./components/Home'));
+const SettingsPage = lazy(() => import('./components/settings/SettingsPage'));
+const NoteRoute = lazy(() => import('./components/routes/NoteRoute').then((module) => ({ default: module.NoteRoute })));
+const CategoryRoute = lazy(() => import('./components/routes/CategoryRoute').then((module) => ({ default: module.CategoryRoute })));
+const TagRoute = lazy(() => import('./components/routes/TagRoute').then((module) => ({ default: module.TagRoute })));
+const AllCategoriesRoute = lazy(() => import('./components/routes/AllCategoriesRoute').then((module) => ({ default: module.AllCategoriesRoute })));
+const AllTagsRoute = lazy(() => import('./components/routes/AllTagsRoute').then((module) => ({ default: module.AllTagsRoute })));
+const FlashcardsRoute = lazy(() => import('./components/routes/FlashcardsRoute').then((module) => ({ default: module.FlashcardsRoute })));
+const QuizRoute = lazy(() => import('./components/routes/QuizRoute').then((module) => ({ default: module.QuizRoute })));
+const NewNoteRoute = lazy(() => import('./components/routes/NewNoteRoute').then((module) => ({ default: module.NewNoteRoute })));
+const ClipRoute = lazy(() => import('./components/routes/ClipRoute').then((module) => ({ default: module.ClipRoute })));
+const ChatPanel = lazy(() => import('./components/chat/ChatPanel').then((module) => ({ default: module.ChatPanel })));
+const GraphPage = lazy(() => import('./components/graph/GraphPage'));
+const LearnPage = lazy(() => import('./components/learn/LearnPage'));
+const TodayPage = lazy(() => import('./components/study/TodayPage'));
+const ImportPage = lazy(() => import('./components/import/ImportPage'));
+const SharePage = lazy(() => import('./components/share/SharePage'));
+const MarketplacePage = lazy(() => import('./components/marketplace/MarketplacePage'));
+
+function RouteLoading() {
+  const { t } = useTranslation();
+  return <div className="today-empty" role="status">{t('common.loading')}</div>;
+}
 
 // These pages come from the extension registry; in OSS builds they are
 // undefined and the app boots straight into local mode at /home.
@@ -38,18 +45,20 @@ export default function App() {
   if (authLoading) return null;
 
   return (
-    <Routes>
-      {/* Public share links work without any authentication. */}
-      <Route path="/share/:id" element={<SharePage />} />
-      <Route path="/" element={LandingPage ? <LandingPage /> : <Navigate to="/home" replace />} />
-      {LoginPage && (
-        <Route path="/login" element={authenticated ? <Navigate to="/home" replace /> : <LoginPage />} />
-      )}
-      {authenticated
-        ? <Route path="*" element={<AuthenticatedApp />} />
-        : <Route path="*" element={<Navigate to="/" replace />} />
-      }
-    </Routes>
+    <Suspense fallback={<RouteLoading />}>
+      <Routes>
+        {/* Public share links work without any authentication. */}
+        <Route path="/share/:id" element={<SharePage />} />
+        <Route path="/" element={LandingPage ? <LandingPage /> : <Navigate to="/home" replace />} />
+        {LoginPage && (
+          <Route path="/login" element={authenticated ? <Navigate to="/home" replace /> : <LoginPage />} />
+        )}
+        {authenticated
+          ? <Route path="*" element={<AuthenticatedApp />} />
+          : <Route path="*" element={<Navigate to="/" replace />} />
+        }
+      </Routes>
+    </Suspense>
   );
 }
 
@@ -160,6 +169,7 @@ function AuthenticatedApp() {
         </div>}
 
         <div className={isGraph || isLearn ? 'graph-slot' : 'main'}>
+          <Suspense fallback={<RouteLoading />}>
           <Routes>
             <Route path="/home" element={
               <Home
@@ -299,6 +309,7 @@ function AuthenticatedApp() {
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/login" element={<Navigate to="/home" replace />} />
           </Routes>
+          </Suspense>
         </div>
       </main>
 
@@ -314,7 +325,11 @@ function AuthenticatedApp() {
         onOpen={openNote}
       />
 
-      {features.chat && <ChatPanel notes={state.notes} categories={categories} />}
+      {features.chat && (
+        <Suspense fallback={null}>
+          <ChatPanel notes={state.notes} categories={categories} />
+        </Suspense>
+      )}
 
       <div className="toast-stack" role="status" aria-live="polite">
         {toasts.map((toast) => (
