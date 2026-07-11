@@ -436,6 +436,22 @@ const SQLITE_MIGRATIONS: SqliteMigration[] = [
       `);
     },
   },
+  {
+    id: '0017_share_passwords_and_accesses',
+    run(db) {
+      addIfMissing(db, 'shares', 'passwordHash', 'TEXT');
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS share_accesses (
+          id         TEXT PRIMARY KEY,
+          shareId    TEXT NOT NULL,
+          userId     TEXT NOT NULL DEFAULT '',
+          accessedAt TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_share_accesses_share ON share_accesses(shareId, accessedAt);
+        CREATE INDEX IF NOT EXISTS idx_share_accesses_user ON share_accesses(userId);
+      `);
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -848,6 +864,22 @@ const PG_MIGRATIONS: PgMigration[] = [
           PRIMARY KEY ("listingId", "userId")
         );
         CREATE INDEX IF NOT EXISTS idx_marketplace_reports_listing ON marketplace_reports("listingId");
+      `);
+    },
+  },
+  {
+    id: '0018_share_passwords_and_accesses_pg',
+    async run(pool) {
+      await pgAddIfMissing(pool, 'shares', 'passwordHash', 'TEXT');
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS share_accesses (
+          id           TEXT PRIMARY KEY,
+          "shareId"    TEXT NOT NULL,
+          "userId"     TEXT NOT NULL DEFAULT '',
+          "accessedAt" TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_share_accesses_share ON share_accesses("shareId", "accessedAt");
+        CREATE INDEX IF NOT EXISTS idx_share_accesses_user ON share_accesses("userId");
       `);
     },
   },

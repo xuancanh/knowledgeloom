@@ -288,6 +288,7 @@ export const sqliteShares = sqliteTable('shares', {
   revokedAt: sqliteText('revokedAt'),
   // Optional ISO expiry; null = never expires. Enforced at lookup time.
   expiresAt: sqliteText('expiresAt'),
+  passwordHash: sqliteText('passwordHash'),
 });
 
 export const pgShares = pgTable('shares', {
@@ -298,6 +299,22 @@ export const pgShares = pgTable('shares', {
   createdAt: pgText('createdAt').notNull(),
   revokedAt: pgText('revokedAt'),
   expiresAt: pgText('expiresAt'),
+  passwordHash: pgText('passwordHash'),
+});
+
+/** Privacy-preserving share access events: no visitor IP or user agent. */
+export const sqliteShareAccesses = sqliteTable('share_accesses', {
+  id: sqliteText('id').primaryKey(),
+  shareId: sqliteText('shareId').notNull(),
+  userId: sqliteText('userId').notNull().default(''),
+  accessedAt: sqliteText('accessedAt').notNull(),
+});
+
+export const pgShareAccesses = pgTable('share_accesses', {
+  id: pgText('id').primaryKey(),
+  shareId: pgText('shareId').notNull(),
+  userId: pgText('userId').notNull().default(''),
+  accessedAt: pgText('accessedAt').notNull(),
 });
 
 /** Marketplace: published shares browseable and importable by anyone. */

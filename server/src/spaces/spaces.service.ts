@@ -19,6 +19,7 @@ import { SpacesRepository, SpaceRow } from './spaces.repository';
 import { DEFAULT_SPACE_ID, DEFAULT_SPACE_NAME, scopeFor } from './scope.util';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { SearchService } from '../search/search.service';
+import { KnowledgeService } from '../knowledge/knowledge.service';
 import {
   DRIZZLE_DB,
   JOBS_TABLE,
@@ -34,6 +35,7 @@ import {
   LEARN_PROGRESS_TABLE,
   REVIEW_EVENTS_TABLE,
   SHARES_TABLE,
+  SHARE_ACCESSES_TABLE,
   MARKETPLACE_LISTINGS_TABLE,
 } from '../database/database.constants';
 import type { DrizzleDb } from '../database/database.module';
@@ -56,6 +58,7 @@ export class SpacesService {
   constructor(
     private readonly repo: SpacesRepository,
     private readonly search: SearchService,
+    private readonly knowledge: KnowledgeService,
     @Inject(USAGE_SERVICE) private readonly usage: UsageService,
     @Inject(DRIZZLE_DB) private readonly db: DrizzleDb,
     @Inject(JOBS_TABLE) private readonly jobsTable: any,
@@ -71,6 +74,7 @@ export class SpacesService {
     @Inject(LEARN_PROGRESS_TABLE) private readonly learnProgressTable: any,
     @Inject(REVIEW_EVENTS_TABLE) private readonly reviewEventsTable: any,
     @Inject(SHARES_TABLE) private readonly sharesTable: any,
+    @Inject(SHARE_ACCESSES_TABLE) private readonly shareAccessesTable: any,
     @Inject(MARKETPLACE_LISTINGS_TABLE) private readonly marketplaceListingsTable: any,
     config: ConfigService,
   ) {
@@ -141,11 +145,19 @@ export class SpacesService {
 
     const scope = scopeFor(userId, spaceId);
 
+    // Stop the stale-while-revalidate path before touching the scope's files.
+    await this.knowledge.prepareForScopeDeletion(scope);
+
     // 1. Search index — sync an empty note set (removes every document).
     await this.search.sync(scope, []).catch(() => { /* best-effort */ });
 
     // 2. Note files + per-scope JSON artefacts.
-    await rm(join(this.usersDir, scope), { recursive: true, force: true });
+    await rm(join(this.usersDir, scope), {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 50,
+    });
 
     // 3. Per-scope DB rows across every scoped table — atomically, so a
     //    mid-loop failure can't leave a half-deleted space behind.
@@ -163,6 +175,7 @@ export class SpacesService {
         this.noteReadsTable,
         this.learnProgressTable,
         this.reviewEventsTable,
+        this.shareAccessesTable,
         this.sharesTable,
         this.marketplaceListingsTable,
       ];

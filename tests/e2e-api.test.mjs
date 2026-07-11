@@ -335,6 +335,39 @@ maybe('shares: expiring link carries an expiry and is live until it lapses', asy
   assert.equal((await post('/api/shares', { noteId, expiresInDays: 9999 })).status, 400);
 });
 
+maybe('shares: password protection gates content and records successful access', async () => {
+  const password = 'correct horse battery staple';
+  const { status, json: share } = await post('/api/shares', { noteId, password });
+  assert.equal(status, 201, JSON.stringify(share));
+  assert.equal(share.passwordProtected, true);
+
+  const locked = await get(`/api/shares/${share.id}/public`);
+  assert.equal(locked.status, 401);
+  assert.equal(locked.json.passwordRequired, true);
+
+  const wrong = await post(`/api/shares/${share.id}/public`, { password: 'not the password' });
+  assert.equal(wrong.status, 401);
+  assert.equal(wrong.json.passwordRequired, true);
+
+  const unlocked = await post(`/api/shares/${share.id}/public`, { password });
+  assert.equal(unlocked.status, 200);
+  assert.equal(unlocked.json.note.title, 'Updated E2E Note');
+
+  const listed = await get('/api/shares');
+  const own = listed.json.shares.find((item) => item.id === share.id);
+  assert.equal(own.passwordProtected, true);
+  assert.equal(own.passwordHash, undefined, 'password derivation must never leave the server');
+
+  const accesses = await get(`/api/shares/${share.id}/accesses`);
+  assert.equal(accesses.status, 200);
+  assert.equal(accesses.json.accesses.length, 1, 'failed unlocks are not logged as reads');
+  assert.ok(Date.parse(accesses.json.accesses[0].accessedAt) <= Date.now());
+
+  assert.equal((await post('/api/shares', { noteId, password: 'short' })).status, 400);
+  const publish = await post('/api/marketplace/publish', { shareId: share.id, title: 'Private' });
+  assert.equal(publish.status, 400, 'protected content cannot bypass its password via marketplace');
+});
+
 maybe('shares: category collection share is public and revocable', async () => {
   const { status, json: share } = await post('/api/shares', { category: 'Testing/E2E' });
   assert.equal(status, 201, JSON.stringify(share));

@@ -10,9 +10,10 @@ import { Module } from '@nestjs/common';
 import { SpacesController } from './spaces.controller';
 import { SpacesService } from './spaces.service';
 import { SearchModule } from '../search/search.module';
+import { KnowledgeModule } from '../knowledge/knowledge.module';
 
 @Module({
-  imports: [SearchModule],
+  imports: [SearchModule, KnowledgeModule],
   controllers: [SpacesController],
   providers: [SpacesService],
 })

@@ -10,7 +10,7 @@
     "server:dev": "ts-node --project server/tsconfig.json server/src/main.ts",
     "build": "npm run server:build && tsc -b && vite build",
     "lint": "eslint .",
-    "test": "npx tsx --test tests/backend-storage.test.ts tests/backend-note-parser.test.ts tests/backend-guards.test.ts tests/backend-reminders.test.ts tests/backend-services.test.ts tests/backend-fsrs.test.ts tests/backend-exam-plan.test.ts tests/backend-feature-toggles.test.ts tests/backend-learn-progress.test.ts tests/backend-spaces.test.ts",
+    "test": "npx tsx --test tests/backend-storage.test.ts tests/backend-note-parser.test.ts tests/backend-guards.test.ts tests/backend-reminders.test.ts tests/backend-services.test.ts tests/backend-fsrs.test.ts tests/backend-exam-plan.test.ts tests/backend-feature-toggles.test.ts tests/backend-learn-progress.test.ts tests/backend-share-password.test.ts tests/backend-spaces.test.ts",
     "test:frontend": "npx tsx --test tests/frontend-lib.test.ts tests/frontend-learn.test.ts tests/frontend-i18n.test.ts",
     "test:ui": "TSX_TSCONFIG_PATH=tsconfig.app.json npx tsx --test tests/frontend-ui.test.tsx",
     "test:all": "npm test && npm run test:frontend && npm run test:ui && npm run test:e2e && node --test --test-concurrency=1 --test-force-exit tests/integration-ai.test.mjs tests/integration-modes.test.mjs tests/integration-mcp.test.mjs",

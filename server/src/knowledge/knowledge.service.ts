@@ -39,6 +39,8 @@ export class KnowledgeService {
 
   // Stale-while-revalidate: one background rebuild per user at a time, throttled.
   private readonly backgroundRebuilds = new Map<string, Promise<KnowledgeState>>();
+  private readonly activeRebuilds = new Map<string, Promise<KnowledgeState>>();
+  private readonly deletingScopes = new Set<string>();
   private readonly lastRebuildAt = new Map<string, number>();
   private static readonly REBUILD_COOLDOWN_MS = 30_000;
 
@@ -61,6 +63,7 @@ export class KnowledgeService {
    * On first startup (no index.json yet), waits for the initial rebuild.
    */
   async getState(userId: string): Promise<KnowledgeState> {
+    if (this.deletingScopes.has(userId)) throw this.scopeDeletingError();
     const cached = await this.noteRepo.readIndexJson(userId);
 
     const lastAt = this.lastRebuildAt.get(userId) ?? 0;
@@ -97,6 +100,32 @@ export class KnowledgeService {
    * GET /api/knowledge.
    */
   async rebuildIndexes(userId: string): Promise<KnowledgeState> {
+    if (this.deletingScopes.has(userId)) throw this.scopeDeletingError();
+    const previous = this.activeRebuilds.get(userId);
+    const rebuild = (previous ? previous.catch(() => undefined) : Promise.resolve())
+      .then(() => {
+        if (this.deletingScopes.has(userId)) throw this.scopeDeletingError();
+        return this.performRebuild(userId);
+      });
+    this.activeRebuilds.set(userId, rebuild);
+    return rebuild.finally(() => {
+      if (this.activeRebuilds.get(userId) === rebuild) this.activeRebuilds.delete(userId);
+    });
+  }
+
+  /**
+   * Prevents new rebuilds for a scope and waits for the current one to settle.
+   * Space deletion calls this before removing files so a stale background poll
+   * cannot recreate index.json or category files during recursive deletion.
+   */
+  async prepareForScopeDeletion(userId: string): Promise<void> {
+    this.deletingScopes.add(userId);
+    await this.activeRebuilds.get(userId)?.catch(() => undefined);
+    this.backgroundRebuilds.delete(userId);
+    this.lastRebuildAt.delete(userId);
+  }
+
+  private async performRebuild(userId: string): Promise<KnowledgeState> {
     const noteSources = await this.noteRepo.readAllSources(userId);
 
     // Migrate notes to the folder that matches their category front-matter.
@@ -196,6 +225,12 @@ export class KnowledgeService {
     }
 
     return state;
+  }
+
+  private scopeDeletingError(): Error {
+    const error = new Error('space is being deleted') as Error & { status?: number };
+    error.status = 409;
+    return error;
   }
 
   /**

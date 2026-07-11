@@ -86,6 +86,7 @@ export class MarketplaceController {
 
     const share = await this.shares.findActive(shareId);
     if (!share || share.userId !== userId) throw new NotFoundException('share not found');
+    if (share.passwordHash) throw new BadRequestException('password-protected shares cannot be published');
     const existing = await this.listings.activeByShare(shareId);
     if (existing) throw new BadRequestException('this share is already published');
 

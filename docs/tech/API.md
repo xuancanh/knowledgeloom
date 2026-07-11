@@ -98,9 +98,11 @@ and ignore the header.
 
 | Method & path | Description |
 |---|---|
-| `POST /api/shares` | `{ noteId }` or `{ category }` → `{ id, url, kind }` (128-bit id) |
-| `GET /api/shares` · `DELETE /api/shares/:id` | List / revoke own shares |
-| `GET /api/shares/:id/public` *(public)* | Self-contained payload: note or collection + flashcards + quiz. Cached ~30s |
+| `POST /api/shares` | `{ noteId }` or `{ category }`, plus optional `expiresInDays` / `password` → `{ id, url, kind }` (128-bit id) |
+| `GET /api/shares` · `DELETE /api/shares/:id` | List / revoke own shares; password hashes are never returned |
+| `GET /api/shares/:id/accesses` | Owner-only recent successful access timestamps (no visitor identifiers) |
+| `GET /api/shares/:id/public` *(public)* | Self-contained payload, or `401 { passwordRequired: true }` for a protected link |
+| `POST /api/shares/:id/public` *(public)* | Unlock a protected share with `{ password }`; limited separately by `SHARE_UNLOCK_RATE_LIMIT` |
 
 ## Spaces
 

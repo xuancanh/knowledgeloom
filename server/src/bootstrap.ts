@@ -83,13 +83,17 @@ export async function createApp(options: AppModuleOptions = {}): Promise<INestAp
   // by design; a per-IP fixed-window limiter keeps them from becoming a free
   // file-read amplifier. Authenticated routes are not limited here.
   const RATE_LIMIT = Number(process.env.PUBLIC_RATE_LIMIT || 120); // req/min/ip
+  const SHARE_UNLOCK_RATE_LIMIT = Number(process.env.SHARE_UNLOCK_RATE_LIMIT || 10);
   const hits = new Map<string, { count: number; windowStart: number }>();
   app.use((req: any, res: any, next: any) => {
-    const isPublic = /^\/api\/(shares\/[^/]+\/public|marketplace(\/|$))/.test(req.path)
-      && req.method === 'GET';
+    const isShareUnlock = /^\/api\/shares\/[^/]+\/public$/.test(req.path) && req.method === 'POST';
+    const isPublic = (isShareUnlock || req.method === 'GET')
+      && /^\/api\/(shares\/[^/]+\/public|marketplace(\/|$))/.test(req.path);
     if (!isPublic) return next();
     const now = Date.now();
-    const key = req.ip || req.socket?.remoteAddress || 'unknown';
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    const key = isShareUnlock ? `share-unlock:${req.path}:${ip}` : `public:${ip}`;
+    const limit = isShareUnlock ? SHARE_UNLOCK_RATE_LIMIT : RATE_LIMIT;
     const entry = hits.get(key);
     if (!entry || now - entry.windowStart > 60_000) {
       hits.set(key, { count: 1, windowStart: now });
@@ -97,7 +101,7 @@ export async function createApp(options: AppModuleOptions = {}): Promise<INestAp
       return next();
     }
     entry.count += 1;
-    if (entry.count > RATE_LIMIT) {
+    if (entry.count > limit) {
       res.status(429).json({ error: 'rate limit exceeded — try again shortly' });
       return;
     }

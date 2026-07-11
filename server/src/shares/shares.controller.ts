@@ -3,12 +3,13 @@
  * study deck at an unguessable URL.
  *
  * Authenticated (owner) routes:
- *   POST   /api/shares        { noteId } | { category } → { id, url, kind }
+ *   POST   /api/shares        { noteId } | { category }, password?/expiry? → share
  *   GET    /api/shares        → active shares for the user
+ *   GET    /api/shares/:id/accesses → recent successful reads
  *   DELETE /api/shares/:id    → revoke
  *
  * Public route (NO auth — anyone with the link):
- *   GET /api/shares/:id/public
+ *   GET/POST /api/shares/:id/public (POST unlocks password-protected links)
  *     kind='note'     → { kind, note, flashcards, quiz }
  *     kind='category' → { kind, collection, notes, flashcards, quiz }
  *
@@ -17,7 +18,7 @@
  */
 import {
   Controller, Get, Post, Delete, Body, Param, HttpCode, UseGuards,
-  NotFoundException, BadRequestException,
+  NotFoundException, BadRequestException, UnauthorizedException,
 } from '@nestjs/common';
 import { SharesRepository } from './shares.repository';
 import { SharePayloadService } from './share-payload.service';
@@ -26,7 +27,8 @@ import { KnowledgeService } from '../knowledge/knowledge.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
-import { CreateShareDto } from './shares.dto';
+import { CreateShareDto, UnlockShareDto } from './shares.dto';
+import { hashSharePassword, verifySharePassword } from './share-password.util';
 import { basename } from 'node:path';
 
 @Controller('api/shares')
@@ -45,6 +47,7 @@ export class SharesController {
     const expiresAt = Number.isInteger(body?.expiresInDays)
       ? new Date(Date.now() + (body!.expiresInDays as number) * 86_400_000).toISOString()
       : null;
+    const passwordHash = body.password ? await hashSharePassword(body.password) : null;
 
     if (category) {
       const state = await this.knowledgeService.getState(userId);
@@ -52,21 +55,29 @@ export class SharesController {
         (n) => n.category === category || n.category.startsWith(`${category}/`),
       );
       if (!hasNotes) throw new NotFoundException('category has no notes');
-      const share = await this.shares.create(userId, category, 'category', expiresAt);
-      return { id: share.id, url: `/share/${share.id}`, kind: 'category', target: category, expiresAt };
+      const share = await this.shares.create(userId, category, 'category', expiresAt, passwordHash);
+      return { id: share.id, url: `/share/${share.id}`, kind: 'category', target: category, expiresAt, passwordProtected: !!passwordHash };
     }
 
     const noteId = basename(String(body?.noteId || '').trim());
     if (!noteId) throw new BadRequestException('noteId or category is required');
     const file = await this.noteRepo.findById(userId, noteId);
     if (!file) throw new NotFoundException('note not found');
-    const share = await this.shares.create(userId, noteId, 'note', expiresAt);
-    return { id: share.id, url: `/share/${share.id}`, kind: 'note', target: noteId, expiresAt };
+    const share = await this.shares.create(userId, noteId, 'note', expiresAt, passwordHash);
+    return { id: share.id, url: `/share/${share.id}`, kind: 'note', target: noteId, expiresAt, passwordProtected: !!passwordHash };
   }
 
   @Get()
   async list(@CurrentScope() userId: string) {
-    return { shares: await this.shares.listByUser(userId) };
+    const shares = await this.shares.listByUser(userId);
+    return { shares: shares.map(({ passwordHash, ...share }) => ({ ...share, passwordProtected: !!passwordHash })) };
+  }
+
+  @Get(':id/accesses')
+  async accesses(@CurrentScope() userId: string, @Param('id') id: string) {
+    const accesses = await this.shares.listAccesses(userId, basename(id));
+    if (!accesses) throw new NotFoundException('share not found');
+    return { accesses: accesses.map(({ accessedAt }) => ({ accessedAt })) };
   }
 
   @Delete(':id')
@@ -93,6 +104,24 @@ export class PublicSharesController {
   async read(@Param('id') id: string) {
     const share = await this.shares.findActive(basename(id));
     if (!share) throw new NotFoundException('share not found');
-    return this.payloads.build(share);
+    if (share.passwordHash) {
+      throw new UnauthorizedException({ error: 'password required', passwordRequired: true });
+    }
+    const payload = await this.payloads.build(share);
+    await this.shares.recordAccess(share);
+    return payload;
+  }
+
+  @Post(':id/public')
+  @HttpCode(200)
+  async unlock(@Param('id') id: string, @Body() body: UnlockShareDto) {
+    const share = await this.shares.findActive(basename(id));
+    if (!share) throw new NotFoundException('share not found');
+    if (share.passwordHash && !(await verifySharePassword(body.password, share.passwordHash))) {
+      throw new UnauthorizedException({ error: 'invalid password', passwordRequired: true });
+    }
+    const payload = await this.payloads.build(share);
+    await this.shares.recordAccess(share);
+    return payload;
   }
 }
