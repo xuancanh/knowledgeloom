@@ -35,14 +35,11 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
  * mime allowlist. Returns the detected kind, or null if the bytes match no
  * supported image format.
  */
-function detectImageKind(buf: Buffer): 'jpeg' | 'png' | 'gif' | 'webp' | 'svg' | null {
+function detectImageKind(buf: Buffer): 'jpeg' | 'png' | 'gif' | 'webp' | null {
   if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'jpeg';
   if (buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'png';
   if (buf.length >= 4 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38) return 'gif';
   if (buf.length >= 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'webp';
-  // SVG is XML text: allow a leading BOM/whitespace, then require an <?xml or <svg opener.
-  const head = buf.toString('utf8', 0, Math.min(buf.length, 1024)).replace(/^\uFEFF/, '').trimStart().toLowerCase();
-  if (head.startsWith('<?xml') || head.startsWith('<svg') || head.startsWith('<!doctype svg')) return 'svg';
   return null;
 }
 
@@ -55,7 +52,7 @@ export class ImagesController {
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_BYTES, files: 1 } }))
   async upload(@UploadedFile() file: { originalname: string; buffer: Buffer; mimetype: string }) {
     if (!file) throw new BadRequestException('No file uploaded');
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowed.includes(file.mimetype)) {
       throw new BadRequestException(`File type not allowed: ${file.mimetype}`);
     }

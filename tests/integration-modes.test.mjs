@@ -34,6 +34,37 @@ function redisUp() {
 const ready = existsSync(ENTRY) && await redisUp();
 const servers = [];
 
+function bootFailure(extraEnv) {
+  return new Promise((resolve, reject) => {
+    const tmp = mkdtempSync(join(tmpdir(), 'kl-modes-fail-'));
+    const proc = spawn('node', [ENTRY], {
+      cwd: tmp,
+      env: {
+        ...process.env,
+        PORT: String(9401 + (process.pid % 40)),
+        KNOWLEDGE_ROOT: tmp,
+        SEARCH_PROVIDER: 'inmemory',
+        SKIP_JOBS: '1',
+        ...extraEnv,
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let output = '';
+    proc.stdout.on('data', (chunk) => { output += chunk; });
+    proc.stderr.on('data', (chunk) => { output += chunk; });
+    const timer = setTimeout(() => {
+      proc.kill('SIGKILL');
+      rmSync(tmp, { recursive: true, force: true });
+      reject(new Error('server did not fail startup within 10 seconds'));
+    }, 10_000);
+    proc.once('exit', (code) => {
+      clearTimeout(timer);
+      rmSync(tmp, { recursive: true, force: true });
+      resolve({ code, output });
+    });
+  });
+}
+
 async function bootServer(port, extraEnv) {
   const tmp = mkdtempSync(join(tmpdir(), 'kl-modes-'));
   const proc = spawn('node', [ENTRY], {
@@ -69,6 +100,19 @@ test.after(() => {
 });
 
 const maybe = (name, fn) => test(name, { skip: ready ? false : 'needs server/dist build + local redis' }, fn);
+
+test('production refuses unauthenticated local auth without an explicit opt-in', {
+  skip: existsSync(ENTRY) ? false : 'needs server/dist build',
+}, async () => {
+  const result = await bootFailure({
+    NODE_ENV: 'production',
+    AUTH_PROVIDER: '',
+    AUTH_SECRET: '',
+    ALLOW_UNAUTHENTICATED_LOCAL: '',
+  });
+  assert.notEqual(result.code, 0);
+  assert.match(result.output, /Refusing to start production with unauthenticated local auth/);
+});
 
 maybe('AUTH_SECRET mode: API requires the bearer token', async () => {
   const base = await bootServer(9241 + (process.pid % 40), { AUTH_SECRET: 'modes-secret' });

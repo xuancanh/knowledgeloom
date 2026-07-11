@@ -24,7 +24,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "8787:8787"
+      - "${LOOM_BIND_ADDRESS:-127.0.0.1}:8787:8787"
     environment:
       REDIS_HOST: redis
       SEARCH_PROVIDER: meilisearch
@@ -41,6 +41,9 @@ services:
       TTS_API_KEY: ${TTS_API_KEY:-}
       # Set a long random value when exposing beyond localhost
       AUTH_SECRET: ${AUTH_SECRET:-}
+      # Safe because the published port defaults to loopback above. Set an
+      # AUTH_SECRET before changing LOOM_BIND_ADDRESS to a public interface.
+      ALLOW_UNAUTHENTICATED_LOCAL: ${ALLOW_UNAUTHENTICATED_LOCAL:-1}
     volumes:
       - ${LOOM_DATA_DIR:-./data}/app:/data
     depends_on:

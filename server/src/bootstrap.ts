@@ -61,12 +61,14 @@ export async function createApp(options: AppModuleOptions = {}): Promise<INestAp
   // verify payload signatures — e.g. payment-provider webhooks in extended builds.
   const app = await NestFactory.create(await AppModule.forRoot(options), { logger: ['log', 'warn', 'error'], rawBody: true });
 
-  // CORS_ORIGIN restricts browser callers in production (default * preserves
-  // local-dev behaviour where Vite proxies /api anyway).
+  // Production defaults to same-origin requests. Split frontend/API
+  // deployments must opt into their exact browser origin(s).
+  const corsOrigin = process.env.CORS_ORIGIN
+    || (process.env.NODE_ENV === 'production' ? false : '*');
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigin,
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    allowedHeaders: 'content-type,authorization',
+    allowedHeaders: 'content-type,authorization,x-space-id',
   });
 
   // Baseline security headers (no framework dependency needed for these).
@@ -141,24 +143,18 @@ export async function startApp(options: AppModuleOptions = {}): Promise<INestApp
   const port = config.get<number>('port');
   const readOnly = config.get<boolean>('readOnly');
 
-  // Production-readiness warnings: surface footguns that are fine locally but
-  // dangerous on an exposed host. Non-fatal by design (self-hosters run all
-  // kinds of setups); set the opt-out envs to silence a deliberate choice.
+  // Local auth without a secret is convenient in development, but a production
+  // listener must fail closed unless the operator explicitly accepts that mode.
   if (process.env.NODE_ENV === 'production') {
     const authProvider = config.get<string>('authProvider');
     const authSecret = config.get<string>('authSecret');
-    const localMode = !authProvider || authProvider === 'local';
+    const localMode = !options.authStrategy && (!authProvider || authProvider === 'local');
     if (localMode && !authSecret && process.env.ALLOW_UNAUTHENTICATED_LOCAL !== '1') {
-      console.warn(
-        '⚠️  SECURITY: running in production with local auth and no AUTH_SECRET — ' +
-        'every request is treated as the owner and writes are unauthenticated. ' +
-        'Set AUTH_SECRET (or AUTH_PROVIDER), or ALLOW_UNAUTHENTICATED_LOCAL=1 to silence.',
-      );
-    }
-    if (!process.env.CORS_ORIGIN) {
-      console.warn(
-        '⚠️  SECURITY: CORS_ORIGIN is unset in production (defaults to "*") — ' +
-        'any origin can call the API. Set CORS_ORIGIN to your web origin(s).',
+      await app.close();
+      throw new Error(
+        'Refusing to start production with unauthenticated local auth. ' +
+        'Set AUTH_SECRET (or AUTH_PROVIDER), or explicitly set ALLOW_UNAUTHENTICATED_LOCAL=1 ' +
+        'when network access is restricted.',
       );
     }
   }

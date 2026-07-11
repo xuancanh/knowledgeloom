@@ -546,6 +546,15 @@ maybe('images: rejects a non-image body spoofing an allowed mime type', async ()
   assert.equal(res.status, 400);
 });
 
+maybe('images: rejects SVG active content', async () => {
+  const form = new FormData();
+  form.append('file', new Blob([
+    '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+  ], { type: 'image/svg+xml' }), 'active.svg');
+  const res = await fetch(`${BASE}/api/images`, { method: 'POST', body: form });
+  assert.equal(res.status, 400);
+});
+
 // ── error paths ───────────────────────────────────────────────────────────────
 
 maybe('errors: empty write returns 400 with { error }', async () => {
@@ -621,8 +630,8 @@ maybe('spaces: the default space cannot be renamed or deleted', async () => {
 });
 
 maybe('spaces: delete erases the space and its data', async () => {
-  const { status } = await del(`/api/spaces/${spaceId}`);
-  assert.equal(status, 200);
+  const { status, json: deleted } = await del(`/api/spaces/${spaceId}`);
+  assert.equal(status, 200, deleted?.error);
   const { json } = await get('/api/spaces');
   assert.ok(!json.spaces.some((s) => s.id === spaceId));
   // The scope is gone — requests against it now 404 at the guard.

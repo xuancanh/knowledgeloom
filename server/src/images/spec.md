@@ -26,7 +26,8 @@ Guards: `@UseGuards(ApiAuthGuard, WritableGuard)`.
 
 1. Validates a file was uploaded (`file` is present).
 2. Checks the MIME type against the allowlist:
-   `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`.
+   `image/jpeg`, `image/png`, `image/gif`, `image/webp`. SVG is rejected
+   because active XML content must not be served from the application origin.
 3. Delegates to `ImagesService.save()`.
 4. Returns `{ url: string, filename: string }`.
 

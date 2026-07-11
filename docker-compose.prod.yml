@@ -8,7 +8,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "8787:8787"
+      - "${LOOM_BIND_ADDRESS:-127.0.0.1}:8787:8787"
     environment:
       # Cloud mode: Supabase auth + Postgres + R2 (see .env.production.example).
       # Omit these to run fully local against the mounted volume.
@@ -35,6 +35,7 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       AUTH_SECRET: ${AUTH_SECRET:-}
+      ALLOW_UNAUTHENTICATED_LOCAL: ${ALLOW_UNAUTHENTICATED_LOCAL:-0}
     volumes:
       - ${LOOM_DATA_DIR:-./data}/app:/data
     depends_on:

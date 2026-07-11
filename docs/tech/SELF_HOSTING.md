@@ -29,7 +29,7 @@ most likely to touch:
 | Search | `SEARCH_PROVIDER`, `MEILI_*` | `meilisearch` (default) or `inmemory` (zero dependencies) |
 | Job queue | `REDIS_HOST`, `REDIS_PORT` | Real Redis protocol (BullMQ), not a REST shim |
 | AI / TTS / STT / vision | `AI_*`, `TTS_*`, `TRANSCRIBE_*`, `VISION_*` | Any OpenAI-compatible endpoints; unset = those features return `501` |
-| Auth | `AUTH_SECRET` | Optional bearer token for an internet-exposed instance (single user) |
+| Auth | `AUTH_SECRET` | Bearer token required for an internet-exposed local-auth instance (single user) |
 | Spaces | `MAX_SPACES` | Cap the number of spaces per user (unset/0 = unlimited) |
 | Read-only | `KNOWLEDGE_READ_ONLY=1` | Serve an existing vault without allowing writes |
 
