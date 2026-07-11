@@ -41,6 +41,10 @@ export * from './database/database.constants';
 // Space scoping helpers (scope keys used by repositories and usage tracking)
 export * from './spaces/scope.util';
 
+// FSRS-4.5 scheduler — the one spaced-repetition implementation for the whole
+// platform (Loom flashcards/quiz and Grove recall cards).
+export * from './scheduling/fsrs';
+
 // Shared guards and domain types
 export { WritableGuard } from './common/guards/writable.guard';
 export * from './types';
