@@ -537,17 +537,82 @@ maybe('jobs: metrics summarize queue health (and "metrics" is not a job id)', as
   assert.ok(Array.isArray(json.recentErrors));
 });
 
+let backupBundle;
+
 maybe('export: downloadable backup bundles every note + settings', async () => {
   const res = await fetch(`${BASE}/api/export`);
   assert.equal(res.status, 200);
   assert.match(res.headers.get('content-disposition') ?? '', /attachment; filename=.*backup.*\.json/);
-  const bundle = await res.json();
-  assert.equal(bundle.format, 'knowledge-loom-export/v1');
-  assert.ok(bundle.noteCount >= 1);
-  assert.equal(bundle.notes.length, bundle.noteCount);
-  assert.ok(bundle.notes[0].file && typeof bundle.notes[0].markdown === 'string');
-  assert.ok(bundle.settings && typeof bundle.settings === 'object');
+  backupBundle = await res.json();
+  assert.equal(backupBundle.format, 'knowledge-loom-export/v1');
+  assert.ok(backupBundle.noteCount >= 1);
+  assert.equal(backupBundle.notes.length, backupBundle.noteCount);
+  assert.ok(backupBundle.notes[0].file && typeof backupBundle.notes[0].markdown === 'string');
+  assert.ok(backupBundle.settings && typeof backupBundle.settings === 'object');
 });
+
+maybe('restore: preview conflicts then restore notes and settings with rename policy', async () => {
+  const restoredMarkdown = [
+    '---',
+    'title: "Restored E2E Note"',
+    'category: "Testing/Restore"',
+    'summary: "Restored from backup"',
+    'tags: "restore"',
+    'links: ""',
+    'createdAt: "2026-01-01T00:00:00.000Z"',
+    '---',
+    '',
+    '# Restored E2E Note',
+    '',
+    'Portable content.',
+  ].join('\n');
+  const restoreBundle = {
+    ...backupBundle,
+    notes: [
+      backupBundle.notes[0],
+      { file: 'Testing/Restore/restored-e2e.md', markdown: restoredMarkdown },
+    ],
+    noteCount: 2,
+    settings: { restoreE2eMarker: 'restored' },
+  };
+
+  const request = async (dryRun) => {
+    const form = new FormData();
+    form.append('file', new Blob([JSON.stringify(restoreBundle)], { type: 'application/json' }), 'backup.json');
+    form.append('policy', 'rename');
+    form.append('dryRun', dryRun ? '1' : '0');
+    form.append('restoreSettings', '1');
+    const response = await fetch(`${BASE}/api/export/restore`, { method: 'POST', body: form });
+    return { status: response.status, json: await response.json() };
+  };
+
+  const preview = await request(true);
+  assert.equal(preview.status, 201, JSON.stringify(preview.json));
+  assert.equal(preview.json.dryRun, true);
+  assert.equal(preview.json.conflicts.length, 1);
+  assert.equal(preview.json.renamed, 1);
+  assert.equal(preview.json.created, 1);
+
+  const restored = await request(false);
+  assert.equal(restored.status, 201, JSON.stringify(restored.json));
+  assert.equal(restored.json.restoredSettings, true);
+  const state = await get('/api/knowledge');
+  assert.ok(state.json.notes.some((note) => note.title === 'Restored E2E Note'));
+  const exported = await (await fetch(`${BASE}/api/export`)).json();
+  assert.equal(exported.settings.restoreE2eMarker, 'restored');
+
+  const unsafe = new FormData();
+  unsafe.append('file', new Blob([bundleWithTraversal()], { type: 'application/json' }), 'unsafe.json');
+  const rejected = await fetch(`${BASE}/api/export/restore`, { method: 'POST', body: unsafe });
+  assert.equal(rejected.status, 400);
+});
+
+function bundleWithTraversal() {
+  return JSON.stringify({
+    format: 'knowledge-loom-export/v1',
+    notes: [{ file: '../escape.md', markdown: '# Escape' }],
+  });
+}
 
 // ── images ────────────────────────────────────────────────────────────────────
 

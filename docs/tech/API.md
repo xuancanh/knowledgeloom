@@ -104,6 +104,13 @@ and ignore the header.
 | `GET /api/shares/:id/public` *(public)* | Self-contained payload, or `401 { passwordRequired: true }` for a protected link |
 | `POST /api/shares/:id/public` *(public)* | Unlock a protected share with `{ password }`; limited separately by `SHARE_UNLOCK_RATE_LIMIT` |
 
+## Backup and restore
+
+| Method & path | Description |
+|---|---|
+| `GET /api/export` | Download `knowledge-loom-export/v1`: active-space Markdown sources plus account settings |
+| `POST /api/export/restore` | Multipart `.json` backup with `policy=skip\|overwrite\|rename`, `dryRun`, and `restoreSettings`; validates all paths/content before writing and rebuilds once |
+
 ## Spaces
 
 | Method & path | Description |

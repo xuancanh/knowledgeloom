@@ -86,6 +86,10 @@ export class NoteFileRepository {
     return this.storage.write(userId, relativePath, markdown);
   }
 
+  async exists(userId: string, relativePath: string): Promise<boolean> {
+    return this.storage.exists(userId, relativePath);
+  }
+
   async move(userId: string, fromRelative: string, toRelative: string, markdown: string): Promise<void> {
     return this.storage.move(userId, fromRelative, toRelative, markdown);
   }

@@ -76,6 +76,7 @@ const MUTATIONS = [
   ['POST', '/api/import', { text: 'some text' }],
   ['POST', '/api/images', {}],
   ['POST', '/api/shares', { noteId: 'n1' }],
+  ['POST', '/api/export/restore'],
   ['POST', '/api/marketplace/publish', { shareId: 's1', title: 'T' }],
   ['DELETE', '/api/marketplace/m1'],
   ['POST', '/api/marketplace/m1/rate', { stars: 5 }],
