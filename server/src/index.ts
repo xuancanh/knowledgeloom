@@ -9,8 +9,9 @@
  * Anything NOT exported here is internal and may change without notice.
  */
 
-// Root module + composition options
+// Root module + composition options + application factory
 export { AppModule, AppModuleOptions } from './app.module';
+export { createApp, startApp, AllExceptionsFilter } from './bootstrap';
 
 // Auth seam
 export { AuthStrategy, AUTH_STRATEGY } from './auth/auth-strategy.interface';
@@ -36,6 +37,9 @@ export { SearchProvider, SearchDocument, SearchHit, SEARCH_PROVIDER } from './se
 // Database access (Drizzle instance + table injection tokens)
 export { DatabaseModule, DrizzleDb } from './database/database.module';
 export * from './database/database.constants';
+
+// Space scoping helpers (scope keys used by repositories and usage tracking)
+export * from './spaces/scope.util';
 
 // Shared guards and domain types
 export { WritableGuard } from './common/guards/writable.guard';
