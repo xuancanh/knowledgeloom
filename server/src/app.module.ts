@@ -27,10 +27,12 @@
  *  The two @Global() modules (Config, Database) are imported here and nowhere
  *  else; their providers are visible to every module automatically.
  */
-import { Module, DynamicModule, Logger } from '@nestjs/common';
+import { Module, DynamicModule, Logger, Type } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import configuration from './config/configuration';
+import type { AuthStrategy } from './auth/auth-strategy.interface';
+import type { UsageService } from './usage/usage.interface';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { StatusModule } from './status/status.module';
@@ -53,12 +55,26 @@ import { SharesModule } from './shares/shares.module';
 import { MarketplaceModule } from './marketplace/marketplace.module';
 import { SpacesModule } from './spaces/spaces.module';
 
-const baseImports = [
+/**
+ * Composition options for package consumers (private server apps importing
+ * @knowledge-loom/server). All optional; `forRoot({})` builds the plain OSS
+ * app. See docs/tech/ARCHITECTURE.md and the ee repo's PLATFORM_ARCHITECTURE.md.
+ */
+export interface AppModuleOptions {
+  /** Extra Nest modules to mount (billing, admin, Grove, …). */
+  extensions?: Array<Type<unknown> | DynamicModule>;
+  /** Overrides AUTH_STRATEGY (DI-resolved class). Default: env-based selection. */
+  authStrategy?: Type<AuthStrategy>;
+  /** Overrides USAGE_SERVICE (DI-resolved class). Default: extensions/ probe, then no-op. */
+  usageService?: Type<UsageService>;
+}
+
+const baseImports = (options: AppModuleOptions) => [
     // Global providers — no need to import these in feature modules.
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
     DatabaseModule,
-    AuthModule,
-    UsageModule,
+    AuthModule.forRoot(options.authStrategy),
+    UsageModule.forRoot(options.usageService),
     ...(process.env.SKIP_JOBS === '1' ? [] : [
       BullModule.forRootAsync({
         inject: [ConfigService],
@@ -96,19 +112,28 @@ const baseImports = [
 @Module({})
 export class AppModule {
   /**
-   * Builds the root module, appending the optional ExtensionsModule when the
-   * extensions/ tree is present (linked/merged from a private repo). The
-   * variable path keeps tsc from resolving the module statically; OSS builds
-   * simply run without it.
+   * Builds the root module.
+   *
+   * - Package consumers pass `options.extensions` (and strategy overrides);
+   *   no filesystem probing happens for what they provide explicitly.
+   * - Legacy overlay builds pass nothing: the optional ExtensionsModule is
+   *   appended when the extensions/ tree is present (linked/merged from a
+   *   private repo). The variable path keeps tsc from resolving the module
+   *   statically; OSS builds simply run without it.
    */
-  static async forRoot(): Promise<DynamicModule> {
-    const imports = [...baseImports];
-    const extensionsModulePath = './extensions/extensions.module';
-    try {
-      const mod = await import(extensionsModulePath);
-      imports.push(mod.ExtensionsModule);
-      new Logger('AppModule').log('Extension modules loaded (extensions/)');
-    } catch { /* extensions/ not present */ }
+  static async forRoot(options: AppModuleOptions = {}): Promise<DynamicModule> {
+    const imports = [...baseImports(options)];
+    if (options.extensions?.length) {
+      imports.push(...options.extensions);
+      new Logger('AppModule').log(`Extension modules loaded (${options.extensions.length} via forRoot)`);
+    } else {
+      const extensionsModulePath = './extensions/extensions.module';
+      try {
+        const mod = await import(extensionsModulePath);
+        imports.push(mod.ExtensionsModule);
+        new Logger('AppModule').log('Extension modules loaded (extensions/)');
+      } catch { /* extensions/ not present */ }
+    }
     return { module: AppModule, imports };
   }
 }

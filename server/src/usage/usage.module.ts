@@ -1,16 +1,17 @@
 /**
  * UsageModule — provides the active UsageService.
  *
- * Mirrors AuthModule's strategy selection: the extended implementation is
- * loaded via a dynamic import (variable path, so tsc never resolves it
- * statically) and only when the extensions/ tree is present. OSS builds
- * always get the no-op service.
+ * Mirrors AuthModule: `UsageModule.forRoot(ServiceClass)` binds an explicit
+ * implementation via DI for package consumers. Without an argument, the
+ * extended implementation is loaded via a dynamic import (variable path, so
+ * tsc never resolves it statically) and only when the extensions/ tree is
+ * present. OSS builds always get the no-op service.
  */
-import { Global, Module, Logger } from '@nestjs/common';
+import { Global, Module, Logger, DynamicModule, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { USAGE_SERVICE, NoopUsageService } from './usage.interface';
+import { USAGE_SERVICE, NoopUsageService, UsageService } from './usage.interface';
 
-const usageServiceProvider = {
+const defaultUsageServiceProvider = {
   provide: USAGE_SERVICE,
   inject: [ConfigService],
   useFactory: async (config: ConfigService) => {
@@ -27,7 +28,17 @@ const usageServiceProvider = {
 
 @Global()
 @Module({
-  providers: [usageServiceProvider],
+  providers: [defaultUsageServiceProvider],
   exports: [USAGE_SERVICE],
 })
-export class UsageModule {}
+export class UsageModule {
+  /** Binds USAGE_SERVICE to an explicit implementation class (DI-resolved). */
+  static forRoot(service?: Type<UsageService>): DynamicModule {
+    return {
+      module: UsageModule,
+      global: true,
+      providers: [service ? { provide: USAGE_SERVICE, useClass: service } : defaultUsageServiceProvider],
+      exports: [USAGE_SERVICE],
+    };
+  }
+}

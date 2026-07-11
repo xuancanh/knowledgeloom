@@ -64,6 +64,25 @@ All write routes are guarded by `WritableGuard` via `@UseGuards(WritableGuard)`.
 
 `GET /api/search` is declared in `KnowledgeModule` rather than `SearchModule` for the same reason.
 
+## Composing the backend as a package
+
+The server is also consumable as `@knowledge-loom/server` (built from
+`server/`, barrel in `server/src/index.ts`). A private composing app mounts
+extra modules and overrides the DI seams without file overlays:
+
+```ts
+AppModule.forRoot({
+  extensions: [BillingModule, GroveModule],   // extra Nest modules
+  authStrategy: SupabaseAuthStrategy,          // overrides AUTH_STRATEGY
+  usageService: QuotaUsageService,             // overrides USAGE_SERVICE
+})
+```
+
+`forRoot({})` builds the plain OSS app (this repo's `main.ts`). When no
+explicit `extensions` are passed, the legacy `server/src/extensions/`
+directory probe still runs for overlay builds. Only symbols exported from
+`server/src/index.ts` are public API; everything else is internal.
+
 ## Job Lifecycle
 
 `POST /api/learn` supports four creation modes:

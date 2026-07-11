@@ -1,3 +1,40 @@
 {
-  "type": "commonjs"
+  "name": "@knowledge-loom/server",
+  "version": "0.1.0",
+  "description": "Knowledge Loom backend as an importable NestJS package. Private composing apps mount extensions via AppModule.forRoot({ extensions, authStrategy, usageService }).",
+  "license": "SSPL-1.0",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1053.0",
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-express": "^11.1.27",
+    "better-sqlite3": "^12.10.0",
+    "bullmq": "^5.77.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
+    "ioredis": "^5.9.0",
+    "multer": "^2.2.0",
+    "pg": "^8.21.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  }
 }
