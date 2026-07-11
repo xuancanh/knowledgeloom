@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "server": "node server/dist/main.js",
-    "server:build": "tsc -p server/tsconfig.json",
+    "server:build": "rm -rf server/dist && tsc -p server/tsconfig.json",
     "server:dev": "ts-node --project server/tsconfig.json server/src/main.ts",
     "build": "npm run server:build && tsc -b && vite build",
     "lint": "eslint .",
