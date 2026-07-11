@@ -20,7 +20,11 @@
 export const USAGE_SERVICE = 'USAGE_SERVICE';
 
 /** Features that consume the per-plan monthly AI quota. */
-export const AI_FEATURES = ['codex.research', 'ai.deck', 'ai.rag', 'ai.assist', 'ai.regenerate', 'ai.podcast'];
+export const AI_FEATURES = [
+  'codex.research', 'ai.deck', 'ai.rag', 'ai.assist', 'ai.regenerate', 'ai.podcast',
+  // Grove (reading app) — mounted by the enterprise build under /api/grove.
+  'ai.grove.chat', 'ai.grove.thread', 'ai.grove.cards', 'ai.grove.search',
+];
 
 export interface UsageService {
   /**
