@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { patchSettings, fetchSpaces, createSpace, renameSpace, deleteSpace } from '../../api';
-import { getFeatures, DEFAULT_FEATURES, FEATURE_LABELS, type FeatureToggles } from '../../lib/features';
+import {
+  patchSettings, fetchSpaces, createSpace, renameSpace, deleteSpace,
+  exportVaultBackup, restoreVaultBackup, type RestoreConflictPolicy, type RestoreResult,
+} from '../../api';
+import { getFeatures, DEFAULT_FEATURES, type FeatureToggles } from '../../lib/features';
 import { currentSpaceId, switchSpace, DEFAULT_SPACE_ID, type Space } from '../../lib/spaces';
 import {
   addTemplate,
@@ -156,7 +159,8 @@ function TemplateEditor({
 
 // ── Feature toggles ───────────────────────────────────────────────────────────
 
-function FeatureTogglesSection({ userSettings }: { userSettings?: Record<string, unknown> }) {
+function FeatureTogglesSection({ userSettings, readOnly }: { userSettings?: Record<string, unknown>; readOnly: boolean }) {
+  const { t } = useTranslation();
   const [local, setLocal] = useState<FeatureToggles>(() => getFeatures(userSettings));
   const [saving, setSaving] = useState(false);
 
@@ -182,17 +186,19 @@ function FeatureTogglesSection({ userSettings }: { userSettings?: Record<string,
       {(Object.keys(DEFAULT_FEATURES) as (keyof FeatureToggles)[]).map((key) => (
         <div key={key} className={styles.prefRow}>
           <div>
-            <div className={styles.prefLabel}>{FEATURE_LABELS[key].label}</div>
-            <div className={styles.prefDesc}>{FEATURE_LABELS[key].description}</div>
+            <div className={styles.prefLabel}>{t(`settings.features.${key}.label`)}</div>
+            <div className={styles.prefDesc}>{t(`settings.features.${key}.description`)}</div>
           </div>
           <button
             type="button"
             role="switch"
             aria-checked={local[key]}
+            aria-label={t(`settings.features.${key}.label`)}
             className={`${styles.toggle} ${local[key] ? styles.toggleOn : ''}`}
             onClick={() => void toggle(key)}
+            disabled={readOnly || saving}
           >
-            {local[key] ? 'On' : 'Off'}
+            {local[key] ? t('settings.on') : t('settings.off')}
           </button>
         </div>
       ))}
@@ -202,7 +208,8 @@ function FeatureTogglesSection({ userSettings }: { userSettings?: Record<string,
 
 // ── Spaces ────────────────────────────────────────────────────────────────────
 
-function SpacesSection() {
+function SpacesSection({ readOnly }: { readOnly: boolean }) {
+  const { t } = useTranslation();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [limit, setLimit] = useState<number | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -222,7 +229,7 @@ function SpacesSection() {
   const run = async (action: () => Promise<unknown>) => {
     setError('');
     try { await action(); await reload(); }
-    catch (err) { setError(err instanceof Error ? err.message : 'operation failed'); }
+    catch (err) { setError(err instanceof Error ? err.message : t('settings.operationFailed')); }
   };
 
   const create = () => void run(async () => {
@@ -252,16 +259,16 @@ function SpacesSection() {
                 <div className={styles.rowHeader}>
                   <span className={styles.rowColorDot} style={{ background: space.id === activeId ? 'var(--accent)' : 'var(--rule-2)' }} />
                   <span className={styles.rowLabel}>{space.name}</span>
-                  {space.builtin && <span className={styles.rowBuiltIn}>DEFAULT</span>}
-                  {space.id === activeId && <span className={styles.rowBuiltIn}>CURRENT</span>}
+                  {space.builtin && <span className={styles.rowBuiltIn}>{t('settings.defaultSpace')}</span>}
+                  {space.id === activeId && <span className={styles.rowBuiltIn}>{t('settings.currentSpace')}</span>}
                 </div>
               )}
             </div>
             <div className={styles.rowActions}>
               {renamingId === space.id ? (
                 <>
-                  <button className={styles.rowBtn} onClick={() => void run(async () => { await renameSpace(space.id, renameDraft); setRenamingId(null); })}>Save</button>
-                  <button className={styles.rowBtn} onClick={() => setRenamingId(null)}>Cancel</button>
+                  <button className={styles.rowBtn} onClick={() => void run(async () => { await renameSpace(space.id, renameDraft); setRenamingId(null); })}>{t('common.save')}</button>
+                  <button className={styles.rowBtn} onClick={() => setRenamingId(null)}>{t('common.cancel')}</button>
                 </>
               ) : confirmDeleteId === space.id ? (
                 <>
@@ -273,20 +280,20 @@ function SpacesSection() {
                       if (space.id === activeId) switchSpace(DEFAULT_SPACE_ID);
                     })}
                   >
-                    Delete everything
+                    {t('settings.deleteEverything')}
                   </button>
-                  <button className={styles.rowBtn} onClick={() => setConfirmDeleteId(null)}>Keep</button>
+                  <button className={styles.rowBtn} onClick={() => setConfirmDeleteId(null)}>{t('settings.keepSpace')}</button>
                 </>
               ) : (
                 <>
                   {space.id !== activeId && (
-                    <button className={styles.rowBtn} onClick={() => switchSpace(space.id)}>Open</button>
+                    <button className={styles.rowBtn} onClick={() => switchSpace(space.id)}>{t('settings.openSpace')}</button>
                   )}
                   {!space.builtin && (
-                    <button className={styles.rowBtn} onClick={() => { setRenamingId(space.id); setRenameDraft(space.name); setConfirmDeleteId(null); }}>Rename</button>
+                    <button className={styles.rowBtn} disabled={readOnly} onClick={() => { setRenamingId(space.id); setRenameDraft(space.name); setConfirmDeleteId(null); }}>{t('settings.renameSpace')}</button>
                   )}
                   {!space.builtin && (
-                    <button className={`${styles.rowBtn} ${styles.rowBtnDelete}`} onClick={() => { setConfirmDeleteId(space.id); setRenamingId(null); }}>Delete</button>
+                    <button className={`${styles.rowBtn} ${styles.rowBtnDelete}`} disabled={readOnly} onClick={() => { setConfirmDeleteId(space.id); setRenamingId(null); }}>{t('common.delete')}</button>
                   )}
                 </>
               )}
@@ -298,20 +305,20 @@ function SpacesSection() {
       <div className={styles.spaceCreate}>
         <input
           className={styles.editorInput}
-          placeholder="New space name"
+          placeholder={t('settings.newSpaceName')}
           value={newName}
           maxLength={60}
-          disabled={atLimit}
+          disabled={atLimit || readOnly}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && newName.trim()) create(); }}
         />
-        <button className={styles.addBtn} disabled={atLimit || !newName.trim()} onClick={create}>
-          Create space
+        <button className={styles.addBtn} disabled={atLimit || readOnly || !newName.trim()} onClick={create}>
+          {t('settings.createSpace')}
         </button>
       </div>
       {atLimit && (
         <p className={styles.sectionDesc} style={{ marginTop: 8 }}>
-          You've reached your plan's limit of {limit} space{limit === 1 ? '' : 's'}. Delete one or upgrade to add more.
+          {t('settings.spaceLimit', { count: limit })}
         </p>
       )}
       {error && <p className={styles.spaceError}>{error}</p>}
@@ -322,6 +329,7 @@ function SpacesSection() {
 // ── Web clipper bookmarklet ───────────────────────────────────────────────────
 
 function ClipperBookmarklet() {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const origin = window.location.origin;
   const code = `javascript:void(window.open('${origin}/clip?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`;
@@ -336,9 +344,9 @@ function ClipperBookmarklet() {
           padding: '8px 16px', border: '1px solid var(--accent)', borderRadius: 10,
           color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', cursor: 'grab',
         }}
-        title="Drag me to your bookmarks bar"
+        title={t('settings.clipperDrag')}
       >
-        ✂ Clip to Loom
+        {t('settings.clipperName')}
       </a>
       <button
         style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid var(--line, #ddd)', background: 'none', cursor: 'pointer' }}
@@ -349,8 +357,111 @@ function ClipperBookmarklet() {
           }).catch(() => {});
         }}
       >
-        {copied ? 'Copied ✓' : 'Copy bookmarklet code'}
+        {copied ? t('settings.clipperCopied') : t('settings.clipperCopy')}
       </button>
+    </div>
+  );
+}
+
+// ── Backup and restore ───────────────────────────────────────────────────────
+
+function DataBackupSection({ readOnly }: { readOnly: boolean }) {
+  const { t } = useTranslation();
+  const [file, setFile] = useState<File | null>(null);
+  const [policy, setPolicy] = useState<RestoreConflictPolicy>('skip');
+  const [restoreSettings, setRestoreSettings] = useState(false);
+  const [preview, setPreview] = useState<RestoreResult | null>(null);
+  const [result, setResult] = useState<RestoreResult | null>(null);
+  const [working, setWorking] = useState<'export' | 'preview' | 'restore' | ''>('');
+  const [error, setError] = useState('');
+
+  const runRestore = async (dryRun: boolean) => {
+    if (!file) return;
+    setWorking(dryRun ? 'preview' : 'restore');
+    setError('');
+    try {
+      const next = await restoreVaultBackup(file, { policy, dryRun, restoreSettings });
+      if (dryRun) { setPreview(next); setResult(null); }
+      else { setResult(next); setPreview(null); }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('settings.operationFailed'));
+    } finally {
+      setWorking('');
+    }
+  };
+
+  const download = async () => {
+    setWorking('export');
+    setError('');
+    try {
+      const { blob, filename } = await exportVaultBackup();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('settings.operationFailed'));
+    } finally {
+      setWorking('');
+    }
+  };
+
+  const summary = (value: RestoreResult) => t('settings.restoreSummary', {
+    total: value.total,
+    created: value.created,
+    overwritten: value.overwritten,
+    renamed: value.renamed,
+    skipped: value.skipped,
+  });
+
+  return (
+    <div className={styles.dataTools}>
+      <div className={styles.dataExport}>
+        <button className={styles.addBtn} onClick={() => void download()} disabled={!!working}>
+          {working === 'export' ? t('settings.exporting') : t('settings.exportBackup')}
+        </button>
+        <span>{t('settings.exportBackupDesc')}</span>
+      </div>
+      <div className={styles.restoreGrid}>
+        <label className={styles.editorField}>
+          <span className={styles.editorLabel}>{t('settings.backupFile')}</span>
+          <input
+            className={styles.editorInput}
+            type="file"
+            accept="application/json,.json"
+            disabled={readOnly || !!working}
+            onChange={(event) => { setFile(event.target.files?.[0] ?? null); setPreview(null); setResult(null); }}
+          />
+        </label>
+        <label className={styles.editorField}>
+          <span className={styles.editorLabel}>{t('settings.conflictPolicy')}</span>
+          <select className={styles.editorInput} value={policy} disabled={readOnly || !!working} onChange={(event) => {
+            setPolicy(event.target.value as RestoreConflictPolicy);
+            setPreview(null);
+          }}>
+            <option value="skip">{t('settings.policySkip')}</option>
+            <option value="rename">{t('settings.policyRename')}</option>
+            <option value="overwrite">{t('settings.policyOverwrite')}</option>
+          </select>
+        </label>
+      </div>
+      <label className={styles.restoreSettings}>
+        <input type="checkbox" checked={restoreSettings} disabled={readOnly || !!working} onChange={(event) => { setRestoreSettings(event.target.checked); setPreview(null); }} />
+        <span>{t('settings.restoreSettings')}</span>
+      </label>
+      <div className={styles.dataActions}>
+        <button className={styles.rowBtn} disabled={!file || readOnly || !!working} onClick={() => void runRestore(true)}>
+          {working === 'preview' ? t('settings.previewing') : t('settings.previewRestore')}
+        </button>
+        <button className={`${styles.rowBtn} ${styles.restoreButton}`} disabled={!preview || readOnly || !!working} onClick={() => void runRestore(false)}>
+          {working === 'restore' ? t('settings.restoring') : t('settings.restoreNow')}
+        </button>
+      </div>
+      {preview && <p className={styles.restoreResult}>{t('settings.previewResult')}: {summary(preview)}</p>}
+      {result && <p className={styles.restoreResult}>{t('settings.restoreComplete')}: {summary(result)}</p>}
+      {error && <p className={styles.spaceError}>{error}</p>}
     </div>
   );
 }
@@ -363,10 +474,12 @@ export default function SettingsPage({
   templates,
   onTemplatesChange,
   userSettings,
+  readOnly,
 }: {
   templates: GuidanceTemplate[];
   onTemplatesChange: (updated: GuidanceTemplate[]) => void;
   userSettings?: Record<string, unknown>;
+  readOnly: boolean;
 }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<FilterMode>('all');
@@ -446,44 +559,41 @@ export default function SettingsPage({
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <div>
-            <h2 className={styles.sectionTitle}>Features</h2>
-            <p className={styles.sectionDesc}>
-              Turn off the learning features you don't use. Disabled features disappear
-              from navigation, and turning off flashcards or quizzes also stops their AI
-              generation for new notes (existing material is kept and comes back if you
-              re-enable).
-            </p>
+            <h2 className={styles.sectionTitle}>{t('settings.featuresTitle')}</h2>
+            <p className={styles.sectionDesc}>{t('settings.featuresDesc')}</p>
           </div>
         </div>
-        <FeatureTogglesSection userSettings={userSettings} />
+        <FeatureTogglesSection userSettings={userSettings} readOnly={readOnly} />
       </section>
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <div>
-            <h2 className={styles.sectionTitle}>Spaces</h2>
-            <p className={styles.sectionDesc}>
-              Spaces are fully separate workspaces — each has its own notes,
-              categories, tags, flashcards, and progress. Switch with the
-              dropdown at the top of the sidebar. Deleting a space permanently
-              erases everything inside it.
-            </p>
+            <h2 className={styles.sectionTitle}>{t('settings.spacesTitle')}</h2>
+            <p className={styles.sectionDesc}>{t('settings.spacesDesc')}</p>
           </div>
         </div>
-        <SpacesSection />
+        <SpacesSection readOnly={readOnly} />
       </section>
 
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <div>
-            <h2 className={styles.sectionTitle}>Web clipper</h2>
-            <p className={styles.sectionDesc}>
-              Drag this bookmarklet to your bookmarks bar. Clicking it on any page sends
-              that page to Knowledge Loom as an AI link capture.
-            </p>
+            <h2 className={styles.sectionTitle}>{t('settings.clipperTitle')}</h2>
+            <p className={styles.sectionDesc}>{t('settings.clipperDesc')}</p>
           </div>
         </div>
         <ClipperBookmarklet />
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>{t('settings.dataTitle')}</h2>
+            <p className={styles.sectionDesc}>{t('settings.dataDesc')}</p>
+          </div>
+        </div>
+        <DataBackupSection readOnly={readOnly} />
       </section>
 
       <section className={styles.section}>

@@ -1,38 +1,45 @@
-/**
- * i18next initialisation with react-i18next binding.
- *
- * Language detection: checks localStorage key kl:lang, falls back to "en".
- * Nine supported locales. Namespace: "translation" (the default).
- */
+/** i18next initialization with English fallback and on-demand locale chunks. */
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';
-import zh from './locales/zh.json';
-import ja from './locales/ja.json';
-import es from './locales/es.json';
-import vi from './locales/vi.json';
-import id from './locales/id.json';
-import ms from './locales/ms.json';
-import fr from './locales/fr.json';
-import hi from './locales/hi.json';
 
-const savedLang = localStorage.getItem('kl:lang') || 'en';
+const localeLoaders = {
+  zh: () => import('./locales/zh.json'),
+  ja: () => import('./locales/ja.json'),
+  es: () => import('./locales/es.json'),
+  vi: () => import('./locales/vi.json'),
+  id: () => import('./locales/id.json'),
+  ms: () => import('./locales/ms.json'),
+  fr: () => import('./locales/fr.json'),
+  hi: () => import('./locales/hi.json'),
+} as const;
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    zh: { translation: zh },
-    ja: { translation: ja },
-    es: { translation: es },
-    vi: { translation: vi },
-    id: { translation: id },
-    ms: { translation: ms },
-    fr: { translation: fr },
-    hi: { translation: hi },
-  },
-  lng: savedLang,
+type LazyLocale = keyof typeof localeLoaders;
+type Locale = 'en' | LazyLocale;
+const isLocale = (value: string): value is Locale => value === 'en' || value in localeLoaders;
+const requested = localStorage.getItem('kl:lang') || 'en';
+const initialLocale: Locale = isLocale(requested) ? requested : 'en';
+const resources: Record<string, { translation: typeof en }> = { en: { translation: en } };
+
+if (initialLocale !== 'en') {
+  resources[initialLocale] = { translation: (await localeLoaders[initialLocale]()).default };
+}
+
+await i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLocale,
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });
+
+export async function changeLanguage(code: string): Promise<void> {
+  if (!isLocale(code)) return;
+  if (code !== 'en' && !i18n.hasResourceBundle(code, 'translation')) {
+    const locale = (await localeLoaders[code]()).default;
+    i18n.addResourceBundle(code, 'translation', locale, true, true);
+  }
+  await i18n.changeLanguage(code);
+  localStorage.setItem('kl:lang', code);
+}
 
 export default i18n;

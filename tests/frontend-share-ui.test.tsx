@@ -10,11 +10,23 @@ import en from '../src/i18n/locales/en.json';
 import { ShareDialog } from '../src/components/share/ShareDialog';
 import SharePage from '../src/components/share/SharePage';
 
+const storedValues = new Map<string, string>();
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: {
+    getItem: (key: string) => storedValues.get(key) ?? null,
+    setItem: (key: string, value: string) => storedValues.set(key, value),
+    removeItem: (key: string) => storedValues.delete(key),
+  },
+});
+
 await i18n.use(initReactI18next).init({
   lng: 'en',
   resources: { en: { translation: en } },
   interpolation: { escapeValue: false },
 });
+
+const SettingsPage = (await import('../src/components/settings/SettingsPage')).default;
 
 const originalFetch = globalThis.fetch;
 
@@ -75,4 +87,14 @@ test('SharePage prompts for and unlocks a protected link', async () => {
   fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct password' } });
   fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
   assert.ok(await screen.findByRole('heading', { name: 'Shared Systems' }));
+});
+
+test('SettingsPage exposes backup controls and disables restore in read-only mode', () => {
+  render(
+    <SettingsPage templates={[]} onTemplatesChange={() => {}} userSettings={{}} readOnly />,
+  );
+  assert.ok(screen.getByRole('heading', { name: 'Backup and restore' }));
+  assert.ok(screen.getByRole('button', { name: 'Export backup' }));
+  assert.equal((screen.getByLabelText('Backup file') as HTMLInputElement).disabled, true);
+  assert.equal((screen.getByRole('switch', { name: /Flashcards/ }) as HTMLButtonElement).disabled, true);
 });

@@ -304,7 +304,7 @@ function AuthenticatedApp() {
             } />
             <Route path="/clip" element={<ClipRoute />} />
             <Route path="/settings" element={
-              <SettingsPage templates={templates} onTemplatesChange={setTemplates} userSettings={state.userSettings} />
+              <SettingsPage templates={templates} onTemplatesChange={setTemplates} userSettings={state.userSettings} readOnly={readOnly} />
             } />
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/login" element={<Navigate to="/home" replace />} />

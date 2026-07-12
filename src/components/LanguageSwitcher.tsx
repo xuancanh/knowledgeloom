@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '../i18n';
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -13,12 +14,9 @@ const LANGUAGES = [
 ];
 
 export default function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
-  function handleChange(code: string) {
-    i18n.changeLanguage(code);
-    localStorage.setItem('kl:lang', code);
-  }
+  const handleChange = (code: string) => void changeLanguage(code);
 
   if (compact) {
     return (
@@ -26,7 +24,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         className="lang-switcher-select"
         value={i18n.language}
         onChange={(e) => handleChange(e.target.value)}
-        aria-label="Language"
+        aria-label={t('settings.language')}
       >
         {LANGUAGES.map(({ code, label }) => (
           <option key={code} value={code}>{label}</option>

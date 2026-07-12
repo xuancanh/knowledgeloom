@@ -106,6 +106,42 @@ export async function deleteSpace(id: string): Promise<void> {
   if (!response.ok) throw await apiError(response, 'delete space');
 }
 
+export type RestoreConflictPolicy = 'skip' | 'overwrite' | 'rename';
+export type RestoreResult = {
+  dryRun: boolean;
+  policy: RestoreConflictPolicy;
+  total: number;
+  created: number;
+  overwritten: number;
+  renamed: number;
+  skipped: number;
+  conflicts: string[];
+  restoredSettings: boolean;
+};
+
+export async function exportVaultBackup(): Promise<{ blob: Blob; filename: string }> {
+  const response = await apiFetch('/api/export');
+  if (!response.ok) throw await apiError(response, 'export the vault');
+  const disposition = response.headers.get('content-disposition') || '';
+  const filename = disposition.match(/filename="([^"]+)"/)?.[1] || 'knowledge-loom-backup.json';
+  return { blob: await response.blob(), filename };
+}
+
+export async function restoreVaultBackup(file: File, options: {
+  policy: RestoreConflictPolicy;
+  dryRun: boolean;
+  restoreSettings: boolean;
+}): Promise<RestoreResult> {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('policy', options.policy);
+  form.append('dryRun', options.dryRun ? '1' : '0');
+  form.append('restoreSettings', options.restoreSettings ? '1' : '0');
+  const response = await apiFetch('/api/export/restore', { method: 'POST', body: form });
+  if (!response.ok) throw await apiError(response, 'restore the vault');
+  return response.json();
+}
+
 export async function fetchStatus(): Promise<{ readOnly: boolean }> {
   const response = await fetch('/api/status');
   if (!response.ok) throw await apiError(response, 'load service status');

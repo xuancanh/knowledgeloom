@@ -381,3 +381,50 @@
   font-size: 12.5px;
   margin: 8px 0 0;
 }
+
+/* ── Backup and restore ── */
+.dataTools {
+  display: grid;
+  gap: 16px;
+}
+.dataExport {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.restoreGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.45fr);
+  gap: 12px;
+}
+.restoreSettings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+.dataActions {
+  display: flex;
+  gap: 8px;
+}
+.restoreButton {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.restoreResult {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--moss);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .dataExport { align-items: flex-start; flex-direction: column; }
+  .restoreGrid { grid-template-columns: 1fr; }
+}

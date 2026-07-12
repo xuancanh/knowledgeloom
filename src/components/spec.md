@@ -588,7 +588,7 @@ some translated messages — ensure translation strings contain no user input.
 ## LanguageSwitcher (`components/LanguageSwitcher.tsx`)
 
 Dropdown rendered at the bottom of the `Rail` sidebar. Calls
-`i18n.changeLanguage(code)` on selection. Shows the current locale's native
+the lazy-loading `changeLanguage(code)` helper on selection. Shows the current locale's native
 name. Language preference is persisted to `localStorage` under key `kl:lang`.
 Nine supported locales: English, 中文, 日本語, Español, Tiếng Việt, Bahasa Indonesia,
 Bahasa Melayu, Français, हिन्दी.
