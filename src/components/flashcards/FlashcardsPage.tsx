@@ -102,12 +102,37 @@ export default function FlashcardsPage({
 
   const dueCount = useMemo(() => scopedCards.filter(isCardDue).length, [scopedCards]);
 
-  const autoStartCardId = useRef(cardIdFromUrl);
+  const startStudy = useCallback((
+    fromIndex = 0,
+    opts?: { dueOnly?: boolean; shouldShuffle?: boolean; limit?: number },
+    fromUrl = false,
+  ) => {
+    const dueOnly = opts?.dueOnly ?? smartMode;
+    const shouldShuffle = opts?.shouldShuffle ?? randomize;
+    const limit = opts?.limit ?? cardLimit;
+    if (opts) { setSmartMode(dueOnly); setRandomize(shouldShuffle); setCardLimit(limit); }
+    let cards = scopedCards;
+    if (kindFilter) cards = cards.filter((card) => card.kind === kindFilter);
+    if (dueOnly) cards = cards.filter(isCardDue);
+    if (shouldShuffle) cards = shuffleArray(cards);
+    if (limit > 0) cards = cards.slice(0, limit);
+    const requestedId = fromUrl ? scopedCards[fromIndex]?.id : undefined;
+    const sessionIndex = requestedId ? cards.findIndex((card) => card.id === requestedId) : fromIndex;
+    if (fromUrl && sessionIndex < 0) return;
+    setSessionCards(cards);
+    setStudyIndex(sessionIndex);
+    setFlipped(false);
+    setSlideDir(null);
+    setSessionDone(false);
+    setStudying(true);
+    if (!fromUrl) setUrlCardId(cards[sessionIndex]?.id ?? null);
+  }, [smartMode, randomize, cardLimit, scopedCards, kindFilter, setUrlCardId]);
+
   useEffect(() => {
     if (!cardIdFromUrl || studying || scopedCards.length === 0) return;
     const idx = scopedCards.findIndex((c) => c.id === cardIdFromUrl);
-    if (idx >= 0) { autoStartCardId.current = undefined; startStudy(idx, undefined, true); }
-  }, [cardIdFromUrl, scopedCards, studying]);
+    if (idx >= 0) startStudy(idx, undefined, true);
+  }, [cardIdFromUrl, scopedCards, studying, startStudy]);
 
   const studyCards = sessionCards.length > 0 ? sessionCards : (() => {
     let cards = scopedCards;
@@ -194,25 +219,6 @@ export default function FlashcardsPage({
     },
     [safeIndex, studyCards, clearTimer, setUrlCardId],
   );
-
-  function startStudy(fromIndex = 0, opts?: { dueOnly?: boolean; shouldShuffle?: boolean; limit?: number }, fromUrl = false) {
-    const dueOnly = opts?.dueOnly ?? smartMode;
-    const shouldShuffle = opts?.shouldShuffle ?? randomize;
-    const limit = opts?.limit ?? cardLimit;
-    if (opts) { setSmartMode(dueOnly); setRandomize(shouldShuffle); setCardLimit(limit); }
-    let cards = scopedCards;
-    if (kindFilter) cards = cards.filter((c) => c.kind === kindFilter);
-    if (dueOnly) cards = cards.filter(isCardDue);
-    if (shouldShuffle) cards = shuffleArray(cards);
-    if (limit > 0) cards = cards.slice(0, limit);
-    setSessionCards(cards);
-    setStudyIndex(fromIndex);
-    setFlipped(false);
-    setSlideDir(null);
-    setSessionDone(false);
-    setStudying(true);
-    if (!fromUrl) { const card = cards[fromIndex]; setUrlCardId(card?.id ?? null); }
-  }
 
   function exitStudy() {
     setStudying(false);
