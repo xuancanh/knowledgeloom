@@ -513,6 +513,15 @@
     "usePasswordInstead": "← 使用密码登录",
     "signInMagicLink": "✉ 使用登录链接登录"
   },
+  "learn": {
+    "title": "课程", "loadingNotes": "正在加载笔记…", "notesReady": "{{count}} 篇笔记可供学习", "notesReady_plural": "{{count}} 篇笔记可供学习", "intro": "从知识库制定学习计划。", "planSession": "规划学习", "back": "返回",
+    "dailyGoal": "每日目标 · {{value}}/{{goal}} XP", "dayStreak": "连续学习天数", "totalXp": "总 XP", "lesson": "课程", "slides": "幻灯片", "podcast": "播客", "read": "阅读", "cards": "卡片", "quiz": "测验", "exit": "退出", "backToWeave": "返回知识网络",
+    "prompt": "提示", "answer": "答案", "recall": "回忆", "revealCard": "显示闪卡", "tapToReveal": "点击卡片显示答案", "again": "重来", "good": "良好", "easy": "简单", "quickCheck": "快速检测", "notQuite": "还不完全正确。{{feedback}}", "continue": "继续", "recap": "回顾",
+    "lessonXp": "本课 XP", "nodeMastered": "已掌握节点", "finishPlan": "完成计划 ✦", "masterAndContinue": "标记掌握并继续 →", "navigationHint": "↑ ↓ 或滑动 · Esc 退出", "nodeProgress": "节点 {{current}}/{{total}}", "generating": "正在生成…",
+    "preparingEpisode": "正在准备节目…", "hostsReading": "主持人正在阅读「{{title}}」。", "startInstant": "立即使用即时版本", "onAir": "直播中", "pausedCheck": "— 暂停进行快速检测 —", "pause": "暂停", "play": "播放", "popQuiz": "突击测验", "voiceOn": "语音已开启（AI 语音）", "voiceOff": "语音已关闭（仅字幕）", "hostsPaused": "主持人已暂停 — 快速回忆", "revealThenRate": "点击显示答案，然后自我评分", "resume": "继续", "popQuizPrompt": "突击测验 — 暂停并回答", "resumeShow": "继续节目",
+    "planner": { "title": "学习计划", "learnNote": "学习「{{title}}」", "curriculum": "{{category}} 课程", "wholeVault": "按顺序学习整个知识库", "nodePrereqs": "此节点及前置知识", "pickNode": "请先选择节点", "byCategory": "按分类", "everything": "全部", "includePrereqs": "加入其他领域的前置知识", "slides": "幻灯片课程", "slidesDescription": "滑动浏览教学、闪卡、测验和回顾微卡片。", "podcastDescription": "两位主持人讲解，播放时穿插闪卡和测验。", "summary": "{{nodes}} 个节点 · 约 {{cards}} 张卡片 · 约 {{mins}} 分钟", "startListening": "开始收听 ▸", "startLearning": "开始学习 →" },
+    "complete": { "label": "计划完成", "title": "知识已织入。", "summary": "你已按前置顺序学习 {{count}} 个关联概念。", "summary_plural": "你已按前置顺序学习 {{count}} 个关联概念。", "nodesMastered": "已掌握节点", "xpEarned": "获得 XP", "viewGraph": "在图谱中查看" }
+  },
   "today": {
     "title": "今日", "loading": "正在加载今日学习队列…", "loadError": "无法加载学习队列。", "retry": "重试", "refresh": "刷新队列",
     "cardCounts": "{{due}} 张到期 · {{new}} 张新卡片", "quizCount": "{{count}} 道测验", "quizCount_plural": "{{count}} 道测验", "reminderCount": "{{count}} 个提醒", "reminderCount_plural": "{{count}} 个提醒",

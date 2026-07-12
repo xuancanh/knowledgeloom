@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import { useLearnProgress } from '../../hooks/useLearnProgress';
@@ -18,11 +19,12 @@ const CAT_TINT: Record<string, string> = {
 
 /* ────────── gamification ────────── */
 function GoalRing({ value, goal }: { value: number; goal: number }) {
+  const { t } = useTranslation();
   const r = 9, c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, goal ? value / goal : 0));
   return (
     <svg className="goal-ring" width="26" height="26" viewBox="0 0 26 26">
-      <title>{`Daily goal · ${value}/${goal} XP`}</title>
+      <title>{t('learn.dailyGoal', { value, goal })}</title>
       <circle cx="13" cy="13" r={r} fill="none" stroke="var(--rule)" strokeWidth="3.2" />
       <circle cx="13" cy="13" r={r} fill="none" stroke="var(--moss)" strokeWidth="3.2"
         strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct)}
@@ -31,10 +33,12 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   );
 }
 function StreakChip({ streak }: { streak: number }) {
-  return <span className="streak-chip" title="Day streak"><span className="fl">●</span>{streak}</span>;
+  const { t } = useTranslation();
+  return <span className="streak-chip" title={t('learn.dayStreak')}><span className="fl">●</span>{streak}</span>;
 }
 function XpChip({ xp }: { xp: number }) {
-  return <span className="xp-chip" title="Total XP"><span className="xp">◆</span>{xp.toLocaleString()}</span>;
+  const { t } = useTranslation();
+  return <span className="xp-chip" title={t('learn.totalXp')}><span className="xp">◆</span>{xp.toLocaleString()}</span>;
 }
 
 /* ────────── plan builder ────────── */
@@ -46,6 +50,7 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
   onStart: (planIds: string[], format: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const byId = useMemo(() => Object.fromEntries(notes.map(n => [n.id, n])), [notes]);
   const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
   const [scope, setScope] = useState<'node' | 'category' | 'everything'>(seedNodeId ? 'node' : 'category');
@@ -65,27 +70,27 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
 
   return (
     <div className="planner" onMouseDown={onClose}>
-      <div className="planner-panel" onMouseDown={e => e.stopPropagation()}>
+      <div className="planner-panel" role="dialog" aria-modal="true" aria-labelledby="learn-planner-title" onMouseDown={e => e.stopPropagation()}>
         <div className="planner-head">
           <div className="eyebrow">
-            <span>◷</span> Learning plan
-            <span className="x" onClick={onClose}>×</span>
+            <span>◷</span> {t('learn.planner.title')}
+            <button type="button" className="x" onClick={onClose} aria-label={t('common.close')}>×</button>
           </div>
-          <h2>
+          <h2 id="learn-planner-title">
             {scope === 'node' && seedNote
-              ? `Learn "${clip(seedNote.title, 46)}"`
+              ? t('learn.planner.learnNote', { title: clip(seedNote.title, 46) })
               : scope === 'category'
-              ? `${catById[category]?.name || category} curriculum`
-              : 'The whole vault, in order'}
+              ? t('learn.planner.curriculum', { category: catById[category]?.name || category })
+              : t('learn.planner.wholeVault')}
           </h2>
         </div>
 
         <div className="planner-scope">
           <button className={`scope-tab${scope === 'node' ? ' active' : ''}`} disabled={!seedNodeId} onClick={() => setScope('node')}>
-            {seedNote ? 'This node + prerequisites' : 'Pick a node first'}
+            {seedNote ? t('learn.planner.nodePrereqs') : t('learn.planner.pickNode')}
           </button>
-          <button className={`scope-tab${scope === 'category' ? ' active' : ''}`} onClick={() => setScope('category')}>By category</button>
-          <button className={`scope-tab${scope === 'everything' ? ' active' : ''}`} onClick={() => setScope('everything')}>Everything</button>
+          <button className={`scope-tab${scope === 'category' ? ' active' : ''}`} onClick={() => setScope('category')}>{t('learn.planner.byCategory')}</button>
+          <button className={`scope-tab${scope === 'everything' ? ' active' : ''}`} onClick={() => setScope('everything')}>{t('learn.planner.everything')}</button>
         </div>
 
         {scope === 'category' && (
@@ -102,7 +107,7 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
           <div className="planner-opts">
             <label>
               <input type="checkbox" checked={includePrereqs} onChange={e => setIncludePrereqs(e.target.checked)} />
-              Pull in prerequisites from other areas
+              {t('learn.planner.includePrereqs')}
             </label>
           </div>
         )}
@@ -110,11 +115,11 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
         <div className="planner-format">
           <button className={`pfmt${format === 'slides' ? ' active' : ''}`} onClick={() => setFormat('slides')}>
             <span className="pf-ic">▤</span>
-            <span className="pf-tx"><b>Slide lesson</b><i>Swipe through micro-cards — teach, flashcards, quizzes, recap.</i></span>
+            <span className="pf-tx"><b>{t('learn.planner.slides')}</b><i>{t('learn.planner.slidesDescription')}</i></span>
           </button>
           <button className={`pfmt${format === 'podcast' ? ' active' : ''}`} onClick={() => setFormat('podcast')}>
             <span className="pf-ic">◉</span>
-            <span className="pf-tx"><b>Podcast</b><i>Two hosts talk it through; flashcards &amp; quizzes pop up as you listen.</i></span>
+            <span className="pf-tx"><b>{t('learn.podcast')}</b><i>{t('learn.planner.podcastDescription')}</i></span>
           </button>
         </div>
 
@@ -136,9 +141,9 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
         </div>
 
         <div className="planner-foot">
-          <span className="stats"><b>{planIds.length}</b> nodes · ~<b>{cards}</b> cards · ~<b>{mins}</b> min</span>
+          <span className="stats">{t('learn.planner.summary', { nodes: planIds.length, cards, mins })}</span>
           <button className="start" disabled={!planIds.length} onClick={() => onStart(planIds, format)}>
-            {format === 'podcast' ? 'Start listening ▸' : 'Start learning →'}
+            {format === 'podcast' ? t('learn.planner.startListening') : t('learn.planner.startLearning')}
           </button>
         </div>
       </div>
@@ -148,17 +153,18 @@ function PlanBuilder({ notes, categories, seedNodeId, progress, onStart, onClose
 
 /* ────────── card renderers ────────── */
 function HookCard({ card, catById, onNext }: { card: LearnCard & { type: 'hook' }; catById: Record<string, UiCategory>; onNext: () => void }) {
+  const { t } = useTranslation();
   const cat = catById[card.category];
   return (
     <div className="lcard hook">
       <div className="lcard-inner">
-        <div className="l-eyebrow"><span className="dot" /> {cat?.name || card.category} <span className="kind">· lesson</span></div>
+        <div className="l-eyebrow"><span className="dot" /> {cat?.name || card.category} <span className="kind">· {t('learn.lesson')}</span></div>
         <h1 className="l-title">{card.title}</h1>
         <p className="l-lede">{card.lede}</p>
         <div className="l-meta">
           <span>{(card.tags || []).slice(0, 3).map(t => '#' + t).join('  ')}</span>
         </div>
-        <button className="l-cta" onClick={onNext}>Start ↓</button>
+        <button className="l-cta" onClick={onNext}>{t('common.start')} ↓</button>
       </div>
     </div>
   );
@@ -190,30 +196,31 @@ function FlashCard({ card, state, setState, onRate }: {
   setState: (v: Record<string, unknown>) => void;
   onRate: (r: string) => void;
 }) {
+  const { t } = useTranslation();
   const flipped = !!state.flipped;
   return (
     <div className="lcard flash">
       <div className="lcard-inner">
-        <div className="l-eyebrow"><span className="kind">Flashcard</span> · recall</div>
-        <div className={`flip${flipped ? ' flipped' : ''}`} onClick={() => setState({ ...state, flipped: true })}>
+        <div className="l-eyebrow"><span className="kind">{t('common.flashcards')}</span> · {t('learn.recall')}</div>
+        <div className={`flip${flipped ? ' flipped' : ''}`} role="button" tabIndex={0} aria-label={t('learn.revealCard')} onClick={() => setState({ ...state, flipped: true })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setState({ ...state, flipped: true }); }}>
           <div className="flip-inner">
             <div className="flip-face flip-front">
-              <div className="ff-label">Prompt</div>
+              <div className="ff-label">{t('learn.prompt')}</div>
               <div className="ff-text">{card.front}</div>
             </div>
             <div className="flip-face flip-back">
-              <div className="ff-label">Answer</div>
+              <div className="ff-label">{t('learn.answer')}</div>
               <div className="ff-text">{card.back}</div>
             </div>
           </div>
         </div>
         {!flipped
-          ? <div className="flip-hint">Tap the card to reveal</div>
+          ? <div className="flip-hint">{t('learn.tapToReveal')}</div>
           : (
             <div className="flash-rate">
-              <button className="again" onClick={() => onRate('again')}>Again<span className="sub">&lt; 1d</span></button>
-              <button className="good" onClick={() => onRate('good')}>Good<span className="sub">3d</span></button>
-              <button className="easy" onClick={() => onRate('easy')}>Easy<span className="sub">7d</span></button>
+              <button className="again" onClick={() => onRate('again')}>{t('learn.again')}<span className="sub">&lt; 1d</span></button>
+              <button className="good" onClick={() => onRate('good')}>{t('learn.good')}<span className="sub">3d</span></button>
+              <button className="easy" onClick={() => onRate('easy')}>{t('learn.easy')}<span className="sub">7d</span></button>
             </div>
           )}
       </div>
@@ -227,12 +234,13 @@ function QuizCard({ card, state, setState, onAnswer, onNext }: {
   onAnswer: (correct: boolean) => void;
   onNext: () => void;
 }) {
+  const { t } = useTranslation();
   const picked = state.picked as string | undefined;
   const answered = picked != null;
   return (
     <div className="lcard quiz">
       <div className="lcard-inner">
-        <div className="l-eyebrow"><span className="kind">Quick check</span></div>
+        <div className="l-eyebrow"><span className="kind">{t('learn.quickCheck')}</span></div>
         <div className="q-prompt">{card.prompt}</div>
         <div className="q-opts">
           {card.options.map((opt, i) => {
@@ -249,10 +257,10 @@ function QuizCard({ card, state, setState, onAnswer, onNext }: {
         </div>
         {answered && (
           <div className={`q-feedback${picked === card.answer ? ' ok' : ''}`}>
-            {picked === card.answer ? card.feedback : `Not quite. ${card.feedback}`}
+            {picked === card.answer ? card.feedback : t('learn.notQuite', { feedback: card.feedback })}
           </div>
         )}
-        {answered && <button className="l-cta" onClick={onNext}>Continue ↓</button>}
+        {answered && <button className="l-cta" onClick={onNext}>{t('learn.continue')} ↓</button>}
       </div>
     </div>
   );
@@ -262,6 +270,7 @@ function PodcastCard({ card, active, hosts }: {
   active: boolean;
   hosts: typeof HOSTS;
 }) {
+  const { t } = useTranslation();
   const [playing, setPlaying] = useState(false);
   const [idx, setIdx] = useState(0);
   const [tick, setTick] = useState(0);
@@ -306,7 +315,7 @@ function PodcastCard({ card, active, hosts }: {
           {cur.text}
         </div>
         <div className="pod-controls">
-          <button className="pod-play" onClick={() => {
+          <button className="pod-play" aria-label={playing ? t('learn.pause') : t('learn.play')} onClick={() => {
             if (idx >= lines.length - 1 && tick >= 1) { setIdx(0); setTick(0); }
             setPlaying(p => !p);
           }}>
@@ -333,19 +342,20 @@ function RecapCard({ card, isLast, earned, onContinue }: {
   earned: number;
   onContinue: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="lcard recap">
       <div className="lcard-inner">
-        <div className="l-sub">Recap</div>
+        <div className="l-sub">{t('learn.recap')}</div>
         <div className="l-head">{card.title}</div>
         <ul className="recap-list">
           {card.takeaways.map((t, i) => <li key={i}><span className="tick">✓</span>{t}</li>)}
         </ul>
         <div className="recap-earned">
-          <span className="earn-chip">◆ <span className="v">+{earned}</span> XP this lesson</span>
-          <span className="earn-chip">✓ Node mastered</span>
+          <span className="earn-chip">◆ <span className="v">+{earned}</span> {t('learn.lessonXp')}</span>
+          <span className="earn-chip">✓ {t('learn.nodeMastered')}</span>
         </div>
-        <button className="l-cta" onClick={onContinue}>{isLast ? 'Finish plan ✦' : 'Mark mastered & continue →'}</button>
+        <button className="l-cta" onClick={onContinue}>{isLast ? t('learn.finishPlan') : t('learn.masterAndContinue')}</button>
       </div>
     </div>
   );
@@ -366,6 +376,7 @@ function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, ai
   onPrevNode: () => void;
   isLast: boolean;
 }) {
+  const { t } = useTranslation();
   const [cardIndex, setCardIndex] = useState(0);
   // Adopt the AI deck if it arrives while the user is still on the hook card
   // (identical in both decks); once past it, lock the source so card positions
@@ -481,12 +492,12 @@ function SlideStage({ note, ctx, mode, catById, planIds, nodeIndex, progress, ai
         </div>
       </div>
       <div className="learn-foot">
-        <button className="nav-btn" onClick={goPrev} disabled={nodeIndex === 0 && cardIndex === 0}>↑</button>
+        <button className="nav-btn" onClick={goPrev} disabled={nodeIndex === 0 && cardIndex === 0} aria-label={t('common.previous')}>↑</button>
         <div className="learn-dots">
           {deck.map((c, i) => <span key={i} className={`dot2${i < cardIndex ? ' done' : ''}${i === cardIndex ? ' cur' : ''}`} />)}
         </div>
-        <span className="ff-hint"><kbd>↑</kbd><kbd>↓</kbd> or swipe · <kbd>esc</kbd> exit</span>
-        <button className="nav-btn" onClick={goNext}>↓</button>
+        <span className="ff-hint">{t('learn.navigationHint')}</span>
+        <button className="nav-btn" onClick={goNext} aria-label={t('common.next')}>↓</button>
       </div>
     </>
   );
@@ -516,6 +527,7 @@ function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progre
   catColor: string;
   catName: string;
 }) {
+  const { t } = useTranslation();
   // Lock deck source at mount — same as SlideStage
   const lockedAiDeck = useRef(aiDeck);
   const program = useMemo(() => {
@@ -673,7 +685,7 @@ function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progre
       <div className="pod-amb" />
       <div className="pod-amb b" />
       <div className="pod-core">
-        <div className="pod-now">On air · {catName}</div>
+        <div className="pod-now">{t('learn.onAir')} · {catName}</div>
         <div className="pod-hosts big">
           {HOSTS.map(h => {
             const live = isTalk && line && h.id === line.who;
@@ -693,20 +705,20 @@ function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progre
               {line?.text}
             </>
           ) : (
-            <span className="who" style={{ color: catColor }}>— paused for a quick check —</span>
+            <span className="who" style={{ color: catColor }}>{t('learn.pausedCheck')}</span>
           )}
         </div>
       </div>
 
       <div className="pod-transport">
-        <button className="pod-play" disabled={!!isCheck} onClick={() => setPlaying(p => !p)} title={playing ? 'Pause' : 'Play'}>
+        <button className="pod-play" disabled={!!isCheck} onClick={() => setPlaying(p => !p)} title={playing ? t('learn.pause') : t('learn.play')} aria-label={playing ? t('learn.pause') : t('learn.play')}>
           {playing && isTalk ? '❚❚' : '▶'}
         </button>
         <div className="pod-track">
           <div className="pod-track-fill" style={{ width: `${talkTotal ? Math.min(100, (elapsed / talkTotal) * 100) : 0}%` }} />
           {markers.map((m, i) => (
             <span key={i} className={`pod-mark ${m.kind}${m.idx < segIndex ? ' done' : ''}${m.idx === segIndex ? ' active' : ''}`}
-              style={{ left: `${m.pct}%` }} title={m.kind === 'quiz' ? 'Pop quiz' : 'Flashcard'}>
+              style={{ left: `${m.pct}%` }} title={m.kind === 'quiz' ? t('learn.popQuiz') : t('common.flashcards')}>
               {m.kind === 'quiz' ? '?' : '✦'}
             </span>
           ))}
@@ -716,7 +728,8 @@ function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progre
           <button
             className={`pod-voice${voiceOn ? ' on' : ''}`}
             onClick={() => setVoiceOn((v) => !v)}
-            title={voiceOn ? 'Voice on (AI speech)' : 'Voice off (captions only)'}
+            title={voiceOn ? t('learn.voiceOn') : t('learn.voiceOff')}
+            aria-label={voiceOn ? t('learn.voiceOn') : t('learn.voiceOff')}
           >
             {voiceOn ? '🔊' : '🔇'}
           </button>
@@ -734,33 +747,33 @@ function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progre
           <div className="pod-sheet">
             {flashCard && (
               <div className="pod-check">
-                <div className="pc-tag"><span className="dot-pulse" /> The hosts paused — quick recall</div>
-                <div className={`flip${ov.flipped ? ' flipped' : ''}`} onClick={() => setOv({ ...ov, flipped: true })}>
+                <div className="pc-tag"><span className="dot-pulse" /> {t('learn.hostsPaused')}</div>
+                <div className={`flip${ov.flipped ? ' flipped' : ''}`} role="button" tabIndex={0} aria-label={t('learn.revealCard')} onClick={() => setOv({ ...ov, flipped: true })} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOv({ ...ov, flipped: true }); }}>
                   <div className="flip-inner">
                     <div className="flip-face flip-front">
-                      <div className="ff-label">Prompt</div>
+                      <div className="ff-label">{t('learn.prompt')}</div>
                       <div className="ff-text">{flashCard.front}</div>
                     </div>
                     <div className="flip-face flip-back">
-                      <div className="ff-label">Answer</div>
+                      <div className="ff-label">{t('learn.answer')}</div>
                       <div className="ff-text">{flashCard.back}</div>
                     </div>
                   </div>
                 </div>
                 {!ov.flipped
-                  ? <div className="flip-hint">Tap to reveal · then rate yourself</div>
+                  ? <div className="flip-hint">{t('learn.revealThenRate')}</div>
                   : (
                     <div className="flash-rate">
-                      <button className="again" onClick={() => resolveCheck(3)}>Again<span className="sub">resume</span></button>
-                      <button className="good" onClick={() => resolveCheck(8)}>Good<span className="sub">resume</span></button>
-                      <button className="easy" onClick={() => resolveCheck(10)}>Easy<span className="sub">resume</span></button>
+                      <button className="again" onClick={() => resolveCheck(3)}>{t('learn.again')}<span className="sub">{t('learn.resume')}</span></button>
+                      <button className="good" onClick={() => resolveCheck(8)}>{t('learn.good')}<span className="sub">{t('learn.resume')}</span></button>
+                      <button className="easy" onClick={() => resolveCheck(10)}>{t('learn.easy')}<span className="sub">{t('learn.resume')}</span></button>
                     </div>
                   )}
               </div>
             )}
             {quizCard && (
               <div className="pod-check">
-                <div className="pc-tag"><span className="dot-pulse" /> Pop quiz — pause &amp; answer</div>
+                <div className="pc-tag"><span className="dot-pulse" /> {t('learn.popQuizPrompt')}</div>
                 <div className="q-prompt">{quizCard.prompt}</div>
                 <div className="q-opts">
                   {quizCard.options.map((opt, i) => {
@@ -778,9 +791,9 @@ function PodcastStage({ note, ctx, catById: _catById, planIds, nodeIndex, progre
                 {ov.picked != null && (
                   <>
                     <div className={`q-feedback${ov.picked === quizCard.answer ? ' ok' : ''}`}>
-                      {ov.picked === quizCard.answer ? quizCard.feedback : `Not quite. ${quizCard.feedback}`}
+                      {ov.picked === quizCard.answer ? quizCard.feedback : t('learn.notQuite', { feedback: quizCard.feedback })}
                     </div>
-                    <button className="l-cta" onClick={() => resolveCheck(0)}>Resume show ▶</button>
+                    <button className="l-cta" onClick={() => resolveCheck(0)}>{t('learn.resumeShow')} ▶</button>
                   </>
                 )}
               </div>
@@ -841,6 +854,7 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
   onExit: () => void;
   initialFormat: 'slides' | 'podcast';
 }) {
+  const { t } = useTranslation();
   const byId = useMemo(() => Object.fromEntries(notes.map(n => [n.id, n])), [notes]);
   const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
 
@@ -895,22 +909,22 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
     return (
       <div className="learn-view">
         <div className="learn-top">
-          <button className="lt-x" onClick={onExit}>← Back to the weave</button>
+          <button className="lt-x" onClick={onExit}>← {t('learn.backToWeave')}</button>
           <span className="lt-spacer" />
           <div className="lt-stats"><StreakChip streak={progress.streak} /><XpChip xp={progress.xp} /><GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} /></div>
         </div>
         <div className="learn-stage">
           <div className="lcard complete">
             <div className="lcard-inner" style={{ alignItems: 'center' }}>
-              <div className="l-eyebrow" style={{ justifyContent: 'center' }}><span className="kind">Plan complete ✦</span></div>
-              <h1 className="l-title">Woven in.</h1>
-              <p className="l-sub">You worked through {planIds.length} connected idea{planIds.length !== 1 ? 's' : ''}, in prerequisite order.</p>
+              <div className="l-eyebrow" style={{ justifyContent: 'center' }}><span className="kind">{t('learn.complete.label')} ✦</span></div>
+              <h1 className="l-title">{t('learn.complete.title')}</h1>
+              <p className="l-sub">{t('learn.complete.summary', { count: planIds.length })}</p>
               <div className="complete-stats">
-                <div className="complete-stat"><div className="v">{planIds.length}</div><div className="k">Nodes mastered</div></div>
-                <div className="complete-stat"><div className="v">+{earned}</div><div className="k">XP earned</div></div>
-                <div className="complete-stat"><div className="v">{progress.streak}</div><div className="k">Day streak</div></div>
+                <div className="complete-stat"><div className="v">{planIds.length}</div><div className="k">{t('learn.complete.nodesMastered')}</div></div>
+                <div className="complete-stat"><div className="v">+{earned}</div><div className="k">{t('learn.complete.xpEarned')}</div></div>
+                <div className="complete-stat"><div className="v">{progress.streak}</div><div className="k">{t('learn.dayStreak')}</div></div>
               </div>
-              <button className="l-cta" onClick={onExit}>See it on the graph →</button>
+              <button className="l-cta" onClick={onExit}>{t('learn.complete.viewGraph')} →</button>
             </div>
           </div>
         </div>
@@ -923,16 +937,21 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
   const deckEntry = aiDecks[nodeId];
   const generating = deckEntry?.status === 'pending';
   const aiDeck = deckEntry?.deck ?? null;
-  const SLIDE_MODES: [string, string][] = [['all', 'Lesson'], ['read', 'Read'], ['cards', 'Cards'], ['quiz', 'Quiz']];
+  const SLIDE_MODES: [string, string][] = [
+    ['all', t('learn.lesson')],
+    ['read', t('learn.read')],
+    ['cards', t('learn.cards')],
+    ['quiz', t('learn.quiz')],
+  ];
 
   return (
     <div className="learn-view">
       <div className="learn-top">
-        <button className="lt-x" onClick={onExit}>✕ Exit</button>
-        <span className="lt-crumb">Node <b>{nodeIndex + 1}</b>/{planIds.length} · {cat?.name || note.category}</span>
+        <button className="lt-x" onClick={onExit}>✕ {t('learn.exit')}</button>
+        <span className="lt-crumb">{t('learn.nodeProgress', { current: nodeIndex + 1, total: planIds.length })} · {cat?.name || note.category}</span>
         <div className="format-seg">
-          <button className={format === 'slides' ? 'active' : ''} onClick={() => setFormat('slides')}><span className="glyph">▤</span> Slides</button>
-          <button className={format === 'podcast' ? 'active' : ''} onClick={() => setFormat('podcast')}><span className="glyph">◉</span> Podcast</button>
+          <button className={format === 'slides' ? 'active' : ''} onClick={() => setFormat('slides')}><span className="glyph">▤</span> {t('learn.slides')}</button>
+          <button className={format === 'podcast' ? 'active' : ''} onClick={() => setFormat('podcast')}><span className="glyph">◉</span> {t('learn.podcast')}</button>
         </div>
         {format === 'slides' && (
           <div className="learn-modes">
@@ -943,7 +962,7 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
         )}
         <span className="lt-spacer" />
         <div className="lt-stats">
-          {generating && <span className="generating-chip">✦ Generating…</span>}
+          {generating && <span className="generating-chip" role="status">✦ {t('learn.generating')}</span>}
           <StreakChip streak={progress.streak} />
           <XpChip xp={progress.xp} />
           <GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} />
@@ -963,10 +982,10 @@ function LearnSession({ planIds, notes, categories, progress, onAward, onMaster,
         <div className="learn-stage">
           <div className="lcard podcast">
             <div className="lcard-inner" style={{ alignItems: 'center', textAlign: 'center', justifyContent: 'center' }}>
-              <div className="l-eyebrow"><span className="kind">✦ Preparing your episode…</span></div>
-              <p className="l-sub">The hosts are reading “{clip(note.title, 60)}”.</p>
+              <div className="l-eyebrow"><span className="kind">✦ {t('learn.preparingEpisode')}</span></div>
+              <p className="l-sub">{t('learn.hostsReading', { title: clip(note.title, 60) })}</p>
               <button className="l-cta ghost" onClick={() => setStartedAnyway(s => ({ ...s, [nodeId]: true }))}>
-                Start now with the instant version →
+                {t('learn.startInstant')} →
               </button>
             </div>
           </div>
@@ -992,6 +1011,7 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
   seedNoteId?: string;
   onExit: () => void;
 }) {
+  const { t } = useTranslation();
   const [bodiesById, setBodiesById] = useState<Record<string, NoteForLearn>>({});
   const [loading, setLoading] = useState(true);
   const [showPlanner, setShowPlanner] = useState(false);
@@ -1048,7 +1068,7 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
     return (
       <div className="learn-view" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-          Loading notes…
+          {t('learn.loadingNotes')}
         </div>
       </div>
     );
@@ -1074,13 +1094,13 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
       <div className="learn-view" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
-            ◷ Learn
+            ◷ {t('learn.title')}
           </div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 500, marginBottom: 8, color: 'var(--ink)' }}>
-            {enrichedNotes.length} notes ready to learn
+            {t('learn.notesReady', { count: enrichedNotes.length })}
           </div>
           <div style={{ fontSize: 15, color: 'var(--ink-2)', marginBottom: 28 }}>
-            Build a learning plan from your knowledge vault.
+            {t('learn.intro')}
           </div>
           <div className="lt-stats" style={{ justifyContent: 'center', marginBottom: 24 }}>
             <StreakChip streak={progress.streak} />
@@ -1088,10 +1108,10 @@ export default function LearnPage({ notes, categories, seedNoteId, onExit }: {
             <GoalRing value={progress.todayXp} goal={progress.dailyGoalXp} />
           </div>
           <button className="l-cta" onClick={() => setShowPlanner(true)}>
-            Plan a session →
+            {t('learn.planSession')} →
           </button>
           <button className="l-cta ghost" style={{ marginLeft: 10 }} onClick={onExit}>
-            Back
+            {t('learn.back')}
           </button>
         </div>
       </div>

@@ -24,6 +24,7 @@ import ActivityPage from '../src/components/activity/ActivityPage';
 import { NoteTransferDialog } from '../src/components/notes/NoteTransferDialog';
 import ImportPanel from '../src/components/import/ImportPanel';
 import TodayPage from '../src/components/study/TodayPage';
+import LearnPage from '../src/components/learn/LearnPage';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -178,6 +179,29 @@ test('TodayPage: renders the translated empty queue and accessible exam controls
     assert.ok(screen.getByRole('heading', { name: 'Exam mode' }));
     assert.ok(screen.getByLabelText('Exam date'));
     assert.ok(screen.getByLabelText('Exam category'));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('LearnPage: opens a translated, accessible learning planner', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    xp: 0,
+    todayXp: 0,
+    dailyGoalXp: 100,
+    streak: 0,
+    mastery: {},
+  }), { status: 200, headers: { 'content-type': 'application/json' } });
+
+  try {
+    render(<LearnPage notes={[]} categories={[]} onExit={() => {}} />);
+    const planButton = await screen.findByRole('button', { name: /Plan a session/ });
+    fireEvent.click(planButton);
+    assert.ok(screen.getByRole('dialog', { name: /curriculum/ }));
+    assert.ok(screen.getByText('Learning plan'));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    assert.equal(screen.queryByRole('dialog'), null);
   } finally {
     globalThis.fetch = originalFetch;
   }

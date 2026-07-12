@@ -30,7 +30,10 @@
   color: var(--accent); font-weight: 600; margin-bottom: 7px;
   display: flex; align-items: center; gap: 8px;
 }
-.planner-head .eyebrow .x { margin-left: auto; cursor: pointer; color: var(--muted); font-size: 16px; }
+.planner-head .eyebrow .x {
+  margin-left: auto; padding: 0; border: 0; background: transparent;
+  cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1;
+}
 .planner-head .eyebrow .x:hover { color: var(--accent); }
 .planner-head h2 { font-size: 25px; font-weight: 500; margin: 0; letter-spacing: -0.015em; }
 .planner-scope { display: flex; gap: 8px; padding: 14px 24px 0; flex-wrap: wrap; }

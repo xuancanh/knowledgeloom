@@ -513,6 +513,15 @@
     "usePasswordInstead": "← パスワードでサインイン",
     "signInMagicLink": "✉ ログインリンクでサインイン"
   },
+  "learn": {
+    "title": "レッスン", "loadingNotes": "ノートを読み込み中…", "notesReady": "{{count}} 件のノートを学習できます", "notesReady_plural": "{{count}} 件のノートを学習できます", "intro": "知識保管庫から学習プランを作成します。", "planSession": "セッションを計画", "back": "戻る",
+    "dailyGoal": "1日の目標 · {{value}}/{{goal}} XP", "dayStreak": "連続学習日数", "totalXp": "合計 XP", "lesson": "レッスン", "slides": "スライド", "podcast": "ポッドキャスト", "read": "読む", "cards": "カード", "quiz": "クイズ", "exit": "終了", "backToWeave": "知識ネットワークに戻る",
+    "prompt": "問題", "answer": "答え", "recall": "想起", "revealCard": "カードを表示", "tapToReveal": "タップして答えを表示", "again": "もう一度", "good": "できた", "easy": "簡単", "quickCheck": "クイックチェック", "notQuite": "もう少しです。{{feedback}}", "continue": "続ける", "recap": "まとめ",
+    "lessonXp": "このレッスンの XP", "nodeMastered": "ノードを習得", "finishPlan": "プランを完了 ✦", "masterAndContinue": "習得済みにして続ける →", "navigationHint": "↑ ↓ またはスワイプ · Esc で終了", "nodeProgress": "ノード {{current}}/{{total}}", "generating": "生成中…",
+    "preparingEpisode": "エピソードを準備中…", "hostsReading": "ホストが「{{title}}」を読んでいます。", "startInstant": "すぐに簡易版で始める", "onAir": "放送中", "pausedCheck": "— クイックチェックで一時停止 —", "pause": "一時停止", "play": "再生", "popQuiz": "抜き打ちクイズ", "voiceOn": "音声オン（AI 音声）", "voiceOff": "音声オフ（字幕のみ）", "hostsPaused": "ホストが一時停止 — クイック想起", "revealThenRate": "タップして表示し、自己評価", "resume": "再開", "popQuizPrompt": "抜き打ちクイズ — 一時停止して回答", "resumeShow": "番組を再開",
+    "planner": { "title": "学習プラン", "learnNote": "「{{title}}」を学ぶ", "curriculum": "{{category}} カリキュラム", "wholeVault": "保管庫全体を順番に", "nodePrereqs": "このノードと前提知識", "pickNode": "先にノードを選択", "byCategory": "カテゴリー別", "everything": "すべて", "includePrereqs": "他の領域から前提知識を追加", "slides": "スライドレッスン", "slidesDescription": "教える・カード・クイズ・まとめのミニカードをスワイプ。", "podcastDescription": "2人のホストが解説し、途中でカードとクイズが表示されます。", "summary": "{{nodes}} ノード · 約 {{cards}} カード · 約 {{mins}} 分", "startListening": "聞き始める ▸", "startLearning": "学習を開始 →" },
+    "complete": { "label": "プラン完了", "title": "織り込みました。", "summary": "前提順に {{count}} 個の関連アイデアを学びました。", "summary_plural": "前提順に {{count}} 個の関連アイデアを学びました。", "nodesMastered": "習得ノード", "xpEarned": "獲得 XP", "viewGraph": "グラフで確認" }
+  },
   "today": {
     "title": "今日", "loading": "今日の学習キューを読み込み中…", "loadError": "学習キューを読み込めませんでした。", "retry": "再試行", "refresh": "キューを更新",
     "cardCounts": "期限 {{due}} 枚 · 新規 {{new}} 枚", "quizCount": "クイズ {{count}} 問", "quizCount_plural": "クイズ {{count}} 問", "reminderCount": "リマインダー {{count}} 件", "reminderCount_plural": "リマインダー {{count}} 件",
