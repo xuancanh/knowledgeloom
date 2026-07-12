@@ -23,6 +23,7 @@ import { FlashcardDone } from '../src/components/flashcards/FlashcardDone';
 import ActivityPage from '../src/components/activity/ActivityPage';
 import { NoteTransferDialog } from '../src/components/notes/NoteTransferDialog';
 import ImportPanel from '../src/components/import/ImportPanel';
+import TodayPage from '../src/components/study/TodayPage';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -147,4 +148,37 @@ test('ImportPanel: renders translated source controls', () => {
   assert.ok(screen.getByText(/Drop a PDF/));
   assert.ok(screen.getByRole('button', { name: 'Import' }));
   assert.ok(screen.getByPlaceholderText(/paste source text/));
+});
+
+test('TodayPage: renders the translated empty queue and accessible exam controls', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    if (url.includes('/api/study/stats')) {
+      return new Response(JSON.stringify({
+        windowDays: 30,
+        totals: { reviews: 0, flashcardReviews: 0, quizReviews: 0, successRate: null, retention1d: null, retention7d: null },
+        categories: [],
+        weakestTopics: [],
+      }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return new Response(JSON.stringify({
+      flashcards: [],
+      quiz: [],
+      reminders: [],
+      counts: { flashcards: 0, dueFlashcards: 0, newFlashcards: 0, quiz: 0, dueQuiz: 0, newQuiz: 0, reminders: 0 },
+      generatedAt: new Date().toISOString(),
+    }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+
+  try {
+    render(<TodayPage onOpenNote={() => {}} />);
+    assert.ok(await screen.findByRole('heading', { name: 'Today' }));
+    assert.ok(screen.getByText('Nothing due today.'));
+    assert.ok(screen.getByRole('heading', { name: 'Exam mode' }));
+    assert.ok(screen.getByLabelText('Exam date'));
+    assert.ok(screen.getByLabelText('Exam category'));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

@@ -513,6 +513,16 @@
     "usePasswordInstead": "← पासवर्ड का उपयोग करें",
     "signInMagicLink": "✉ साइन-इन लिंक से साइन इन"
   },
+  "today": {
+    "title": "आज", "loading": "आज की अध्ययन कतार लोड हो रही है…", "loadError": "अध्ययन कतार लोड नहीं हो सकी।", "retry": "फिर प्रयास करें", "refresh": "कतार रीफ़्रेश करें",
+    "cardCounts": "{{due}} देय · {{new}} नए कार्ड", "quizCount": "{{count}} प्रश्न", "quizCount_plural": "{{count}} प्रश्न", "reminderCount": "{{count}} रिमाइंडर", "reminderCount_plural": "{{count}} रिमाइंडर",
+    "items": "{{count}} आइटम", "items_plural": "{{count}} आइटम", "flashcardProgress": "फ़्लैशकार्ड {{current}} / {{total}}", "quizProgress": "प्रश्न {{current}} / {{total}}",
+    "revealCard": "फ़्लैशकार्ड दिखाएँ", "tapToReveal": "दिखाने के लिए टैप करें", "missed": "याद नहीं रहा", "correct": "याद रहा", "showAnswer": "उत्तर दिखाएँ", "reminders": "रिमाइंडर", "completeReminder": "रिमाइंडर पूरा करें",
+    "rating": { "again": "फिर से", "hard": "कठिन", "good": "अच्छा" },
+    "done": { "title": "कतार पूरी हुई। अच्छा काम।", "emptyTitle": "आज कुछ भी देय नहीं है।", "reviewed": "{{count}} आइटम दोहराया।", "reviewed_plural": "{{count}} आइटम दोहराए।", "emptyBody": "कुछ नया दर्ज करें या कल वापस आएँ।" },
+    "exam": { "title": "परीक्षा मोड", "dateLabel": "परीक्षा की तारीख", "categoryLabel": "परीक्षा श्रेणी", "categoryPlaceholder": "श्रेणी (वैकल्पिक; खाली होने पर पूरा वॉल्ट)", "planning": "योजना बन रही है…", "build": "योजना बनाएँ", "buildError": "योजना नहीं बन सकी", "clear": "योजना हटाएँ", "today": "परीक्षा आज है।", "daysUntil": "परीक्षा में {{count}} दिन बाकी है।", "daysUntil_plural": "परीक्षा में {{count}} दिन बाकी हैं।", "planSummary": "{{items}} आइटम, {{reviews}} निर्धारित दोहराव।", "todayPrefix": "आज:", "focus": { "learn": "सीखने का दौर", "consolidate": "सुदृढ़ीकरण", "finalReview": "अंतिम दोहराव — सबसे कमजोर आइटम", "exam": "परीक्षा का दिन" } },
+    "stats": { "lastDays": "पिछले {{count}} दिन", "reviews": "दोहराव", "success": "कुल सफलता", "recall1d": "1 दिन बाद स्मरण", "recall7d": "7 दिन बाद स्मरण", "weakest": "सबसे कमजोर विषय", "attempts": "{{count}} प्रयास", "attempts_plural": "{{count}} प्रयास" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "डैशबोर्ड खोलें →",

@@ -513,6 +513,20 @@
     "usePasswordInstead": "← パスワードでサインイン",
     "signInMagicLink": "✉ ログインリンクでサインイン"
   },
+  "today": {
+    "title": "今日", "loading": "今日の学習キューを読み込み中…", "loadError": "学習キューを読み込めませんでした。", "retry": "再試行", "refresh": "キューを更新",
+    "cardCounts": "期限 {{due}} 枚 · 新規 {{new}} 枚", "quizCount": "クイズ {{count}} 問", "quizCount_plural": "クイズ {{count}} 問", "reminderCount": "リマインダー {{count}} 件", "reminderCount_plural": "リマインダー {{count}} 件",
+    "items": "{{count}} 項目", "items_plural": "{{count}} 項目", "flashcardProgress": "フラッシュカード {{current}} / {{total}}", "quizProgress": "クイズ {{current}} / {{total}}",
+    "revealCard": "フラッシュカードを表示", "tapToReveal": "タップして答えを表示", "missed": "不正解", "correct": "正解", "showAnswer": "答えを表示", "reminders": "リマインダー", "completeReminder": "リマインダーを完了",
+    "rating": { "again": "もう一度", "hard": "難しい", "good": "できた" },
+    "done": { "title": "キューを完了しました。", "emptyTitle": "今日は期限の項目がありません。", "reviewed": "{{count}} 項目を復習しました。", "reviewed_plural": "{{count}} 項目を復習しました。", "emptyBody": "新しい内容を記録するか、明日また確認してください。" },
+    "exam": {
+      "title": "試験モード", "dateLabel": "試験日", "categoryLabel": "試験カテゴリー", "categoryPlaceholder": "カテゴリー（任意。空欄なら保管庫全体）", "planning": "計画中…", "build": "計画を作成", "buildError": "計画を作成できませんでした", "clear": "計画を消去",
+      "today": "試験は今日です。", "daysUntil": "試験まで {{count}} 日です。", "daysUntil_plural": "試験まで {{count}} 日です。", "planSummary": "{{items}} 項目、{{reviews}} 回の復習を予定。", "todayPrefix": "今日：",
+      "focus": { "learn": "学習", "consolidate": "定着", "finalReview": "最終復習 — 苦手項目", "exam": "試験日" }
+    },
+    "stats": { "lastDays": "過去 {{count}} 日", "reviews": "復習", "success": "全体正答率", "recall1d": "1日後の想起率", "recall7d": "7日後の想起率", "weakest": "苦手なトピック", "attempts": "{{count}} 回", "attempts_plural": "{{count}} 回" }
+  },
   "landing": {
     "appName": "ナレッジルーム",
     "openDashboard": "ダッシュボードを開く →",

@@ -513,6 +513,16 @@
     "usePasswordInstead": "← Dùng mật khẩu",
     "signInMagicLink": "✉ Đăng nhập bằng liên kết đăng nhập"
   },
+  "today": {
+    "title": "Hôm nay", "loading": "Đang tải hàng đợi hôm nay…", "loadError": "Không thể tải hàng đợi học tập.", "retry": "Thử lại", "refresh": "Làm mới hàng đợi",
+    "cardCounts": "{{due}} đến hạn · {{new}} thẻ mới", "quizCount": "{{count}} câu hỏi", "quizCount_plural": "{{count}} câu hỏi", "reminderCount": "{{count}} lời nhắc", "reminderCount_plural": "{{count}} lời nhắc",
+    "items": "{{count}} mục", "items_plural": "{{count}} mục", "flashcardProgress": "Thẻ {{current}} / {{total}}", "quizProgress": "Câu hỏi {{current}} / {{total}}",
+    "revealCard": "Hiện thẻ ghi nhớ", "tapToReveal": "Chạm để hiện", "missed": "Chưa nhớ", "correct": "Đã nhớ", "showAnswer": "Hiện đáp án", "reminders": "Lời nhắc", "completeReminder": "Hoàn thành lời nhắc",
+    "rating": { "again": "Học lại", "hard": "Khó", "good": "Tốt" },
+    "done": { "title": "Đã hoàn tất hàng đợi.", "emptyTitle": "Hôm nay không có mục đến hạn.", "reviewed": "Đã ôn {{count}} mục.", "reviewed_plural": "Đã ôn {{count}} mục.", "emptyBody": "Ghi lại điều mới hoặc quay lại vào ngày mai." },
+    "exam": { "title": "Chế độ thi", "dateLabel": "Ngày thi", "categoryLabel": "Danh mục thi", "categoryPlaceholder": "Danh mục (không bắt buộc; để trống dùng toàn bộ kho)", "planning": "Đang lập kế hoạch…", "build": "Tạo kế hoạch", "buildError": "Không thể tạo kế hoạch", "clear": "Xóa kế hoạch", "today": "Hôm nay là ngày thi.", "daysUntil": "Còn {{count}} ngày đến kỳ thi.", "daysUntil_plural": "Còn {{count}} ngày đến kỳ thi.", "planSummary": "{{items}} mục, {{reviews}} lượt ôn đã lên lịch.", "todayPrefix": "Hôm nay:", "focus": { "learn": "Lượt học", "consolidate": "Củng cố", "finalReview": "Ôn cuối — mục yếu nhất", "exam": "Ngày thi" } },
+    "stats": { "lastDays": "{{count}} ngày qua", "reviews": "lượt ôn", "success": "tỷ lệ thành công", "recall1d": "nhớ lại sau 1 ngày", "recall7d": "nhớ lại sau 7 ngày", "weakest": "Chủ đề yếu nhất", "attempts": "{{count}} lần thử", "attempts_plural": "{{count}} lần thử" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "Mở bảng điều khiển →",

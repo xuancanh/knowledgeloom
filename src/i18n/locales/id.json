@@ -513,6 +513,16 @@
     "usePasswordInstead": "← Gunakan kata sandi",
     "signInMagicLink": "✉ Masuk dengan tautan masuk"
   },
+  "today": {
+    "title": "Hari ini", "loading": "Memuat antrean hari ini…", "loadError": "Antrean belajar tidak dapat dimuat.", "retry": "Coba lagi", "refresh": "Segarkan antrean",
+    "cardCounts": "{{due}} jatuh tempo · {{new}} kartu baru", "quizCount": "{{count}} kuis", "quizCount_plural": "{{count}} kuis", "reminderCount": "{{count}} pengingat", "reminderCount_plural": "{{count}} pengingat",
+    "items": "{{count}} item", "items_plural": "{{count}} item", "flashcardProgress": "Kartu {{current}} dari {{total}}", "quizProgress": "Kuis {{current}} dari {{total}}",
+    "revealCard": "Tampilkan kartu", "tapToReveal": "Ketuk untuk melihat", "missed": "Belum ingat", "correct": "Ingat", "showAnswer": "Tampilkan jawaban", "reminders": "Pengingat", "completeReminder": "Selesaikan pengingat",
+    "rating": { "again": "Ulangi", "hard": "Sulit", "good": "Baik" },
+    "done": { "title": "Antrean selesai. Kerja bagus.", "emptyTitle": "Tidak ada yang jatuh tempo hari ini.", "reviewed": "{{count}} item ditinjau.", "reviewed_plural": "{{count}} item ditinjau.", "emptyBody": "Catat sesuatu yang baru atau kembali besok." },
+    "exam": { "title": "Mode ujian", "dateLabel": "Tanggal ujian", "categoryLabel": "Kategori ujian", "categoryPlaceholder": "Kategori (opsional; kosong untuk seluruh brankas)", "planning": "Menyusun rencana…", "build": "Buat rencana", "buildError": "Rencana tidak dapat dibuat", "clear": "Hapus rencana", "today": "Ujian berlangsung hari ini.", "daysUntil": "{{count}} hari menuju ujian.", "daysUntil_plural": "{{count}} hari menuju ujian.", "planSummary": "{{items}} item, {{reviews}} tinjauan terjadwal.", "todayPrefix": "Hari ini:", "focus": { "learn": "Tahap belajar", "consolidate": "Konsolidasi", "finalReview": "Tinjauan akhir — item terlemah", "exam": "Hari ujian" } },
+    "stats": { "lastDays": "{{count}} hari terakhir", "reviews": "tinjauan", "success": "keberhasilan keseluruhan", "recall1d": "ingatan setelah 1 hari", "recall7d": "ingatan setelah 7 hari", "weakest": "Topik terlemah", "attempts": "{{count}} percobaan", "attempts_plural": "{{count}} percobaan" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "Buka Dasbor →",

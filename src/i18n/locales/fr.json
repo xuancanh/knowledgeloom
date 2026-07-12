@@ -513,6 +513,16 @@
     "usePasswordInstead": "← Utiliser le mot de passe",
     "signInMagicLink": "✉ Se connecter avec un lien de connexion"
   },
+  "today": {
+    "title": "Aujourd’hui", "loading": "Chargement de la file du jour…", "loadError": "Impossible de charger la file d’étude.", "retry": "Réessayer", "refresh": "Actualiser la file",
+    "cardCounts": "{{due}} dues · {{new}} nouvelles cartes", "quizCount": "{{count}} question", "quizCount_plural": "{{count}} questions", "reminderCount": "{{count}} rappel", "reminderCount_plural": "{{count}} rappels",
+    "items": "{{count}} élément", "items_plural": "{{count}} éléments", "flashcardProgress": "Carte {{current}} sur {{total}}", "quizProgress": "Question {{current}} sur {{total}}",
+    "revealCard": "Révéler la carte", "tapToReveal": "Touchez pour révéler", "missed": "Raté", "correct": "Réussi", "showAnswer": "Afficher la réponse", "reminders": "Rappels", "completeReminder": "Terminer le rappel",
+    "rating": { "again": "À revoir", "hard": "Difficile", "good": "Bien" },
+    "done": { "title": "File terminée. Beau travail.", "emptyTitle": "Rien à réviser aujourd’hui.", "reviewed": "{{count}} élément révisé.", "reviewed_plural": "{{count}} éléments révisés.", "emptyBody": "Ajoutez du contenu ou revenez demain." },
+    "exam": { "title": "Mode examen", "dateLabel": "Date de l’examen", "categoryLabel": "Catégorie de l’examen", "categoryPlaceholder": "Catégorie (facultatif ; vide pour tout le coffre)", "planning": "Planification…", "build": "Créer le plan", "buildError": "Impossible de créer le plan", "clear": "Effacer le plan", "today": "L’examen est aujourd’hui.", "daysUntil": "{{count}} jour avant l’examen.", "daysUntil_plural": "{{count}} jours avant l’examen.", "planSummary": "{{items}} éléments, {{reviews}} révisions planifiées.", "todayPrefix": "Aujourd’hui :", "focus": { "learn": "Premier apprentissage", "consolidate": "Consolidation", "finalReview": "Révision finale — points faibles", "exam": "Jour de l’examen" } },
+    "stats": { "lastDays": "{{count}} derniers jours", "reviews": "révisions", "success": "réussite globale", "recall1d": "rappel après 1 j", "recall7d": "rappel après 7 j", "weakest": "Sujets les plus faibles", "attempts": "{{count}} tentative", "attempts_plural": "{{count}} tentatives" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "Ouvrir le tableau de bord →",

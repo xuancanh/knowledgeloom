@@ -513,6 +513,20 @@
     "usePasswordInstead": "← 使用密码登录",
     "signInMagicLink": "✉ 使用登录链接登录"
   },
+  "today": {
+    "title": "今日", "loading": "正在加载今日学习队列…", "loadError": "无法加载学习队列。", "retry": "重试", "refresh": "刷新队列",
+    "cardCounts": "{{due}} 张到期 · {{new}} 张新卡片", "quizCount": "{{count}} 道测验", "quizCount_plural": "{{count}} 道测验", "reminderCount": "{{count}} 个提醒", "reminderCount_plural": "{{count}} 个提醒",
+    "items": "{{count}} 项", "items_plural": "{{count}} 项", "flashcardProgress": "闪卡 {{current}} / {{total}}", "quizProgress": "测验 {{current}} / {{total}}",
+    "revealCard": "显示闪卡答案", "tapToReveal": "点击显示答案", "missed": "未答对", "correct": "答对了", "showAnswer": "显示答案", "reminders": "提醒", "completeReminder": "完成提醒",
+    "rating": { "again": "重来", "hard": "困难", "good": "良好" },
+    "done": { "title": "队列已清空，做得好。", "emptyTitle": "今天没有到期内容。", "reviewed": "已复习 {{count}} 项。", "reviewed_plural": "已复习 {{count}} 项。", "emptyBody": "记录新内容，或明天再来。" },
+    "exam": {
+      "title": "考试模式", "dateLabel": "考试日期", "categoryLabel": "考试分类", "categoryPlaceholder": "分类（可选；留空则使用整个知识库）", "planning": "正在规划…", "build": "制定计划", "buildError": "无法制定计划", "clear": "清除计划",
+      "today": "考试就在今天。", "daysUntil": "距离考试还有 {{count}} 天。", "daysUntil_plural": "距离考试还有 {{count}} 天。", "planSummary": "{{items}} 项内容，安排 {{reviews}} 次复习。", "todayPrefix": "今日：",
+      "focus": { "learn": "学习阶段", "consolidate": "巩固阶段", "finalReview": "最终复习 — 薄弱内容", "exam": "考试日" }
+    },
+    "stats": { "lastDays": "最近 {{count}} 天", "reviews": "复习次数", "success": "总体正确率", "recall1d": "1 天后记忆率", "recall7d": "7 天后记忆率", "weakest": "最薄弱主题", "attempts": "{{count}} 次尝试", "attempts_plural": "{{count}} 次尝试" }
+  },
   "landing": {
     "appName": "知识织机",
     "openDashboard": "打开仪表板 →",

@@ -516,6 +516,16 @@
     "usePasswordInstead": "← Usar contraseña",
     "signInMagicLink": "✉ Iniciar sesión con enlace de acceso"
   },
+  "today": {
+    "title": "Hoy", "loading": "Cargando la cola de hoy…", "loadError": "No se pudo cargar la cola de estudio.", "retry": "Reintentar", "refresh": "Actualizar cola",
+    "cardCounts": "{{due}} pendientes · {{new}} tarjetas nuevas", "quizCount": "{{count}} pregunta", "quizCount_plural": "{{count}} preguntas", "reminderCount": "{{count}} recordatorio", "reminderCount_plural": "{{count}} recordatorios",
+    "items": "{{count}} elemento", "items_plural": "{{count}} elementos", "flashcardProgress": "Tarjeta {{current}} de {{total}}", "quizProgress": "Pregunta {{current}} de {{total}}",
+    "revealCard": "Revelar tarjeta", "tapToReveal": "Toca para revelar", "missed": "No acerté", "correct": "Acerté", "showAnswer": "Mostrar respuesta", "reminders": "Recordatorios", "completeReminder": "Completar recordatorio",
+    "rating": { "again": "Otra vez", "hard": "Difícil", "good": "Bien" },
+    "done": { "title": "Cola completada. Buen trabajo.", "emptyTitle": "No hay nada pendiente hoy.", "reviewed": "{{count}} elemento repasado.", "reviewed_plural": "{{count}} elementos repasados.", "emptyBody": "Anota algo nuevo o vuelve mañana." },
+    "exam": { "title": "Modo examen", "dateLabel": "Fecha del examen", "categoryLabel": "Categoría del examen", "categoryPlaceholder": "Categoría (opcional; vacío usa toda la bóveda)", "planning": "Planificando…", "build": "Crear plan", "buildError": "No se pudo crear el plan", "clear": "Borrar plan", "today": "El examen es hoy.", "daysUntil": "Falta {{count}} día para el examen.", "daysUntil_plural": "Faltan {{count}} días para el examen.", "planSummary": "{{items}} elementos, {{reviews}} repasos programados.", "todayPrefix": "Hoy:", "focus": { "learn": "Primera pasada", "consolidate": "Consolidación", "finalReview": "Repaso final — puntos débiles", "exam": "Día del examen" } },
+    "stats": { "lastDays": "Últimos {{count}} días", "reviews": "repasos", "success": "éxito general", "recall1d": "recuerdo tras 1 día", "recall7d": "recuerdo tras 7 días", "weakest": "Temas más débiles", "attempts": "{{count}} intento", "attempts_plural": "{{count}} intentos" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "Abrir panel →",

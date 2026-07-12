@@ -7,12 +7,14 @@
  * consistent no matter where the user studies.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Flashcard, QuizQuestion, Reminder } from '../../types';
 import { fetchStudyToday, fetchStudyStats, createExamPlan, reviewFlashcard, reviewQuiz, updateReminder, type StudyQueue, type StudyStats, type ExamPlanDto } from '../../api';
 
 const EXAM_STORAGE_KEY = 'kl:exam-config';
 
 function ExamPlanner() {
+  const { t } = useTranslation();
   const [examDate, setExamDate] = useState('');
   const [category, setCategory] = useState('');
   const [plan, setPlan] = useState<ExamPlanDto | null>(null);
@@ -41,7 +43,7 @@ function ExamPlanner() {
       setPlan(p);
       localStorage.setItem(EXAM_STORAGE_KEY, JSON.stringify({ examDate, category: category.trim() }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to build plan');
+      setError(err instanceof Error ? err.message : t('today.exam.buildError'));
       setPlan(null);
     } finally {
       setBusy(false);
@@ -57,29 +59,32 @@ function ExamPlanner() {
 
   const today = new Date().toISOString().slice(0, 10);
   const todayInPlan = plan?.days.find((d) => d.date === today);
-  const focusLabel: Record<string, string> = {
-    learn: 'Learning pass', consolidate: 'Consolidation', 'final-review': 'Final review — weakest items', exam: 'Exam day',
+  const focusLabel: Record<ExamPlanDto['days'][number]['focus'], string> = {
+    learn: t('today.exam.focus.learn'),
+    consolidate: t('today.exam.focus.consolidate'),
+    'final-review': t('today.exam.focus.finalReview'),
+    exam: t('today.exam.focus.exam'),
   };
 
   return (
     <section className="today-exam">
-      <h3>Exam mode</h3>
+      <h3>{t('today.exam.title')}</h3>
       {!plan ? (
         <div className="today-exam-form">
-          <input type="date" value={examDate} min={today} onChange={(e) => setExamDate(e.target.value)} disabled={busy} />
-          <input placeholder="Category (optional — whole vault if empty)" value={category} onChange={(e) => setCategory(e.target.value)} disabled={busy} />
+          <input aria-label={t('today.exam.dateLabel')} type="date" value={examDate} min={today} onChange={(e) => setExamDate(e.target.value)} disabled={busy} />
+          <input aria-label={t('today.exam.categoryLabel')} placeholder={t('today.exam.categoryPlaceholder')} value={category} onChange={(e) => setCategory(e.target.value)} disabled={busy} />
           <button className="today-btn" onClick={() => void build()} disabled={busy || !examDate}>
-            {busy ? 'Planning…' : 'Build plan'}
+            {busy ? t('today.exam.planning') : t('today.exam.build')}
           </button>
-          {error && <span className="import-status error">{error}</span>}
+          {error && <span className="import-status error" role="alert">{error}</span>}
         </div>
       ) : (
         <>
           <div className="today-exam-summary">
-            <strong>{plan.daysUntilExam === 0 ? 'Exam is today.' : `${plan.daysUntilExam} day${plan.daysUntilExam === 1 ? '' : 's'} until the exam.`}</strong>
-            {' '}{plan.totalItems} items, {plan.totalReviews} scheduled reviews.
+            <strong>{plan.daysUntilExam === 0 ? t('today.exam.today') : t('today.exam.daysUntil', { count: plan.daysUntilExam })}</strong>
+            {' '}{t('today.exam.planSummary', { items: plan.totalItems, reviews: plan.totalReviews })}
             {todayInPlan && todayInPlan.items.length > 0 && (
-              <> Today: <strong>{todayInPlan.items.length} items</strong> ({focusLabel[todayInPlan.focus]}).</>
+              <> {t('today.exam.todayPrefix')} <strong>{t('today.items', { count: todayInPlan.items.length })}</strong> ({focusLabel[todayInPlan.focus]}).</>
             )}
           </div>
           <div className="today-exam-days">
@@ -90,7 +95,7 @@ function ExamPlanner() {
               </div>
             ))}
           </div>
-          <button className="today-btn" onClick={clear}>Clear plan</button>
+          <button className="today-btn" onClick={clear}>{t('today.exam.clear')}</button>
         </>
       )}
     </section>
@@ -100,6 +105,7 @@ function ExamPlanner() {
 type Phase = 'loading' | 'ready' | 'error';
 
 export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => void }) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>('loading');
   const [queue, setQueue] = useState<StudyQueue | null>(null);
   const [fcIndex, setFcIndex] = useState(0);
@@ -141,7 +147,7 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
 
   const rateCard = useCallback((rating: 'again' | 'hard' | 'good') => {
     if (!card) return;
-    reviewFlashcard(card.id, { rating, noteId: card.noteId, isUserCard: (card as any).isUserCreated })
+    reviewFlashcard(card.id, { rating, noteId: card.noteId, isUserCard: card.isUserCreated })
       .catch((e) => console.error('Review failed', e));
     setFcDone((n) => n + 1);
     setFcIndex((i) => i + 1);
@@ -171,13 +177,13 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
     [reminders, completedReminders],
   );
 
-  if (phase === 'loading') return <div className="today-page"><div className="today-empty">Loading today’s queue…</div></div>;
+  if (phase === 'loading') return <div className="today-page"><div className="today-empty" role="status">{t('today.loading')}</div></div>;
   if (phase === 'error' || !queue) {
     return (
       <div className="today-page">
         <div className="today-empty">
-          Couldn’t load the study queue.
-          <button className="today-btn" onClick={() => void load()}>Retry</button>
+          <span role="alert">{t('today.loadError')}</span>
+          <button className="today-btn" onClick={() => void load()}>{t('today.retry')}</button>
         </div>
       </div>
     );
@@ -188,11 +194,11 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
   return (
     <div className="today-page">
       <header className="today-head">
-        <h1>Today</h1>
+        <h1>{t('today.title')}</h1>
         <div className="today-counts">
-          <span className="today-chip fc">{queue.counts.dueFlashcards} due · {queue.counts.newFlashcards} new cards</span>
-          <span className="today-chip qz">{queue.counts.quiz} quiz</span>
-          <span className="today-chip rm">{remaining.length} reminders</span>
+          <span className="today-chip fc">{t('today.cardCounts', { due: queue.counts.dueFlashcards, new: queue.counts.newFlashcards })}</span>
+          <span className="today-chip qz">{t('today.quizCount', { count: queue.counts.quiz })}</span>
+          <span className="today-chip rm">{t('today.reminderCount', { count: remaining.length })}</span>
         </div>
         {totalItems > 0 && (
           <div className="today-progress">
@@ -204,16 +210,17 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
       {allDone ? (
         <section className="today-done">
           <div className="today-done-mark">✓</div>
-          <h2>{totalItems ? 'Queue cleared — nice work.' : 'Nothing due today.'}</h2>
-          <p>{totalItems ? `${doneItems} item${doneItems === 1 ? '' : 's'} reviewed.` : 'Capture something new or come back tomorrow.'}</p>
-          <button className="today-btn" onClick={() => void load()}>Refresh queue</button>
+          <h2>{totalItems ? t('today.done.title') : t('today.done.emptyTitle')}</h2>
+          <p>{totalItems ? t('today.done.reviewed', { count: doneItems }) : t('today.done.emptyBody')}</p>
+          <button className="today-btn" onClick={() => void load()}>{t('today.refresh')}</button>
         </section>
       ) : card ? (
         <section className="today-card-zone">
-          <div className="today-zone-label">Flashcard {fcIndex + 1} of {cards.length}</div>
+          <div className="today-zone-label">{t('today.flashcardProgress', { current: fcIndex + 1, total: cards.length })}</div>
           <div
             className={`today-card${flipped ? ' flipped' : ''}`}
             role="button"
+            aria-label={flipped ? undefined : t('today.revealCard')}
             tabIndex={0}
             onClick={() => setFlipped(true)}
             onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setFlipped(true); } }}
@@ -221,7 +228,7 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
             <div className="today-card-prompt">{card.prompt}</div>
             {flipped
               ? <div className="today-card-lesson">{card.lesson}</div>
-              : <div className="today-card-hint">Tap to reveal</div>}
+              : <div className="today-card-hint">{t('today.tapToReveal')}</div>}
             <button
               className="today-note-ref"
               onClick={(e) => { e.stopPropagation(); onOpenNote(card.noteId); }}
@@ -231,15 +238,15 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
           </div>
           {flipped && (
             <div className="today-rate-row">
-              <button className="today-rate again" onClick={() => rateCard('again')}>Again</button>
-              <button className="today-rate hard" onClick={() => rateCard('hard')}>Hard</button>
-              <button className="today-rate good" onClick={() => rateCard('good')}>Good</button>
+              <button className="today-rate again" onClick={() => rateCard('again')}>{t('today.rating.again')}</button>
+              <button className="today-rate hard" onClick={() => rateCard('hard')}>{t('today.rating.hard')}</button>
+              <button className="today-rate good" onClick={() => rateCard('good')}>{t('today.rating.good')}</button>
             </div>
           )}
         </section>
       ) : question ? (
         <section className="today-card-zone">
-          <div className="today-zone-label">Quiz {quizIndex + 1} of {questions.length}</div>
+          <div className="today-zone-label">{t('today.quizProgress', { current: quizIndex + 1, total: questions.length })}</div>
           <div className="today-card static">
             <div className="today-card-prompt">{question.question}</div>
             {question.type === 'multiple-choice' && question.choices ? (
@@ -262,7 +269,7 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
                   <div className="today-quiz-actions">
                     {question.explanation && <p className="today-explain">{question.explanation}</p>}
                     <button className="today-btn" onClick={() => answerQuiz(choice === question.correctIndex)}>
-                      Next
+                      {t('common.next')}
                     </button>
                   </div>
                 )}
@@ -275,12 +282,12 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
                       <p className="today-answer">{question.answer}</p>
                       {question.explanation && <p className="today-explain">{question.explanation}</p>}
                       <div className="today-rate-row">
-                        <button className="today-rate again" onClick={() => answerQuiz(false)}>Missed it</button>
-                        <button className="today-rate good" onClick={() => answerQuiz(true)}>Got it</button>
+                        <button className="today-rate again" onClick={() => answerQuiz(false)}>{t('today.missed')}</button>
+                        <button className="today-rate good" onClick={() => answerQuiz(true)}>{t('today.correct')}</button>
                       </div>
                     </>
                   )
-                  : <button className="today-btn" onClick={() => setRevealed(true)}>Show answer</button>}
+                  : <button className="today-btn" onClick={() => setRevealed(true)}>{t('today.showAnswer')}</button>}
               </div>
             )}
           </div>
@@ -291,33 +298,33 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
 
       {stats && stats.totals.reviews > 0 && (
         <section className="today-stats">
-          <h3>Last {stats.windowDays} days</h3>
+          <h3>{t('today.stats.lastDays', { count: stats.windowDays })}</h3>
           <div className="today-stat-row">
             <div className="today-stat">
               <span className="today-stat-num">{stats.totals.reviews}</span>
-              <span className="today-stat-label">reviews</span>
+              <span className="today-stat-label">{t('today.stats.reviews')}</span>
             </div>
             <div className="today-stat">
               <span className="today-stat-num">{stats.totals.successRate != null ? `${Math.round(stats.totals.successRate * 100)}%` : '—'}</span>
-              <span className="today-stat-label">overall success</span>
+              <span className="today-stat-label">{t('today.stats.success')}</span>
             </div>
             <div className="today-stat">
               <span className="today-stat-num">{stats.totals.retention1d != null ? `${Math.round(stats.totals.retention1d * 100)}%` : '—'}</span>
-              <span className="today-stat-label">recall after 1d+</span>
+              <span className="today-stat-label">{t('today.stats.recall1d')}</span>
             </div>
             <div className="today-stat">
               <span className="today-stat-num">{stats.totals.retention7d != null ? `${Math.round(stats.totals.retention7d * 100)}%` : '—'}</span>
-              <span className="today-stat-label">recall after 7d+</span>
+              <span className="today-stat-label">{t('today.stats.recall7d')}</span>
             </div>
           </div>
           {stats.weakestTopics.length > 0 && (
             <>
-              <h4>Weakest topics</h4>
-              {stats.weakestTopics.slice(0, 5).map((t) => (
-                <button key={t.noteId} className="today-weak-topic" onClick={() => onOpenNote(t.noteId)}>
-                  <span className="today-weak-rate">{Math.round(t.successRate * 100)}%</span>
-                  <span className="today-weak-title">{t.title}</span>
-                  <span className="today-weak-meta">{t.category} · {t.attempts} attempts</span>
+              <h4>{t('today.stats.weakest')}</h4>
+              {stats.weakestTopics.slice(0, 5).map((topic) => (
+                <button key={topic.noteId} className="today-weak-topic" onClick={() => onOpenNote(topic.noteId)}>
+                  <span className="today-weak-rate">{Math.round(topic.successRate * 100)}%</span>
+                  <span className="today-weak-title">{topic.title}</span>
+                  <span className="today-weak-meta">{topic.category} · {t('today.stats.attempts', { count: topic.attempts })}</span>
                 </button>
               ))}
             </>
@@ -327,10 +334,10 @@ export default function TodayPage({ onOpenNote }: { onOpenNote: (id: string) => 
 
       {remaining.length > 0 && (
         <section className="today-reminders">
-          <h3>Reminders</h3>
+          <h3>{t('today.reminders')}</h3>
           {remaining.map((r) => (
             <div key={r.id} className="today-reminder">
-              <button className="today-reminder-check" onClick={() => completeReminder(r)} aria-label="Complete reminder">○</button>
+              <button className="today-reminder-check" onClick={() => completeReminder(r)} aria-label={t('today.completeReminder')}>○</button>
               <button className="today-reminder-body" onClick={() => onOpenNote(r.noteId)}>
                 <span className="today-reminder-msg">{r.message || r.noteId}</span>
                 <span className="today-reminder-when">{new Date(r.remindAt).toLocaleString()}</span>

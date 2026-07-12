@@ -513,6 +513,20 @@
     "usePasswordInstead": "← Use password instead",
     "signInMagicLink": "✉ Sign in with magic link"
   },
+  "today": {
+    "title": "Today", "loading": "Loading today’s queue…", "loadError": "Couldn’t load the study queue.", "retry": "Retry", "refresh": "Refresh queue",
+    "cardCounts": "{{due}} due · {{new}} new cards", "quizCount": "{{count}} quiz", "quizCount_plural": "{{count}} quizzes", "reminderCount": "{{count}} reminder", "reminderCount_plural": "{{count}} reminders",
+    "items": "{{count}} item", "items_plural": "{{count}} items", "flashcardProgress": "Flashcard {{current}} of {{total}}", "quizProgress": "Quiz {{current}} of {{total}}",
+    "revealCard": "Reveal flashcard", "tapToReveal": "Tap to reveal", "missed": "Missed it", "correct": "Got it", "showAnswer": "Show answer", "reminders": "Reminders", "completeReminder": "Complete reminder",
+    "rating": { "again": "Again", "hard": "Hard", "good": "Good" },
+    "done": { "title": "Queue cleared — nice work.", "emptyTitle": "Nothing due today.", "reviewed": "{{count}} item reviewed.", "reviewed_plural": "{{count}} items reviewed.", "emptyBody": "Capture something new or come back tomorrow." },
+    "exam": {
+      "title": "Exam mode", "dateLabel": "Exam date", "categoryLabel": "Exam category", "categoryPlaceholder": "Category (optional — whole vault if empty)", "planning": "Planning…", "build": "Build plan", "buildError": "Failed to build plan", "clear": "Clear plan",
+      "today": "Exam is today.", "daysUntil": "{{count}} day until the exam.", "daysUntil_plural": "{{count}} days until the exam.", "planSummary": "{{items}} items, {{reviews}} scheduled reviews.", "todayPrefix": "Today:",
+      "focus": { "learn": "Learning pass", "consolidate": "Consolidation", "finalReview": "Final review — weakest items", "exam": "Exam day" }
+    },
+    "stats": { "lastDays": "Last {{count}} days", "reviews": "reviews", "success": "overall success", "recall1d": "recall after 1d+", "recall7d": "recall after 7d+", "weakest": "Weakest topics", "attempts": "{{count}} attempt", "attempts_plural": "{{count}} attempts" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "Open Dashboard →",

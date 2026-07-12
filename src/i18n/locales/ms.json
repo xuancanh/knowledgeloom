@@ -513,6 +513,16 @@
     "usePasswordInstead": "← Guna kata laluan",
     "signInMagicLink": "✉ Log masuk dengan pautan log masuk"
   },
+  "today": {
+    "title": "Hari ini", "loading": "Memuatkan baris gilir hari ini…", "loadError": "Baris gilir pembelajaran tidak dapat dimuatkan.", "retry": "Cuba lagi", "refresh": "Segarkan baris gilir",
+    "cardCounts": "{{due}} perlu dibuat · {{new}} kad baharu", "quizCount": "{{count}} kuiz", "quizCount_plural": "{{count}} kuiz", "reminderCount": "{{count}} peringatan", "reminderCount_plural": "{{count}} peringatan",
+    "items": "{{count}} item", "items_plural": "{{count}} item", "flashcardProgress": "Kad {{current}} daripada {{total}}", "quizProgress": "Kuiz {{current}} daripada {{total}}",
+    "revealCard": "Tunjukkan kad", "tapToReveal": "Ketik untuk tunjukkan", "missed": "Belum ingat", "correct": "Ingat", "showAnswer": "Tunjukkan jawapan", "reminders": "Peringatan", "completeReminder": "Selesaikan peringatan",
+    "rating": { "again": "Ulang", "hard": "Sukar", "good": "Baik" },
+    "done": { "title": "Baris gilir selesai. Syabas.", "emptyTitle": "Tiada yang perlu dibuat hari ini.", "reviewed": "{{count}} item diulang kaji.", "reviewed_plural": "{{count}} item diulang kaji.", "emptyBody": "Catat sesuatu yang baharu atau kembali esok." },
+    "exam": { "title": "Mod peperiksaan", "dateLabel": "Tarikh peperiksaan", "categoryLabel": "Kategori peperiksaan", "categoryPlaceholder": "Kategori (pilihan; kosong untuk seluruh peti simpanan)", "planning": "Merancang…", "build": "Bina rancangan", "buildError": "Rancangan tidak dapat dibina", "clear": "Kosongkan rancangan", "today": "Peperiksaan adalah hari ini.", "daysUntil": "{{count}} hari lagi sebelum peperiksaan.", "daysUntil_plural": "{{count}} hari lagi sebelum peperiksaan.", "planSummary": "{{items}} item, {{reviews}} ulang kaji dijadualkan.", "todayPrefix": "Hari ini:", "focus": { "learn": "Pusingan belajar", "consolidate": "Pengukuhan", "finalReview": "Ulang kaji akhir — item terlemah", "exam": "Hari peperiksaan" } },
+    "stats": { "lastDays": "{{count}} hari terakhir", "reviews": "ulangan", "success": "kejayaan keseluruhan", "recall1d": "ingatan selepas 1 hari", "recall7d": "ingatan selepas 7 hari", "weakest": "Topik terlemah", "attempts": "{{count}} cubaan", "attempts_plural": "{{count}} cubaan" }
+  },
   "landing": {
     "appName": "Knowledge Loom",
     "openDashboard": "Buka Papan Pemuka →",
