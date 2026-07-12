@@ -9,6 +9,7 @@
  * disabled and the in-memory search engine, then times:
  *   - cold  : first GET /api/knowledge (full rebuild + derive + index)
  *   - warm  : second GET /api/knowledge (stale-while-revalidate cache)
+ *   - mutate: PATCH one note (one changed source + full derived-state rebuild)
  *   - search: GET /api/search?q=...
  *
  * Usage:
@@ -73,7 +74,7 @@ async function benchOne(size, port) {
   const dir = mkdtempSync(join(tmpdir(), `kl-bench-${size}-`));
   generateVault(dir, size);
   const server = spawn('node', [ENTRY], {
-    env: { ...process.env, PORT: String(port), KNOWLEDGE_ROOT: dir, SKIP_JOBS: '1', SEARCH_PROVIDER: 'inmemory', CODEX_COMMAND: 'false' },
+    env: { ...process.env, PORT: String(port), KNOWLEDGE_ROOT: dir, SKIP_JOBS: '1', SEARCH_PROVIDER: 'inmemory', CODEX_COMMAND: 'false', PUBLIC_RATE_LIMIT_STORE: 'memory' },
     stdio: ['ignore', 'ignore', 'pipe'],
   });
   let err = '';
@@ -87,9 +88,16 @@ async function benchOne(size, port) {
     }
     const cold = await timed('cold', () => fetch(`${base}/api/knowledge`).then((r) => r.text()));
     const warm = await timed('warm', () => fetch(`${base}/api/knowledge`).then((r) => r.text()));
+    const state = JSON.parse(cold.out);
+    const first = state.notes[0];
+    const mutate = await timed('mutate', () => fetch(`${base}/api/notes/${encodeURIComponent(first.id)}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ summary: `${first.summary} updated` }),
+    }).then((r) => r.text()));
     const search = await timed('search', () => fetch(`${base}/api/search?q=synthetic`).then((r) => r.json()));
     const payloadKB = Math.round(cold.out.length / 1024);
-    return { size, coldMs: cold.ms, warmMs: warm.ms, searchMs: search.ms, hits: search.out.hits?.length ?? 0, payloadKB };
+    return { size, coldMs: cold.ms, warmMs: warm.ms, mutateMs: mutate.ms, searchMs: search.ms, hits: search.out.hits?.length ?? 0, payloadKB };
   } finally {
     server.kill('SIGKILL');
     rmSync(dir, { recursive: true, force: true });
@@ -104,10 +112,10 @@ for (const size of sizes) {
   console.log('done');
 }
 
-console.log('\nnotes | cold(ms) | warm(ms) | search(ms) | hits | payload(KB)');
-console.log('------|----------|----------|------------|------|------------');
+console.log('\nnotes | cold(ms) | warm(ms) | mutate(ms) | search(ms) | hits | payload(KB)');
+console.log('------|----------|----------|------------|------------|------|------------');
 for (const r of rows) {
   console.log(
-    `${String(r.size).padStart(5)} | ${String(r.coldMs).padStart(8)} | ${String(r.warmMs).padStart(8)} | ${String(r.searchMs).padStart(10)} | ${String(r.hits).padStart(4)} | ${String(r.payloadKB).padStart(11)}`,
+    `${String(r.size).padStart(5)} | ${String(r.coldMs).padStart(8)} | ${String(r.warmMs).padStart(8)} | ${String(r.mutateMs).padStart(10)} | ${String(r.searchMs).padStart(10)} | ${String(r.hits).padStart(4)} | ${String(r.payloadKB).padStart(11)}`,
   );
 }

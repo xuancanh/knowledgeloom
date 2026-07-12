@@ -34,7 +34,7 @@ import {
   DeleteObjectCommand,
   HeadObjectCommand,
 } from '@aws-sdk/client-s3';
-import type { NoteStorageProvider } from './note-storage.interface';
+import type { NoteStorageEntry, NoteStorageProvider } from './note-storage.interface';
 
 @Injectable()
 export class S3NoteStorage implements NoteStorageProvider {
@@ -76,8 +76,12 @@ export class S3NoteStorage implements NoteStorageProvider {
   }
 
   async listFiles(userId: string): Promise<string[]> {
+    return (await this.listEntries(userId)).map((entry) => entry.path);
+  }
+
+  async listEntries(userId: string): Promise<NoteStorageEntry[]> {
     const prefix = this.userPrefix(userId);
-    const files: string[] = [];
+    const files: NoteStorageEntry[] = [];
     let continuationToken: string | undefined;
 
     do {
@@ -93,14 +97,17 @@ export class S3NoteStorage implements NoteStorageProvider {
         const key = obj.Key || '';
         const relative = key.slice(prefix.length);
         if (relative && relative.endsWith('.md')) {
-          files.push(relative);
+          files.push({
+            path: relative,
+            version: `${obj.ETag || ''}:${obj.Size || 0}:${obj.LastModified?.getTime() || 0}`,
+          });
         }
       }
 
       continuationToken = result.IsTruncated ? result.NextContinuationToken : undefined;
     } while (continuationToken);
 
-    return files.sort();
+    return files.sort((a, b) => a.path.localeCompare(b.path));
   }
 
   async read(userId: string, relativePath: string): Promise<string> {

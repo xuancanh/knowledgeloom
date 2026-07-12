@@ -15,12 +15,15 @@ import { basename, join } from 'node:path';
 import { mkdir, writeFile, readFile, readdir, rm } from 'node:fs/promises';
 import { NOTE_STORAGE, NoteStorageProvider } from '../storage/note-storage.interface';
 import { parseNote } from '../common/note-parser.util';
+import { NoteSourceCache } from './note-source-cache';
 import type { KnowledgeNote, NoteSource } from '../types';
 
 @Injectable()
 export class NoteFileRepository {
   private readonly usersDir: string;
   private readonly readOnly: boolean;
+  private readonly sourceCache: NoteSourceCache;
+  private readonly readConcurrency: number;
 
   constructor(
     @Inject(NOTE_STORAGE) private readonly storage: NoteStorageProvider,
@@ -28,6 +31,8 @@ export class NoteFileRepository {
   ) {
     this.usersDir = config.get<string>('usersDir');
     this.readOnly = config.get<boolean>('readOnly');
+    this.sourceCache = new NoteSourceCache(config.get<number>('noteSourceCacheMaxBytes'));
+    this.readConcurrency = config.get<number>('noteReadConcurrency');
   }
 
   async ensureStore(userId: string): Promise<void> {
@@ -51,23 +56,27 @@ export class NoteFileRepository {
   }
 
   async readAll(userId: string): Promise<KnowledgeNote[]> {
-    await this.storage.ensureStore(userId);
-    const files = await this.storage.listFiles(userId);
-    const notes: KnowledgeNote[] = [];
-    for (const file of files) {
-      const markdown = await this.storage.read(userId, file);
-      notes.push(parseNote(file, markdown));
-    }
-    return notes;
+    return (await this.readAllSources(userId)).map((source) => source.note);
   }
 
   async readAllSources(userId: string): Promise<NoteSource[]> {
     await this.storage.ensureStore(userId);
-    const files = await this.storage.listFiles(userId);
-    const sources: NoteSource[] = [];
-    for (const file of files) {
-      const markdown = await this.storage.read(userId, file);
-      sources.push({ file, markdown, note: parseNote(file, markdown) });
+    const entries = await this.storage.listEntries(userId);
+    this.sourceCache.retain(userId, new Set(entries.map((entry) => entry.path)));
+    const sources = new Array<NoteSource>(entries.length);
+    for (let offset = 0; offset < entries.length; offset += this.readConcurrency) {
+      await Promise.all(entries.slice(offset, offset + this.readConcurrency).map(async (entry, batchIndex) => {
+        const index = offset + batchIndex;
+        const cached = this.sourceCache.get(userId, entry.path, entry.version);
+        if (cached) {
+          sources[index] = { file: entry.path, markdown: cached.markdown, note: cached.note };
+          return;
+        }
+        const markdown = await this.storage.read(userId, entry.path);
+        const note = parseNote(entry.path, markdown);
+        this.sourceCache.set(userId, entry.path, { version: entry.version, markdown, note });
+        sources[index] = { file: entry.path, markdown, note };
+      }));
     }
     return sources;
   }
@@ -83,7 +92,8 @@ export class NoteFileRepository {
   }
 
   async write(userId: string, relativePath: string, markdown: string): Promise<void> {
-    return this.storage.write(userId, relativePath, markdown);
+    await this.storage.write(userId, relativePath, markdown);
+    this.sourceCache.invalidate(userId, relativePath);
   }
 
   async exists(userId: string, relativePath: string): Promise<boolean> {
@@ -91,11 +101,18 @@ export class NoteFileRepository {
   }
 
   async move(userId: string, fromRelative: string, toRelative: string, markdown: string): Promise<void> {
-    return this.storage.move(userId, fromRelative, toRelative, markdown);
+    await this.storage.move(userId, fromRelative, toRelative, markdown);
+    this.sourceCache.invalidate(userId, fromRelative);
+    this.sourceCache.invalidate(userId, toRelative);
   }
 
   async delete(userId: string, relativePath: string): Promise<void> {
-    return this.storage.delete(userId, relativePath);
+    await this.storage.delete(userId, relativePath);
+    this.sourceCache.invalidate(userId, relativePath);
+  }
+
+  clearSourceCache(userId: string): void {
+    this.sourceCache.invalidate(userId);
   }
 
   async writeCategoryFiles(userId: string, categories: any[]): Promise<void> {

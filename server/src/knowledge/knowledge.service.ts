@@ -126,6 +126,7 @@ export class KnowledgeService {
     await this.activeRebuilds.get(userId)?.catch(() => undefined);
     this.backgroundRebuilds.delete(userId);
     this.lastRebuildAt.delete(userId);
+    this.noteRepo.clearSourceCache(userId);
   }
 
   private async performRebuild(userId: string): Promise<KnowledgeState> {

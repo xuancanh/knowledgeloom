@@ -118,6 +118,10 @@ interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string; }
 Flashcards are AI-authored study cards generated from saved notes. They are cached in SQLite by note hash.
 
 Set `AI_FLASHCARDS_DISABLED=1` for smoke tests or constrained deployments that need note/search rebuilds without invoking Codex for uncached cards.
+Failed automatic flashcard or quiz generation keeps any prior material and is
+cached with a retry marker, preventing every index rebuild from repeating the
+same provider outage. `AI_GENERATION_RETRY_MS` controls the automatic retry
+window (default 15 minutes); explicit regeneration always bypasses it.
 
 ### Kind values
 

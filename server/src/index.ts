@@ -29,7 +29,7 @@ export { UsageModule } from './usage/usage.module';
 export { AiProvider, AiMessage, AiCompletionOptions, AI_PROVIDER } from './ai/ai-provider.interface';
 
 // Note storage seam
-export { NoteStorageProvider, NOTE_STORAGE } from './storage/note-storage.interface';
+export { NoteStorageProvider, NoteStorageEntry, NOTE_STORAGE } from './storage/note-storage.interface';
 
 // Search seam
 export { SearchProvider, SearchDocument, SearchHit, SEARCH_PROVIDER } from './search/search-provider.interface';

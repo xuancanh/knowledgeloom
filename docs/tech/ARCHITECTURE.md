@@ -60,6 +60,12 @@ server/src/storage/        Pluggable note storage: LocalNoteStorage or S3NoteSto
 
 All write routes are guarded by `WritableGuard` via `@UseGuards(WritableGuard)`. Mutating note routes must call `KnowledgeService.rebuildIndexes()`. That keeps category markdown, flashcard cache, JSON compatibility output, and Meilisearch synchronized with the markdown source files. In read-only mode, rebuilds return computed state without writing generated files or syncing Meilisearch.
 
+Rebuilds list the complete note store so external additions, edits, moves, and
+deletions remain authoritative. Storage-native fingerprints (filesystem
+metadata or S3 ETags) let the note repository reuse parsed unchanged sources
+from a bounded LRU cache; changed notes are read with capped concurrency. Tune
+this with `NOTE_SOURCE_CACHE_MAX_MB` and `NOTE_READ_CONCURRENCY`.
+
 `NotesModule` (service + controller) and `NotesFileModule` (repository only) are intentionally split to break a circular dependency with `KnowledgeModule`.
 
 `GET /api/search` is declared in `KnowledgeModule` rather than `SearchModule` for the same reason.

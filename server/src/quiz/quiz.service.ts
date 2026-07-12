@@ -7,6 +7,7 @@ import { QuizReviewsRepository, type QuizReview } from './quiz-reviews.repositor
 import { QuizHiddenRepository } from './quiz-hidden.repository';
 import type { GenSize, KnowledgeNote, NoteSource, QuizQuestion } from '../types';
 import { untrustedContentBlock } from '../common/untrusted-content.util';
+import { failedGenerationTimestamp, shouldReuseGeneration } from '../common/generation-cache.util';
 
 const SIZE_RANGE: Record<GenSize, { min: number; max: number; cap: number }> = {
   small:  { min: 5,  max: 10, cap: 10 },
@@ -40,6 +41,7 @@ export class QuizService {
   async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<QuizQuestion[]> {
     const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;
+    const retryMs = this.config.get<number>('aiGenerationRetryMs');
 
     if (disabled) {
       const noteIds = new Set(noteSources.map(({ note }) => note.id));
@@ -55,7 +57,7 @@ export class QuizService {
       const { note, markdown } = source;
       const hash = this.noteHash(note, markdown);
       const cached = cache[note.id];
-      if (!force && cached?.hash === hash && Array.isArray(cached.questions)) {
+      if (!force && Array.isArray(cached?.questions) && shouldReuseGeneration(cached, hash, retryMs)) {
         nextNotes[note.id] = cached;
       } else {
         uncached.push(source);
@@ -74,7 +76,11 @@ export class QuizService {
             nextNotes[note.id] = { hash: this.noteHash(note, markdown), questions, generatedAt: new Date().toISOString() };
           } catch (err) {
             this.logger.warn(`quiz generation failed for ${note.id}: ${(err as Error).message}`);
-            if (cache[note.id]) nextNotes[note.id] = cache[note.id];
+            nextNotes[note.id] = {
+              hash: this.noteHash(note, markdown),
+              questions: cache[note.id]?.questions || [],
+              generatedAt: failedGenerationTimestamp(),
+            };
           }
         }),
       );

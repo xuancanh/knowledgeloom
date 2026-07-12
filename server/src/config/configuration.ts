@@ -55,6 +55,9 @@ export default () => {
 
   const databaseDialect = getArg('--db-dialect') || getArg('--database-dialect') || process.env.DATABASE_DIALECT || 'sqlite';
   const databaseUrl = getArg('--db-url') || getArg('--database-url') || process.env.DATABASE_URL || '';
+  const configuredSourceCacheMb = Number(process.env.NOTE_SOURCE_CACHE_MAX_MB ?? 64);
+  const configuredReadConcurrency = Number(process.env.NOTE_READ_CONCURRENCY ?? 16);
+  const configuredGenerationRetryMs = Number(process.env.AI_GENERATION_RETRY_MS ?? 900_000);
 
   return {
     port: Number(process.env.PORT || 8787),
@@ -85,6 +88,7 @@ export default () => {
     codexJobMaxAttempts: Number(process.env.CODEX_JOB_MAX_ATTEMPTS || 3),
     codexJobRetryMs: Number(process.env.CODEX_JOB_RETRY_MS || 60000),
     aiFlashcardsDisabled: process.env.AI_FLASHCARDS_DISABLED === '1',
+    aiGenerationRetryMs: Math.max(1_000, Number.isFinite(configuredGenerationRetryMs) ? configuredGenerationRetryMs : 900_000),
     redisHost: process.env.REDIS_HOST || 'localhost',
     redisPort: Number(process.env.REDIS_PORT || 6379),
     redisPassword: process.env.REDIS_PASSWORD || '',
@@ -107,6 +111,9 @@ export default () => {
     s3AccessKeyId: process.env.S3_ACCESS_KEY_ID || '',
     s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
     s3Prefix: process.env.S3_PREFIX || 'notes/',
+    // Parsed source cache avoids re-reading unchanged notes on every rebuild.
+    noteSourceCacheMaxBytes: Math.max(0, Number.isFinite(configuredSourceCacheMb) ? configuredSourceCacheMb : 64) * 1024 * 1024,
+    noteReadConcurrency: Math.min(64, Math.max(1, Number.isInteger(configuredReadConcurrency) ? configuredReadConcurrency : 16)),
 
     // Search provider: 'meilisearch' (default) or 'inmemory'
     searchProvider: process.env.SEARCH_PROVIDER || 'meilisearch',

@@ -15,10 +15,10 @@
  */
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname, resolve, sep } from 'node:path';
-import type { NoteStorageProvider } from './note-storage.interface';
+import type { NoteStorageEntry, NoteStorageProvider } from './note-storage.interface';
 
 @Injectable()
 export class LocalNoteStorage implements NoteStorageProvider {
@@ -49,6 +49,10 @@ export class LocalNoteStorage implements NoteStorageProvider {
   }
 
   async listFiles(userId: string): Promise<string[]> {
+    return (await this.listEntries(userId)).map((entry) => entry.path);
+  }
+
+  async listEntries(userId: string): Promise<NoteStorageEntry[]> {
     const notesDir = this.userNotesDir(userId);
     await mkdir(notesDir, { recursive: true });
     return this.walkDir(notesDir, '');
@@ -94,18 +98,22 @@ export class LocalNoteStorage implements NoteStorageProvider {
     return existsSync(fullPath);
   }
 
-  private async walkDir(dir: string, prefix: string): Promise<string[]> {
+  private async walkDir(dir: string, prefix: string): Promise<NoteStorageEntry[]> {
     const entries = await readdir(dir, { withFileTypes: true });
-    const files: string[] = [];
+    const files: NoteStorageEntry[] = [];
     for (const entry of entries) {
       if (entry.name.startsWith('.')) continue;
       const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (entry.isDirectory()) {
         files.push(...(await this.walkDir(join(dir, entry.name), relative)));
       } else if (entry.isFile() && entry.name.endsWith('.md')) {
-        files.push(relative);
+        const metadata = await stat(join(dir, entry.name));
+        files.push({
+          path: relative,
+          version: `${metadata.size}:${metadata.mtimeMs}:${metadata.ctimeMs}`,
+        });
       }
     }
-    return files.sort();
+    return files.sort((a, b) => a.path.localeCompare(b.path));
   }
 }

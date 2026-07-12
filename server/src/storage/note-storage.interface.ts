@@ -27,12 +27,21 @@
  *   S3_PREFIX=notes/          # optional key prefix
  */
 
+export type NoteStorageEntry = {
+  path: string;
+  /** Changes whenever the backing object's content changes. */
+  version: string;
+};
+
 export interface NoteStorageProvider {
   /**
    * Returns all relative paths (e.g. `Engineering/note-id.md`) in the user's
    * notes store, sorted alphabetically. Used by KnowledgeService to rebuild indexes.
    */
   listFiles(userId: string): Promise<string[]>;
+
+  /** Lists note paths with cheap storage-native change fingerprints. */
+  listEntries(userId: string): Promise<NoteStorageEntry[]>;
 
   /**
    * Reads the raw markdown content of a file by its relative path.

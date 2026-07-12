@@ -8,6 +8,7 @@ import { UserFlashcardsRepository } from './user-flashcards.repository';
 import { HiddenFlashcardsRepository } from './hidden-flashcards.repository';
 import type { GenSize, KnowledgeNote, NoteSource, Flashcard } from '../types';
 import { untrustedContentBlock } from '../common/untrusted-content.util';
+import { failedGenerationTimestamp, shouldReuseGeneration } from '../common/generation-cache.util';
 
 const FC_SIZE_RANGE: Record<GenSize, { min: number; max: number; cap: number }> = {
   small:  { min: 5,  max: 10, cap: 10 },
@@ -54,6 +55,7 @@ export class FlashcardsService {
   async sync(userId: string, noteSources: NoteSource[], { force = false, aiEnabled = true, size = 'small' as GenSize } = {}): Promise<Flashcard[]> {
     const cache = await this.cacheRepo.load(userId);
     const disabled = this.config.get<boolean>('aiFlashcardsDisabled') || !aiEnabled;
+    const retryMs = this.config.get<number>('aiGenerationRetryMs');
 
     if (disabled) {
       const noteIds = new Set(noteSources.map(({ note }) => note.id));
@@ -69,7 +71,7 @@ export class FlashcardsService {
       const { note, markdown } = source;
       const hash = this.noteHash(note, markdown);
       const cached = cache[note.id];
-      if (!force && cached?.hash === hash && Array.isArray(cached.cards)) {
+      if (!force && Array.isArray(cached?.cards) && shouldReuseGeneration(cached, hash, retryMs)) {
         nextNotes[note.id] = cached;
       } else {
         uncached.push(source);
@@ -88,8 +90,13 @@ export class FlashcardsService {
             nextNotes[note.id] = { hash: this.noteHash(note, markdown), cards, generatedAt: new Date().toISOString() };
           } catch (err) {
             this.logger.warn(`flashcard generation failed for ${note.id}: ${(err as Error).message}`);
-            // Keep existing cache entry on AI failure rather than losing cards
-            if (cache[note.id]) nextNotes[note.id] = cache[note.id];
+            // Keep old cards but bind them to the current content hash with a
+            // failure marker, preventing every rebuild from retrying the same outage.
+            nextNotes[note.id] = {
+              hash: this.noteHash(note, markdown),
+              cards: cache[note.id]?.cards || [],
+              generatedAt: failedGenerationTimestamp(),
+            };
           }
         }),
       );
