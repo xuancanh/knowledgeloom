@@ -7,8 +7,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchSpaces, createSpace } from '../api';
 import { currentSpaceId, switchSpace, DEFAULT_SPACE_ID, type Space } from '../lib/spaces';
+import { useTranslation } from 'react-i18next';
 
 export default function SpaceSwitcher() {
+  const { t } = useTranslation();
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [limit, setLimit] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -53,8 +55,8 @@ export default function SpaceSwitcher() {
     try {
       const space = await createSpace(name);
       switchSpace(space.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'could not create space');
+    } catch {
+      setError(t('settings.operationFailed'));
     }
   };
 
@@ -65,10 +67,10 @@ export default function SpaceSwitcher() {
         onClick={() => { setOpen(!open); setCreating(false); setError(''); }}
         aria-haspopup="listbox"
         aria-expanded={open}
-        title="Switch space"
+        title={t('nav.switchSpace')}
       >
         <span className="space-switcher-icon">▣</span>
-        <span className="space-switcher-name">{active?.name ?? 'Personal'}</span>
+        <span className="space-switcher-name">{active?.name ?? t('settings.defaultSpace')}</span>
         <span className="space-switcher-caret">▾</span>
       </button>
 
@@ -94,7 +96,7 @@ export default function SpaceSwitcher() {
               <input
                 autoFocus
                 value={newName}
-                placeholder="Space name"
+                placeholder={t('settings.newSpaceName')}
                 maxLength={60}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
@@ -102,19 +104,19 @@ export default function SpaceSwitcher() {
                   if (e.key === 'Escape') { setCreating(false); setNewName(''); setError(''); }
                 }}
               />
-              <button className="space-switcher-create-go" onClick={() => void submitCreate()}>Create</button>
+              <button className="space-switcher-create-go" onClick={() => void submitCreate()}>{t('settings.createSpace')}</button>
               {error && <div className="space-switcher-error">{error}</div>}
             </div>
           ) : (
             <button
               className="space-switcher-item space-switcher-new"
               disabled={atLimit}
-              title={atLimit ? `Space limit reached (${limit} on your plan)` : undefined}
+              title={atLimit ? t('settings.spaceLimit', { count: limit }) : undefined}
               onClick={() => setCreating(true)}
             >
               <span className="space-switcher-check">＋</span>
               <span className="space-switcher-label">
-                New space{atLimit ? ` (limit ${limit})` : ''}
+                {t('nav.newSpace')}{atLimit ? ` (${limit})` : ''}
               </span>
             </button>
           )}

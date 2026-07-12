@@ -18,7 +18,7 @@ export function AllTagsRoute({
 
       <div className={styles.head}>
         <h1 className={styles.title}>{t('nav.tags')}</h1>
-        <p className={styles.subtitle}>{tagCounts.length} tag{tagCounts.length !== 1 ? 's' : ''}</p>
+        <p className={styles.subtitle}>{t('indexes.tagsSummary', { count: tagCounts.length })}</p>
       </div>
 
       <div className={styles.cloud}>

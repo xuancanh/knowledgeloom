@@ -138,14 +138,14 @@ export function AllCategoriesRoute({
       <div className="cat-page-head">
         <div>
           <h1>{t('nav.categories')}</h1>
-          <p>{categories.length} categor{categories.length !== 1 ? 'ies' : 'y'} · {categoryTree.length} root folder{categoryTree.length !== 1 ? 's' : ''}</p>
+          <p>{t('indexes.categoriesSummary', { categories: categories.length, roots: categoryTree.length })}</p>
         </div>
         <div className="cat-view-toggle">
-          <button className={viewMode === 'tree' ? 'active' : ''} onClick={() => setViewMode('tree')} title="Tree view">
-            ▸ Tree
+          <button className={viewMode === 'tree' ? 'active' : ''} onClick={() => setViewMode('tree')} title={t('indexes.treeView')}>
+            ▸ {t('indexes.tree')}
           </button>
-          <button className={viewMode === 'columns' ? 'active' : ''} onClick={() => setViewMode('columns')} title="Columns view">
-            ⊟ Columns
+          <button className={viewMode === 'columns' ? 'active' : ''} onClick={() => setViewMode('columns')} title={t('indexes.columnsView')}>
+            ⊟ {t('indexes.columns')}
           </button>
         </div>
       </div>

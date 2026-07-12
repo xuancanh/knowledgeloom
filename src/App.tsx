@@ -63,6 +63,7 @@ export default function App() {
 }
 
 function AuthenticatedApp() {
+  const { t } = useTranslation();
   const location = useLocation();
   const isGraph = location.pathname === '/graph';
   const isLearn = location.pathname === '/learn';
@@ -123,48 +124,49 @@ function AuthenticatedApp() {
 
       <main className={isGraph || isLearn ? 'graph-main' : ''}>
         {!isGraph && !isLearn && <div className="utility">
-          <button className="rail-toggle" onClick={() => setRailOpen(true)} aria-label="Open menu">
+          <button className="rail-toggle" onClick={() => setRailOpen(true)} aria-label={t('nav.openMenu')}>
             <span>☰</span>
           </button>
-          <button className="search-trigger" onClick={() => setSearchOpen(true)}>
+          <button className="search-trigger" onClick={() => setSearchOpen(true)} aria-label={t('shell.searchPlaceholder')}>
             <span className="glyph">⌕</span>
-            <span className="search-hint">Search notes, tags, categories…</span>
+            <span className="search-hint">{t('shell.searchPlaceholder')}</span>
             <kbd>⌘K</kbd>
           </button>
           <div className="util-actions">
             <div className="theme-drop-wrap">
               {themeDropOpen && <div className="theme-drop-backdrop" onClick={() => setThemeDropOpen(false)} />}
-              <button className={themeDropOpen ? 'theme-drop-trigger open' : 'theme-drop-trigger'} onClick={() => setThemeDropOpen((v) => !v)}>
+              <button className={themeDropOpen ? 'theme-drop-trigger open' : 'theme-drop-trigger'} onClick={() => setThemeDropOpen((v) => !v)} aria-haspopup="menu" aria-expanded={themeDropOpen}>
                 <span className="glyph">{themeLabels[theme].icon}</span>
-                <span className="util-label">{themeLabels[theme].label}</span>
+                <span className="util-label">{t(themeLabels[theme].labelKey)}</span>
                 <span className="util-arrow">▾</span>
               </button>
               {themeDropOpen && (
-                <div className="theme-drop">
+                <div className="theme-drop" role="menu">
                   {(Object.entries(themeLabels) as [Theme, typeof themeLabels[Theme]][]).map(([key, val]) => (
                     <button
                       key={key}
+                      role="menuitem"
                       className={theme === key ? 'active' : ''}
                       onClick={() => { setTheme(key); setThemeDropOpen(false); }}
                     >
                       <span>{val.icon}</span>
-                      {val.label}
+                      {t(val.labelKey)}
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <button onClick={() => setFontStyle((v) => fontStyleLabels[v].next)} title={fontStyleLabels[fontStyle].label}>
+            <button onClick={() => setFontStyle((v) => fontStyleLabels[v].next)} title={t(fontStyleLabels[fontStyle].labelKey)}>
               <span className="glyph">{fontStyleLabels[fontStyle].icon}</span>
-              <span className="util-label">{fontStyleLabels[fontStyle].label}</span>
+              <span className="util-label">{t(fontStyleLabels[fontStyle].labelKey)}</span>
             </button>
-            <button onClick={() => setCompactMode((v) => !v)} title={compactMode ? 'Comfort' : 'Compact'}>
+            <button onClick={() => setCompactMode((v) => !v)} title={compactMode ? t('shell.comfort') : t('shell.compact')}>
               <span className="glyph">{compactMode ? '▤' : '□'}</span>
-              <span className="util-label">{compactMode ? 'Compact' : 'Comfort'}</span>
+              <span className="util-label">{compactMode ? t('shell.compact') : t('shell.comfort')}</span>
             </button>
-            <button onClick={goHome} title="Desk">
+            <button onClick={goHome} title={t('common.desk')}>
               <span className="glyph">✦</span>
-              <span className="util-label">Desk</span>
+              <span className="util-label">{t('common.desk')}</span>
             </button>
           </div>
         </div>}

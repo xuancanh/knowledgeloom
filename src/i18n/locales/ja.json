@@ -38,6 +38,7 @@
     "appName": "ナレッジルーム",
     "tagline": "学んだことを記録する場所",
     "closeMenu": "メニューを閉じる",
+    "openMenu": "メニューを開く", "study": "学習", "today": "今日", "learn": "レッスン", "marketplace": "マーケット", "switchSpace": "スペースを切替", "newSpace": "新しいスペース",
     "capture": "記録",
     "search": "検索",
     "activity": "アクティビティ",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "一致するカテゴリがありません",
     "noTagsMatch": "一致するタグがありません"
   },
+  "shell": { "searchPlaceholder": "ノート、タグ、カテゴリを検索…", "themeWarm": "暖色", "themeWhite": "白", "themeMinimal": "ミニマル", "themeDark": "ダーク", "themeNight": "夜", "fontSerif": "明朝体", "fontSans": "ゴシック体", "compact": "コンパクト", "comfort": "標準" },
+  "clip": { "title": "ウェブクリッパー", "clipping": "クリップ中…", "noUrl": "クリップするURLがありません。", "queued": "クリップしました。AIがページをノートに変換しています。", "failed": "クリップに失敗しました。", "viewActivity": "アクティビティを見る", "backToDesk": "デスクに戻る" },
+  "indexes": { "categoriesSummary": "{{categories}}カテゴリ · {{roots}}ルートフォルダ", "treeView": "ツリー表示", "columnsView": "列表示", "tree": "ツリー", "columns": "列", "tagsSummary": "{{count}}タグ" },
   "capture": {
     "promptQuestion": "何を学びましたか？",
     "readOnlyBanner": "読み取り専用アーカイブ",

@@ -28,7 +28,7 @@ function CategoryNode({
     <div key={node.id} className="category-tree-node">
       <div className="cat-row">
         {hasKids ? (
-          <button className="cat-toggle" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
+          <button className="cat-toggle" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }} aria-label={node.label} aria-expanded={expanded}>
             <span className={`cat-arrow ${expanded ? 'expanded' : ''}`}>▸</span>
           </button>
         ) : (
@@ -122,7 +122,7 @@ export default function Rail({
   const location = useLocation();
   const path = location.pathname;
 
-  const isHome = path === '/';
+  const isHome = path === '/' || path === '/home';
   const isActivity = path === '/activity';
   const isFlashcards = path.startsWith('/flashcards');
   const isQuiz = path.startsWith('/quiz');
@@ -204,9 +204,9 @@ export default function Rail({
             <div className="rail-group">
               <div className="cat-row">
                 <button className={`nav-item rail-group-head${isStudy ? ' active' : ''}`} onClick={() => { openStudyDefault(); setStudyOpen(true); closeRail(); }}>
-                  <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◎</span> Study
+                  <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◎</span> {t('nav.study')}
                 </button>
-                <button className="cat-toggle" onClick={(e) => { e.stopPropagation(); setStudyOpen((v) => !v); }} aria-label="Study" aria-expanded={studyOpen}>
+                <button className="cat-toggle" onClick={(e) => { e.stopPropagation(); setStudyOpen((v) => !v); }} aria-label={t('nav.study')} aria-expanded={studyOpen}>
                   <span className={`cat-arrow ${studyOpen ? 'expanded' : ''}`}>▸</span>
                 </button>
               </div>
@@ -214,7 +214,7 @@ export default function Rail({
                 <div className="category-tree-children">
                   {features.today && (
                     <button className={`nav-item${isToday ? ' active' : ''}`} onClick={() => { onToday(); closeRail(); }}>
-                      <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>☀</span> Today
+                      <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>☀</span> {t('nav.today')}
                     </button>
                   )}
                   {features.flashcards && (
@@ -231,7 +231,7 @@ export default function Rail({
                   )}
                   {features.learn && (
                     <button className={`nav-item${isLearn ? ' active' : ''}`} onClick={() => { onLearn(); closeRail(); }}>
-                      <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> Learn
+                      <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>◷</span> {t('nav.learn')}
                     </button>
                   )}
                 </div>
@@ -244,7 +244,7 @@ export default function Rail({
           </button>
           {features.marketplace && (
             <button className={`nav-item${isMarketplace ? ' active' : ''}`} onClick={() => { onMarketplace(); closeRail(); }}>
-              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⛁</span> Marketplace
+              <span style={{ width: 14, color: 'var(--accent)', flexShrink: 0 }}>⛁</span> {t('nav.marketplace')}
             </button>
           )}
           <button className={`nav-item${isSettings ? ' active' : ''}`} onClick={() => { onSettings(); closeRail(); }}>

@@ -38,6 +38,7 @@
     "appName": "Knowledge Loom",
     "tagline": "un bureau pour ce que vous venez d'apprendre",
     "closeMenu": "Fermer le menu",
+    "openMenu": "Ouvrir le menu", "study": "Étudier", "today": "Aujourd’hui", "learn": "Apprendre", "marketplace": "Marché", "switchSpace": "Changer d’espace", "newSpace": "Nouvel espace",
     "capture": "Noter",
     "search": "Rechercher",
     "activity": "Activité",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "Aucune catégorie ne correspond",
     "noTagsMatch": "Aucune étiquette ne correspond"
   },
+  "shell": { "searchPlaceholder": "Rechercher notes, étiquettes et catégories…", "themeWarm": "Chaud", "themeWhite": "Blanc", "themeMinimal": "Minimal", "themeDark": "Sombre", "themeNight": "Nuit", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Compact", "comfort": "Confort" },
+  "clip": { "title": "Capture web", "clipping": "Capture…", "noUrl": "Aucune URL à capturer.", "queued": "Page capturée ; l’IA la transforme en note.", "failed": "Échec de la capture.", "viewActivity": "Voir l’activité", "backToDesk": "Retour au bureau" },
+  "indexes": { "categoriesSummary": "{{categories}} catégories · {{roots}} dossiers racine", "treeView": "Vue arborescente", "columnsView": "Vue en colonnes", "tree": "Arbre", "columns": "Colonnes", "tagsSummary": "{{count}} étiquettes" },
   "capture": {
     "promptQuestion": "Qu'avez-vous appris ?",
     "readOnlyBanner": "Archive en lecture seule",

@@ -38,6 +38,7 @@
     "appName": "Knowledge Loom",
     "tagline": "nơi lưu giữ những gì bạn vừa học",
     "closeMenu": "Đóng menu",
+    "openMenu": "Mở menu", "study": "Học", "today": "Hôm nay", "learn": "Bài học", "marketplace": "Kho chia sẻ", "switchSpace": "Đổi không gian", "newSpace": "Không gian mới",
     "capture": "Ghi chú",
     "search": "Tìm kiếm",
     "activity": "Hoạt động",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "Không có danh mục phù hợp",
     "noTagsMatch": "Không có thẻ phù hợp"
   },
+  "shell": { "searchPlaceholder": "Tìm ghi chú, thẻ và danh mục…", "themeWarm": "Ấm", "themeWhite": "Trắng", "themeMinimal": "Tối giản", "themeDark": "Tối", "themeNight": "Ban đêm", "fontSerif": "Có chân", "fontSans": "Không chân", "compact": "Gọn", "comfort": "Thoải mái" },
+  "clip": { "title": "Lưu trang web", "clipping": "Đang lưu…", "noUrl": "Không có URL để lưu.", "queued": "Đã lưu; AI đang chuyển trang thành ghi chú.", "failed": "Lưu trang thất bại.", "viewActivity": "Xem hoạt động", "backToDesk": "Về bàn làm việc" },
+  "indexes": { "categoriesSummary": "{{categories}} danh mục · {{roots}} thư mục gốc", "treeView": "Dạng cây", "columnsView": "Dạng cột", "tree": "Cây", "columns": "Cột", "tagsSummary": "{{count}} thẻ" },
   "capture": {
     "promptQuestion": "Bạn vừa học được điều gì?",
     "readOnlyBanner": "Lưu trữ chỉ đọc",

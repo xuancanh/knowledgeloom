@@ -37,19 +37,19 @@ const preferenceKeys = {
   fontStyle: 'knowledge-loom:font-style',
 };
 
-export const themeLabels: Record<Theme, { icon: string; next: Theme; label: string }> = {
-  light: { icon: '☀', next: 'white', label: 'Warm' },
-  white: { icon: '◐', next: 'simplistic', label: 'White' },
-  simplistic: { icon: '◻', next: 'dark', label: 'Minimal' },
-  dark: { icon: '☾', next: 'midnight', label: 'Dark' },
-  midnight: { icon: '◑', next: 'light', label: 'Night' },
+export const themeLabels: Record<Theme, { icon: string; next: Theme; labelKey: string }> = {
+  light: { icon: '☀', next: 'white', labelKey: 'shell.themeWarm' },
+  white: { icon: '◐', next: 'simplistic', labelKey: 'shell.themeWhite' },
+  simplistic: { icon: '◻', next: 'dark', labelKey: 'shell.themeMinimal' },
+  dark: { icon: '☾', next: 'midnight', labelKey: 'shell.themeDark' },
+  midnight: { icon: '◑', next: 'light', labelKey: 'shell.themeNight' },
 };
 
 export type { Theme };
 
-export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle; label: string }> = {
-  serif: { icon: '𝐀', next: 'sans', label: 'Serif' },
-  sans: { icon: 'A', next: 'serif', label: 'Sans' },
+export const fontStyleLabels: Record<FontStyle, { icon: string; next: FontStyle; labelKey: string }> = {
+  serif: { icon: '𝐀', next: 'sans', labelKey: 'shell.fontSerif' },
+  sans: { icon: 'A', next: 'serif', labelKey: 'shell.fontSans' },
 };
 
 function loadTheme(): Theme {

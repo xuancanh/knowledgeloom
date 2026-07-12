@@ -38,6 +38,7 @@
     "appName": "Knowledge Loom",
     "tagline": "आपने अभी जो सीखा उसके लिए एक डेस्क",
     "closeMenu": "मेनू बंद करें",
+    "openMenu": "मेनू खोलें", "study": "अध्ययन", "today": "आज", "learn": "सीखें", "marketplace": "मार्केटप्लेस", "switchSpace": "स्पेस बदलें", "newSpace": "नया स्पेस",
     "capture": "नोट करें",
     "search": "खोजें",
     "activity": "गतिविधि",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "कोई श्रेणी मेल नहीं खाती",
     "noTagsMatch": "कोई टैग मेल नहीं खाता"
   },
+  "shell": { "searchPlaceholder": "नोट, टैग और श्रेणियाँ खोजें…", "themeWarm": "गर्म", "themeWhite": "सफेद", "themeMinimal": "न्यूनतम", "themeDark": "गहरा", "themeNight": "रात", "fontSerif": "सेरिफ़", "fontSans": "सैन्स", "compact": "कॉम्पैक्ट", "comfort": "आरामदायक" },
+  "clip": { "title": "वेब क्लिपर", "clipping": "क्लिप हो रहा है…", "noUrl": "क्लिप करने के लिए URL नहीं है।", "queued": "पेज क्लिप हो गया; AI इसे नोट में बदल रहा है।", "failed": "क्लिप विफल।", "viewActivity": "गतिविधि देखें", "backToDesk": "डेस्क पर लौटें" },
+  "indexes": { "categoriesSummary": "{{categories}} श्रेणियाँ · {{roots}} रूट फ़ोल्डर", "treeView": "ट्री दृश्य", "columnsView": "कॉलम दृश्य", "tree": "ट्री", "columns": "कॉलम", "tagsSummary": "{{count}} टैग" },
   "capture": {
     "promptQuestion": "आपने क्या सीखा?",
     "readOnlyBanner": "केवल पढ़ने योग्य संग्रह",

@@ -38,6 +38,7 @@
     "appName": "Knowledge Loom",
     "tagline": "meja untuk hal-hal yang baru kamu pelajari",
     "closeMenu": "Tutup menu",
+    "openMenu": "Buka menu", "study": "Belajar", "today": "Hari ini", "learn": "Pelajaran", "marketplace": "Marketplace", "switchSpace": "Ganti ruang", "newSpace": "Ruang baru",
     "capture": "Catat",
     "search": "Cari",
     "activity": "Aktivitas",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "Tidak ada kategori yang cocok",
     "noTagsMatch": "Tidak ada tag yang cocok"
   },
+  "shell": { "searchPlaceholder": "Cari catatan, tag, dan kategori…", "themeWarm": "Hangat", "themeWhite": "Putih", "themeMinimal": "Minimal", "themeDark": "Gelap", "themeNight": "Malam", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Ringkas", "comfort": "Nyaman" },
+  "clip": { "title": "Pemotong web", "clipping": "Memotong…", "noUrl": "Tidak ada URL untuk dipotong.", "queued": "Halaman dipotong; AI sedang mengubahnya menjadi catatan.", "failed": "Pemotongan gagal.", "viewActivity": "Lihat aktivitas", "backToDesk": "Kembali ke meja" },
+  "indexes": { "categoriesSummary": "{{categories}} kategori · {{roots}} folder akar", "treeView": "Tampilan pohon", "columnsView": "Tampilan kolom", "tree": "Pohon", "columns": "Kolom", "tagsSummary": "{{count}} tag" },
   "capture": {
     "promptQuestion": "Apa yang kamu pelajari?",
     "readOnlyBanner": "Arsip hanya-baca",

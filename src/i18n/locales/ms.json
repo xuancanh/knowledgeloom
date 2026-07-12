@@ -38,6 +38,7 @@
     "appName": "Knowledge Loom",
     "tagline": "meja untuk perkara yang baru anda pelajari",
     "closeMenu": "Tutup menu",
+    "openMenu": "Buka menu", "study": "Belajar", "today": "Hari ini", "learn": "Pelajaran", "marketplace": "Pasaran", "switchSpace": "Tukar ruang", "newSpace": "Ruang baharu",
     "capture": "Catat",
     "search": "Cari",
     "activity": "Aktiviti",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "Tiada kategori yang sepadan",
     "noTagsMatch": "Tiada tag yang sepadan"
   },
+  "shell": { "searchPlaceholder": "Cari nota, tag dan kategori…", "themeWarm": "Hangat", "themeWhite": "Putih", "themeMinimal": "Minimal", "themeDark": "Gelap", "themeNight": "Malam", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Padat", "comfort": "Selesa" },
+  "clip": { "title": "Penggunting web", "clipping": "Menggunting…", "noUrl": "Tiada URL untuk digunting.", "queued": "Halaman digunting; AI sedang menukarnya menjadi nota.", "failed": "Guntingan gagal.", "viewActivity": "Lihat aktiviti", "backToDesk": "Kembali ke meja" },
+  "indexes": { "categoriesSummary": "{{categories}} kategori · {{roots}} folder akar", "treeView": "Paparan pokok", "columnsView": "Paparan lajur", "tree": "Pokok", "columns": "Lajur", "tagsSummary": "{{count}} tag" },
   "capture": {
     "promptQuestion": "Apa yang anda pelajari?",
     "readOnlyBanner": "Arkib baca sahaja",

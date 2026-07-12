@@ -38,6 +38,7 @@
     "appName": "Knowledge Loom",
     "tagline": "a desk for things you just learned",
     "closeMenu": "Close menu",
+    "openMenu": "Open menu", "study": "Study", "today": "Today", "learn": "Learn", "marketplace": "Marketplace", "switchSpace": "Switch space", "newSpace": "New space",
     "capture": "Capture",
     "search": "Search",
     "activity": "Activity",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "No categories match",
     "noTagsMatch": "No tags match"
   },
+  "shell": { "searchPlaceholder": "Search notes, tags, categories…", "themeWarm": "Warm", "themeWhite": "White", "themeMinimal": "Minimal", "themeDark": "Dark", "themeNight": "Night", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Compact", "comfort": "Comfort" },
+  "clip": { "title": "Web clipper", "clipping": "Clipping…", "noUrl": "No URL to clip.", "queued": "Clipped — the AI is turning the page into a note.", "failed": "Clip failed.", "viewActivity": "View activity", "backToDesk": "Back to desk" },
+  "indexes": { "categoriesSummary": "{{categories}} categories · {{roots}} root folders", "treeView": "Tree view", "columnsView": "Columns view", "tree": "Tree", "columns": "Columns", "tagsSummary": "{{count}} tags" },
   "capture": {
     "promptQuestion": "What did you learn?",
     "readOnlyBanner": "Read-only archive",

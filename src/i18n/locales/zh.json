@@ -38,6 +38,7 @@
     "appName": "知识织机",
     "tagline": "记录你刚学到的一切",
     "closeMenu": "关闭菜单",
+    "openMenu": "打开菜单", "study": "学习", "today": "今日", "learn": "课程", "marketplace": "市场", "switchSpace": "切换空间", "newSpace": "新建空间",
     "capture": "记录",
     "search": "搜索",
     "activity": "活动",
@@ -52,6 +53,9 @@
     "noCategoriesMatch": "没有匹配的分类",
     "noTagsMatch": "没有匹配的标签"
   },
+  "shell": { "searchPlaceholder": "搜索笔记、标签和分类…", "themeWarm": "暖色", "themeWhite": "白色", "themeMinimal": "极简", "themeDark": "深色", "themeNight": "夜间", "fontSerif": "衬线", "fontSans": "无衬线", "compact": "紧凑", "comfort": "舒适" },
+  "clip": { "title": "网页剪藏", "clipping": "正在剪藏…", "noUrl": "没有可剪藏的网址。", "queued": "已剪藏，AI 正在将页面转换为笔记。", "failed": "剪藏失败。", "viewActivity": "查看活动", "backToDesk": "返回书桌" },
+  "indexes": { "categoriesSummary": "{{categories}} 个分类 · {{roots}} 个根文件夹", "treeView": "树状视图", "columnsView": "分栏视图", "tree": "树状", "columns": "分栏", "tagsSummary": "{{count}} 个标签" },
   "capture": {
     "promptQuestion": "你学到了什么？",
     "readOnlyBanner": "只读档案",
