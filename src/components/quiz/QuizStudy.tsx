@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { QuizQuestion } from '../../types';
 import { QUIZ_TYPE_LABELS, QUIZ_TYPE_COLORS } from './constants';
 import { FillBlankQuestion, MultipleChoiceQuestion, ShortAnswerQuestion } from './QuizQuestionRenderers';
+import { useNow } from '../../hooks/useNow';
 
 type Rating = 'correct' | 'wrong';
 
@@ -18,10 +19,11 @@ export default function QuizStudy({
   const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const now = useNow();
 
   function nextReviewLabel(nextReviewAt: string | null | undefined): string {
     if (!nextReviewAt) return '';
-    const diff = Date.parse(nextReviewAt) - Date.now();
+    const diff = Date.parse(nextReviewAt) - now;
     if (diff <= 0) return t('quiz.dueNow');
     const days = Math.ceil(diff / 86_400_000);
     return days === 1 ? t('quiz.tomorrow') : t('quiz.daysAhead', { count: days });

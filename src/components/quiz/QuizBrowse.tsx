@@ -5,6 +5,7 @@ import type { UiCategory } from '../../lib/view';
 import { QUIZ_TYPE_LABELS, QUIZ_TYPE_COLORS } from './constants';
 import { MultiSelectDropdown } from '../MultiSelectDropdown';
 import { FillBlankQuestion, MultipleChoiceQuestion, ShortAnswerQuestion } from './QuizQuestionRenderers';
+import { useNow } from '../../hooks/useNow';
 
 const ALL_TYPES: QuizQuestionType[] = ['fill-blank', 'multiple-choice', 'short-answer'];
 
@@ -44,10 +45,11 @@ export default function QuizBrowse({
   const { t } = useTranslation();
   const [confirmHide, setConfirmHide] = useState<string | null>(null);
   const [previewQuestion, setPreviewQuestion] = useState<QuizQuestion | null>(null);
+  const now = useNow();
 
   function nextReviewLabel(nextReviewAt: string | null | undefined): string {
     if (!nextReviewAt) return t('quiz.new');
-    const diff = Date.parse(nextReviewAt) - Date.now();
+    const diff = Date.parse(nextReviewAt) - now;
     if (diff <= 0) return t('quiz.dueNow');
     const days = Math.ceil(diff / 86_400_000);
     return days === 1 ? t('quiz.tomorrow') : t('quiz.daysAhead', { count: days });
@@ -66,8 +68,8 @@ export default function QuizBrowse({
 
   const dueCount = useMemo(() => filtered.filter((q) => {
     const n = q.reviewData?.nextReviewAt;
-    return !n || Date.parse(n) <= Date.now();
-  }).length, [filtered]);
+    return !n || Date.parse(n) <= now;
+  }).length, [filtered, now]);
 
   const catOptions = useMemo(
     () => categories.map((c) => ({ id: c.name, label: c.name, count: questions.filter((q) => q.category === c.name).length })),
@@ -165,7 +167,7 @@ export default function QuizBrowse({
           {filtered.map((q) => {
             const typeColor = QUIZ_TYPE_COLORS[q.type];
             const label = nextReviewLabel(q.reviewData?.nextReviewAt);
-            const isDue = !q.reviewData?.nextReviewAt || Date.parse(q.reviewData.nextReviewAt) <= Date.now();
+            const isDue = !q.reviewData?.nextReviewAt || Date.parse(q.reviewData.nextReviewAt) <= now;
             return (
               <div
                 key={q.id}

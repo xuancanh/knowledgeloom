@@ -4,6 +4,7 @@ import type { UiCategory } from '../../lib/view';
 import { reviewQuiz, hideQuiz } from '../../api';
 import QuizStudy from './QuizStudy';
 import QuizBrowse from './QuizBrowse';
+import { useNow } from '../../hooks/useNow';
 
 export default function QuizPage({
   questions,
@@ -26,6 +27,7 @@ export default function QuizPage({
   const [activeTypes, setActiveTypes] = useState<QuizQuestionType[]>([]);
   const [search, setSearch] = useState('');
   const [localQuestions, setLocalQuestions] = useState(questions);
+  const now = useNow();
 
   // Keep localQuestions in sync when parent updates (polls), except streak/reviewData changes from sessions
   const questionsKey = questions.map((q) => q.id).join(',');
@@ -48,11 +50,10 @@ export default function QuizPage({
 
   // Smart session: due-first, then new, then scheduled
   const sessionQuestions = useMemo(() => {
-    const now = Date.now();
     const due = filtered.filter((q) => !q.reviewData?.nextReviewAt || Date.parse(q.reviewData.nextReviewAt) <= now);
     if (due.length > 0) return due;
     return filtered;
-  }, [filtered]);
+  }, [filtered, now]);
 
   const toggleType = useCallback((t: QuizQuestionType) => {
     setActiveTypes((prev) => prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]);
