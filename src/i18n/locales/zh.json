@@ -99,6 +99,8 @@
     "active": "活跃",
     "done": "完成",
     "failed": "失败",
+    "searchDegradedTitle": "搜索索引需要处理",
+    "searchDegradedBody": "{{engine}} 无法同步最新笔记。基础搜索仍可使用，但全文结果可能已过期。",
     "tabAll": "全部 · {{count}}",
     "tabActive": "活跃 · {{count}}",
     "tabDone": "完成 · {{count}}",

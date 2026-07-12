@@ -20,6 +20,7 @@ import { initReactI18next } from 'react-i18next';
 import en from '../src/i18n/locales/en.json';
 import { MultiSelectDropdown } from '../src/components/MultiSelectDropdown';
 import { FlashcardDone } from '../src/components/flashcards/FlashcardDone';
+import ActivityPage from '../src/components/activity/ActivityPage';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -98,4 +99,23 @@ test('FlashcardDone: restart and exit buttons fire their callbacks', () => {
   fireEvent.click(buttons[1]); // back to collection
   assert.equal(restarted, 1);
   assert.equal(exited, 1);
+});
+
+test('ActivityPage: shows degraded search status without exposing raw errors', () => {
+  render(
+    <ActivityPage
+      jobs={[]}
+      searchStatus={{
+        engine: 'meilisearch',
+        state: 'degraded',
+        lastAttemptAt: '2026-01-01T00:00:00.000Z',
+        lastSuccessAt: null,
+        error: 'secret infrastructure detail',
+      }}
+      onOpenNote={() => {}}
+    />,
+  );
+  assert.ok(screen.getByText('Search index needs attention'));
+  assert.match(screen.getByRole('status').textContent ?? '', /meilisearch/);
+  assert.doesNotMatch(document.body.textContent ?? '', /secret infrastructure detail/);
 });

@@ -95,7 +95,16 @@ export interface KnowledgeState {
   readNoteIds: string[];
   readCounts: Record<string, number>;
   userSettings: Record<string, unknown>;
+  searchStatus: SearchStatus;
   updatedAt: string;
+}
+
+export interface SearchStatus {
+  engine: string;
+  state: 'unknown' | 'healthy' | 'degraded';
+  lastAttemptAt: string | null;
+  lastSuccessAt: string | null;
+  error: string | null;
 }
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'error';

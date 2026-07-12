@@ -99,6 +99,8 @@
     "active": "activo",
     "done": "completado",
     "failed": "fallido",
+    "searchDegradedTitle": "El índice de búsqueda requiere atención",
+    "searchDegradedBody": "{{engine}} no pudo sincronizar las notas más recientes. La búsqueda básica funciona, pero los resultados de texto completo pueden estar desactualizados.",
     "tabAll": "Todo · {{count}}",
     "tabActive": "Activo · {{count}}",
     "tabDone": "Completado · {{count}}",

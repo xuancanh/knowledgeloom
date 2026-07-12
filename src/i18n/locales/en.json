@@ -99,6 +99,8 @@
     "active": "active",
     "done": "done",
     "failed": "failed",
+    "searchDegradedTitle": "Search index needs attention",
+    "searchDegradedBody": "{{engine}} could not sync the latest notes. Basic search still works, but full-text results may be stale.",
     "tabAll": "All · {{count}}",
     "tabActive": "Active · {{count}}",
     "tabDone": "Done · {{count}}",

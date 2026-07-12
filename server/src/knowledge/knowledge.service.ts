@@ -80,16 +80,19 @@ export class KnowledgeService {
     // Settings are always read fresh here (not part of the rebuild cycle) so
     // they reflect the latest PATCH /api/settings immediately. Settings are
     // per user, not per space — hence ownerOf().
-    const userSettings = await this.settingsRepo.get(ownerOf(userId));
+    const [userSettings, searchStatus] = await Promise.all([
+      this.settingsRepo.get(ownerOf(userId)),
+      this.searchService.getStatus(userId),
+    ]);
 
     // If we have a cached snapshot, serve it immediately (background rebuild will update it).
-    if (cached) return { ...cached, userSettings };
+    if (cached) return { ...cached, userSettings, searchStatus };
 
     // No cached state yet (first startup) — wait for the rebuild. In read-only
     // mode index.json is never written, so within the cooldown there may be
     // neither a cache nor an in-flight rebuild; rebuild synchronously then.
     const state = await (this.backgroundRebuilds.get(userId) ?? this.rebuildIndexes(userId));
-    return { ...state, userSettings };
+    return { ...state, userSettings, searchStatus: await this.searchService.getStatus(userId) };
   }
 
   /**
@@ -215,13 +218,25 @@ export class KnowledgeService {
 
     // userSettings is intentionally {} here — getState() overlays the live value
     // from the DB so it's always fresh without being tied to the rebuild cycle.
-    const state: KnowledgeState = { notes, categories, graph, flashcards: enrichedFlashcards, quizQuestions: enrichedQuizQuestions, readNoteIds, readCounts, userSettings: {}, updatedAt: new Date().toISOString() };
+    const state: KnowledgeState = {
+      notes,
+      categories,
+      graph,
+      flashcards: enrichedFlashcards,
+      quizQuestions: enrichedQuizQuestions,
+      readNoteIds,
+      readCounts,
+      userSettings: {},
+      searchStatus: await this.searchService.getStatus(userId),
+      updatedAt: new Date().toISOString(),
+    };
 
     if (!this.readOnly) {
       await this.noteRepo.writeIndexJson(userId, state);
       await this.searchService.sync(userId, notes).catch((err: Error) => {
-        console.warn(`Search sync skipped: ${err.message}`);
+        this.logger.warn(`Search sync skipped: ${err.message}`);
       });
+      state.searchStatus = await this.searchService.getStatus(userId);
     }
 
     return state;

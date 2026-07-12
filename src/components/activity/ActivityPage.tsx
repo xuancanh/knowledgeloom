@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { LearnJob } from '../../types';
+import type { LearnJob, SearchStatus } from '../../types';
 import { jobState } from '../../lib/view';
 import { formatJobDate } from '../../lib/format';
 import styles from './ActivityPage.module.css';
@@ -10,9 +10,11 @@ type Filter = 'all' | 'active' | 'done' | 'failed';
 
 export default function ActivityPage({
   jobs,
+  searchStatus,
   onOpenNote,
 }: {
   jobs: LearnJob[];
+  searchStatus?: SearchStatus;
   onOpenNote: (id: string) => void;
 }) {
   const { t } = useTranslation();
@@ -66,6 +68,13 @@ export default function ActivityPage({
           )}
         </div>
       </div>
+
+      {searchStatus?.state === 'degraded' && (
+        <div className={styles.searchWarning} role="status">
+          <strong>{t('activity.searchDegradedTitle')}</strong>
+          <span>{t('activity.searchDegradedBody', { engine: searchStatus.engine })}</span>
+        </div>
+      )}
 
       <div className={styles.filters}>
         {filters.map(({ key, label }) => (

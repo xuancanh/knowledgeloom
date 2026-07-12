@@ -99,6 +99,8 @@
     "active": "aktif",
     "done": "selesai",
     "failed": "gagal",
+    "searchDegradedTitle": "Indeks carian memerlukan perhatian",
+    "searchDegradedBody": "{{engine}} tidak dapat menyegerakkan nota terkini. Carian asas masih berfungsi, tetapi hasil teks penuh mungkin sudah lapuk.",
     "tabAll": "Semua · {{count}}",
     "tabActive": "Aktif · {{count}}",
     "tabDone": "Selesai · {{count}}",

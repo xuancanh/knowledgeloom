@@ -12,21 +12,47 @@
  * The underlying provider (Meilisearch or InMemory) is selected at startup
  * by SearchModule based on the SEARCH_PROVIDER environment variable.
  */
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { SEARCH_PROVIDER, SearchProvider, SearchHit } from './search-provider.interface';
-import type { KnowledgeNote } from '../types';
+import type { KnowledgeNote, SearchStatus } from '../types';
+import { SearchStatusRepository } from './search-status.repository';
+import { degradedSearchStatus, healthySearchStatus } from './search-status.util';
 
 @Injectable()
 export class SearchService {
-  constructor(@Inject(SEARCH_PROVIDER) private readonly provider: SearchProvider) {}
+  private readonly logger = new Logger(SearchService.name);
+
+  constructor(
+    @Inject(SEARCH_PROVIDER) private readonly provider: SearchProvider,
+    private readonly statuses: SearchStatusRepository,
+  ) {}
 
   /** Human-readable name of the active provider, e.g. "meilisearch" or "inmemory". */
   engineName(): string {
     return this.provider.constructor.name.replace(/SearchProvider$|Provider$/, '').toLowerCase() || 'unknown';
   }
 
-  sync(userId: string, notes: KnowledgeNote[]) {
-    return this.provider.sync(userId, notes);
+  async sync(userId: string, notes: KnowledgeNote[]) {
+    const engine = this.engineName();
+    const attemptedAt = new Date().toISOString();
+    const previous = await this.statuses.get(userId, engine);
+    try {
+      const result = await this.provider.sync(userId, notes);
+      await this.saveStatus(userId, healthySearchStatus(engine, attemptedAt));
+      return result;
+    } catch (error) {
+      await this.saveStatus(userId, degradedSearchStatus(
+        engine,
+        attemptedAt,
+        previous.lastSuccessAt,
+        error,
+      ));
+      throw error;
+    }
+  }
+
+  getStatus(userId: string): Promise<SearchStatus> {
+    return this.statuses.get(userId, this.engineName());
   }
 
   deleteDocument(userId: string, id: string) {
@@ -35,5 +61,11 @@ export class SearchService {
 
   search(userId: string, query: string, category?: string): Promise<SearchHit[]> {
     return this.provider.search(userId, query, category);
+  }
+
+  private async saveStatus(userId: string, status: SearchStatus): Promise<void> {
+    await this.statuses.save(userId, status).catch((error: Error) => {
+      this.logger.warn(`Could not persist search status: ${error.message}`);
+    });
   }
 }

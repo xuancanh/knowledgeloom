@@ -62,6 +62,18 @@
 .statBadge.done b { color: var(--moss); }
 .statBadge.failed b { color: var(--rust); }
 
+.searchWarning {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid var(--ochre);
+  background: color-mix(in srgb, var(--ochre) 9%, var(--surface));
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.searchWarning strong { color: var(--ink-2); }
+.searchWarning span { color: var(--muted); }
+
 /* ── Filter tabs ── */
 .filters {
   display: flex;

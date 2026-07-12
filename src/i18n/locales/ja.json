@@ -99,6 +99,8 @@
     "active": "アクティブ",
     "done": "完了",
     "failed": "失敗",
+    "searchDegradedTitle": "検索インデックスに問題があります",
+    "searchDegradedBody": "{{engine}} は最新のノートを同期できませんでした。基本検索は使えますが、全文検索の結果は古い可能性があります。",
     "tabAll": "すべて · {{count}}",
     "tabActive": "アクティブ · {{count}}",
     "tabDone": "完了 · {{count}}",

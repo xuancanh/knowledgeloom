@@ -24,6 +24,7 @@ import { MeilisearchProvider } from './meilisearch.provider';
 import { InMemorySearchProvider } from './inmemory-search.provider';
 import { SearchService } from './search.service';
 import { SEARCH_PROVIDER } from './search-provider.interface';
+import { SearchStatusRepository } from './search-status.repository';
 
 const searchProviderFactory = {
   provide: SEARCH_PROVIDER,
@@ -44,6 +45,7 @@ const searchProviderFactory = {
     MeilisearchProvider,
     InMemorySearchProvider,
     SearchService,
+    SearchStatusRepository,
   ],
   exports: [SEARCH_PROVIDER, SearchService],
 })

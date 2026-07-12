@@ -191,6 +191,8 @@ maybe('knowledge: state includes notes and categories', async () => {
   assert.equal(status, 200);
   assert.ok(json.notes.length > 0);
   assert.ok(Array.isArray(json.categories));
+  assert.equal(json.searchStatus.engine, 'inmemory');
+  assert.equal(json.searchStatus.state, 'healthy');
 });
 
 maybe('knowledge: conditional GET returns 304 when unchanged (ETag)', async () => {

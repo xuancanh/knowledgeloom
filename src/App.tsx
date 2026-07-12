@@ -189,7 +189,7 @@ function AuthenticatedApp() {
               />
             } />
             <Route path="/activity" element={
-              <ActivityPage jobs={jobs} onOpenNote={openNote} />
+              <ActivityPage jobs={jobs} searchStatus={state.searchStatus} onOpenNote={openNote} />
             } />
             <Route path="/flashcards/*" element={
               !features.flashcards ? <Navigate to="/home" replace /> :

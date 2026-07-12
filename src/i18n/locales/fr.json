@@ -99,6 +99,8 @@
     "active": "actif",
     "done": "terminé",
     "failed": "échoué",
+    "searchDegradedTitle": "L’index de recherche nécessite une intervention",
+    "searchDegradedBody": "{{engine}} n’a pas pu synchroniser les dernières notes. La recherche simple fonctionne toujours, mais les résultats en texte intégral peuvent être obsolètes.",
     "tabAll": "Tout · {{count}}",
     "tabActive": "Actif · {{count}}",
     "tabDone": "Terminé · {{count}}",

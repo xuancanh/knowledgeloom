@@ -99,6 +99,8 @@
     "active": "đang hoạt động",
     "done": "hoàn thành",
     "failed": "thất bại",
+    "searchDegradedTitle": "Chỉ mục tìm kiếm cần được xử lý",
+    "searchDegradedBody": "{{engine}} không thể đồng bộ các ghi chú mới nhất. Tìm kiếm cơ bản vẫn hoạt động, nhưng kết quả toàn văn có thể đã cũ.",
     "tabAll": "Tất cả · {{count}}",
     "tabActive": "Đang hoạt động · {{count}}",
     "tabDone": "Hoàn thành · {{count}}",
