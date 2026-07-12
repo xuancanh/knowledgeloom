@@ -109,6 +109,19 @@
     "noJobsFilter": "没有{{filter}}任务。",
     "running": "运行中"
   },
+  "marketplace": {
+    "title": "市场", "browse": "浏览", "myListings": "我的发布",
+    "ratingSummary": "{{count}} 个评分，平均 {{value}}", "noRatings": "暂无评分", "rateStars": "评为 {{count}} 星", "unrated": "未评分",
+    "collection": "合集", "deck": "卡组", "byAuthor": "作者：{{author}}", "importCount": "导入 {{count}} 次",
+    "unpublish": "取消发布", "unpublishFailed": "无法取消发布。", "importing": "正在导入…", "importAction": "导入到我的知识库",
+    "report": "举报", "confirmReport": "确认举报", "reported": "已举报「{{title}}」。", "reportFailed": "无法举报此内容。",
+    "importSuccess": "已导入 {{notes}} 篇笔记、{{flashcards}} 张闪卡和 {{quiz}} 道测验题。", "importFailed": "导入失败。",
+    "published": "已发布。", "publishFailed": "发布失败。", "rated": "已将「{{title}}」评为 {{stars}}★。", "ratingFailed": "评分失败。",
+    "openImported": "打开已导入笔记", "searchPlaceholder": "搜索卡组和合集…", "decks": "卡组", "collections": "合集",
+    "empty": "暂无发布内容。", "publishShare": "发布共享内容", "noShares": "没有可用的共享链接。", "chooseShare": "选择共享内容…",
+    "collectionOption": "合集：{{name}}", "noteOption": "笔记：{{name}}", "listingTitle": "发布标题",
+    "descriptionOptional": "描述（可选）", "tagsOptional": "标签，用逗号分隔（可选）", "publish": "发布"
+  },
   "flashcards": {
     "title": "闪卡",
     "subtitle": "根据你的笔记生成的 AI 微课程。开始一次专注练习，或点击任意卡片预览。",

@@ -109,6 +109,19 @@
     "noJobsFilter": "Tidak ada pekerjaan {{filter}}.",
     "running": "Sedang berjalan"
   },
+  "marketplace": {
+    "title": "Marketplace", "browse": "Jelajahi", "myListings": "Daftar saya",
+    "ratingSummary": "{{value}} dari {{count}} penilaian", "noRatings": "Belum ada penilaian", "rateStars": "Beri {{count}} bintang", "unrated": "Belum dinilai",
+    "collection": "koleksi", "deck": "dek", "byAuthor": "oleh {{author}}", "importCount": "{{count}} impor",
+    "unpublish": "Batalkan publikasi", "unpublishFailed": "Gagal membatalkan publikasi.", "importing": "Mengimpor…", "importAction": "Impor ke brankas saya",
+    "report": "Laporkan", "confirmReport": "Konfirmasi laporan", "reported": "“{{title}}” telah dilaporkan.", "reportFailed": "Gagal melaporkan daftar.",
+    "importSuccess": "Mengimpor {{notes}} catatan, {{flashcards}} kartu, dan {{quiz}} pertanyaan kuis.", "importFailed": "Impor gagal.",
+    "published": "Dipublikasikan.", "publishFailed": "Publikasi gagal.", "rated": "Menilai “{{title}}” {{stars}}★.", "ratingFailed": "Penilaian gagal.",
+    "openImported": "Buka catatan yang diimpor", "searchPlaceholder": "Cari dek dan koleksi…", "decks": "Dek", "collections": "Koleksi",
+    "empty": "Belum ada daftar.", "publishShare": "Publikasikan berbagi", "noShares": "Tidak ada tautan berbagi.", "chooseShare": "Pilih berbagi…",
+    "collectionOption": "Koleksi: {{name}}", "noteOption": "Catatan: {{name}}", "listingTitle": "Judul daftar",
+    "descriptionOptional": "Deskripsi (opsional)", "tagsOptional": "Tag, dipisahkan koma (opsional)", "publish": "Publikasikan"
+  },
   "flashcards": {
     "title": "Kartu Belajar",
     "subtitle": "Pelajaran singkat buatan AI dari catatanmu. Mulai sesi belajar atau klik kartu mana saja.",

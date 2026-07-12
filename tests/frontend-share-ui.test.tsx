@@ -27,6 +27,7 @@ await i18n.use(initReactI18next).init({
 });
 
 const SettingsPage = (await import('../src/components/settings/SettingsPage')).default;
+const MarketplacePage = (await import('../src/components/marketplace/MarketplacePage')).default;
 
 const originalFetch = globalThis.fetch;
 
@@ -97,4 +98,32 @@ test('SettingsPage exposes backup controls and disables restore in read-only mod
   assert.ok(screen.getByRole('button', { name: 'Export backup' }));
   assert.equal((screen.getByLabelText('Backup file') as HTMLInputElement).disabled, true);
   assert.equal((screen.getByRole('switch', { name: /Flashcards/ }) as HTMLButtonElement).disabled, true);
+});
+
+test('MarketplacePage confirms and submits a listing report', async () => {
+  const requests: Array<{ url: string; method: string }> = [];
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    const method = init?.method || 'GET';
+    requests.push({ url, method });
+    if (url.includes('/report')) {
+      return new Response(JSON.stringify({ reported: 'listing-1', reportCount: 1, unpublished: false }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({
+      listings: [{
+        id: 'listing-1', title: 'Shared Deck', description: '', kind: 'note', tags: [], author: '',
+        imports: 0, publishedAt: '2026-01-01', avgStars: null, ratingCount: 0,
+      }],
+    }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+
+  render(<MarketplacePage onOpenNote={() => {}} />);
+  assert.ok(await screen.findByText('Shared Deck'));
+  fireEvent.click(screen.getByRole('button', { name: 'Report' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm report' }));
+
+  await screen.findByText('Reported “Shared Deck”.');
+  assert.ok(requests.some((request) => request.method === 'POST' && request.url.endsWith('/api/marketplace/listing-1/report')));
 });

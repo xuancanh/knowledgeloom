@@ -109,6 +109,19 @@
     "noJobsFilter": "{{filter}}のジョブはありません。",
     "running": "実行中"
   },
+  "marketplace": {
+    "title": "マーケットプレイス", "browse": "閲覧", "myListings": "自分の出品",
+    "ratingSummary": "{{count}}件の評価で{{value}}", "noRatings": "評価はまだありません", "rateStars": "{{count}}つ星で評価", "unrated": "未評価",
+    "collection": "コレクション", "deck": "デッキ", "byAuthor": "作成者 {{author}}", "importCount": "{{count}}回インポート",
+    "unpublish": "公開を停止", "unpublishFailed": "公開を停止できませんでした。", "importing": "インポート中…", "importAction": "自分の保管庫にインポート",
+    "report": "報告", "confirmReport": "報告を確定", "reported": "「{{title}}」を報告しました。", "reportFailed": "出品を報告できませんでした。",
+    "importSuccess": "{{notes}}件のノート、{{flashcards}}枚のカード、{{quiz}}問のクイズをインポートしました。", "importFailed": "インポートに失敗しました。",
+    "published": "公開しました。", "publishFailed": "公開に失敗しました。", "rated": "「{{title}}」を{{stars}}★で評価しました。", "ratingFailed": "評価に失敗しました。",
+    "openImported": "インポートしたノートを開く", "searchPlaceholder": "デッキとコレクションを検索…", "decks": "デッキ", "collections": "コレクション",
+    "empty": "出品はまだありません。", "publishShare": "共有を公開", "noShares": "利用できる共有リンクがありません。", "chooseShare": "共有を選択…",
+    "collectionOption": "コレクション：{{name}}", "noteOption": "ノート：{{name}}", "listingTitle": "出品タイトル",
+    "descriptionOptional": "説明（任意）", "tagsOptional": "タグ、カンマ区切り（任意）", "publish": "公開"
+  },
   "flashcards": {
     "title": "フラッシュカード",
     "subtitle": "ノートからAIが生成した短いレッスンです。集中セッションを始めるか、カードをクリックして確認できます。",

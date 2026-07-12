@@ -109,6 +109,19 @@
     "noJobsFilter": "No {{filter}} jobs.",
     "running": "Running"
   },
+  "marketplace": {
+    "title": "Marketplace", "browse": "Browse", "myListings": "My listings",
+    "ratingSummary": "{{value}} from {{count}} ratings", "noRatings": "No ratings yet", "rateStars": "Rate {{count}} stars", "unrated": "Unrated",
+    "collection": "collection", "deck": "deck", "byAuthor": "by {{author}}", "importCount": "{{count}} imports",
+    "unpublish": "Unpublish", "unpublishFailed": "Could not unpublish the listing.", "importing": "Importing…", "importAction": "Import to my vault",
+    "report": "Report", "confirmReport": "Confirm report", "reported": "Reported “{{title}}”.", "reportFailed": "Could not report the listing.",
+    "importSuccess": "Imported {{notes}} notes, {{flashcards}} flashcards, and {{quiz}} quiz questions.", "importFailed": "Import failed.",
+    "published": "Published.", "publishFailed": "Publish failed.", "rated": "Rated “{{title}}” {{stars}}★.", "ratingFailed": "Rating failed.",
+    "openImported": "Open imported note", "searchPlaceholder": "Search decks and collections…", "decks": "Decks", "collections": "Collections",
+    "empty": "No listings yet.", "publishShare": "Publish a share", "noShares": "No share links available.", "chooseShare": "Choose a share…",
+    "collectionOption": "Collection: {{name}}", "noteOption": "Note: {{name}}", "listingTitle": "Listing title",
+    "descriptionOptional": "Description (optional)", "tagsOptional": "Tags, comma-separated (optional)", "publish": "Publish"
+  },
   "flashcards": {
     "title": "Flashcards",
     "subtitle": "AI-generated micro lessons from your notes. Start a focused session or click any card.",

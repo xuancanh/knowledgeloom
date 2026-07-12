@@ -109,6 +109,19 @@
     "noJobsFilter": "No hay trabajos {{filter}}.",
     "running": "En ejecución"
   },
+  "marketplace": {
+    "title": "Mercado", "browse": "Explorar", "myListings": "Mis publicaciones",
+    "ratingSummary": "{{value}} de {{count}} valoraciones", "noRatings": "Aún sin valoraciones", "rateStars": "Valorar con {{count}} estrellas", "unrated": "Sin valorar",
+    "collection": "colección", "deck": "mazo", "byAuthor": "por {{author}}", "importCount": "{{count}} importaciones",
+    "unpublish": "Retirar", "unpublishFailed": "No se pudo retirar la publicación.", "importing": "Importando…", "importAction": "Importar a mi bóveda",
+    "report": "Denunciar", "confirmReport": "Confirmar denuncia", "reported": "Se denunció «{{title}}».", "reportFailed": "No se pudo denunciar la publicación.",
+    "importSuccess": "Se importaron {{notes}} notas, {{flashcards}} tarjetas y {{quiz}} preguntas.", "importFailed": "Error al importar.",
+    "published": "Publicado.", "publishFailed": "Error al publicar.", "rated": "«{{title}}» recibió {{stars}}★.", "ratingFailed": "Error al valorar.",
+    "openImported": "Abrir nota importada", "searchPlaceholder": "Buscar mazos y colecciones…", "decks": "Mazos", "collections": "Colecciones",
+    "empty": "Aún no hay publicaciones.", "publishShare": "Publicar un recurso", "noShares": "No hay enlaces compartidos disponibles.", "chooseShare": "Elegir un recurso…",
+    "collectionOption": "Colección: {{name}}", "noteOption": "Nota: {{name}}", "listingTitle": "Título de la publicación",
+    "descriptionOptional": "Descripción (opcional)", "tagsOptional": "Etiquetas separadas por comas (opcional)", "publish": "Publicar"
+  },
   "flashcards": {
     "title": "Tarjetas",
     "subtitle": "Microlecciones generadas por IA a partir de tus notas. Inicia una sesión de repaso o haz clic en cualquier tarjeta.",

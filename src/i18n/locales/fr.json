@@ -109,6 +109,19 @@
     "noJobsFilter": "Aucune tâche {{filter}}.",
     "running": "En cours"
   },
+  "marketplace": {
+    "title": "Marché", "browse": "Parcourir", "myListings": "Mes publications",
+    "ratingSummary": "{{value}} sur {{count}} évaluations", "noRatings": "Aucune évaluation", "rateStars": "Noter {{count}} étoiles", "unrated": "Non évalué",
+    "collection": "collection", "deck": "paquet", "byAuthor": "par {{author}}", "importCount": "{{count}} importations",
+    "unpublish": "Dépublier", "unpublishFailed": "Impossible de dépublier.", "importing": "Importation…", "importAction": "Importer dans mon coffre",
+    "report": "Signaler", "confirmReport": "Confirmer le signalement", "reported": "« {{title}} » a été signalé.", "reportFailed": "Impossible de signaler la publication.",
+    "importSuccess": "{{notes}} notes, {{flashcards}} fiches et {{quiz}} questions ont été importées.", "importFailed": "Échec de l’importation.",
+    "published": "Publié.", "publishFailed": "Échec de la publication.", "rated": "« {{title}} » a reçu {{stars}}★.", "ratingFailed": "Échec de l’évaluation.",
+    "openImported": "Ouvrir la note importée", "searchPlaceholder": "Rechercher des paquets et collections…", "decks": "Paquets", "collections": "Collections",
+    "empty": "Aucune publication.", "publishShare": "Publier un partage", "noShares": "Aucun lien de partage disponible.", "chooseShare": "Choisir un partage…",
+    "collectionOption": "Collection : {{name}}", "noteOption": "Note : {{name}}", "listingTitle": "Titre de la publication",
+    "descriptionOptional": "Description (facultative)", "tagsOptional": "Étiquettes séparées par des virgules (facultatif)", "publish": "Publier"
+  },
   "flashcards": {
     "title": "Fiches",
     "subtitle": "Micro-leçons générées par l'IA à partir de vos notes. Lancez une session de révision ou cliquez sur une fiche.",

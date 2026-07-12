@@ -608,6 +608,16 @@ export async function rateListing(id: string, stars: number, comment = ''): Prom
   return response.json();
 }
 
+export async function reportListing(id: string, reason = ''): Promise<{ reported: string; reportCount: number; unpublished: boolean }> {
+  const response = await apiFetch(`/api/marketplace/${encodeURIComponent(id)}/report`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  if (!response.ok) throw await apiError(response, 'report listing');
+  return response.json();
+}
+
 export async function browseMarketplace(q = '', kind = ''): Promise<{ listings: MarketplaceListing[] }> {
   const params = new URLSearchParams();
   if (q) params.set('q', q);

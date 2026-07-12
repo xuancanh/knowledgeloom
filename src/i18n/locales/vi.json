@@ -109,6 +109,19 @@
     "noJobsFilter": "Không có công việc {{filter}}.",
     "running": "Đang chạy"
   },
+  "marketplace": {
+    "title": "Kho chia sẻ", "browse": "Khám phá", "myListings": "Mục của tôi",
+    "ratingSummary": "{{value}} từ {{count}} lượt đánh giá", "noRatings": "Chưa có đánh giá", "rateStars": "Đánh giá {{count}} sao", "unrated": "Chưa đánh giá",
+    "collection": "bộ sưu tập", "deck": "bộ thẻ", "byAuthor": "bởi {{author}}", "importCount": "{{count}} lượt nhập",
+    "unpublish": "Hủy đăng", "unpublishFailed": "Không thể hủy đăng.", "importing": "Đang nhập…", "importAction": "Nhập vào kho của tôi",
+    "report": "Báo cáo", "confirmReport": "Xác nhận báo cáo", "reported": "Đã báo cáo “{{title}}”.", "reportFailed": "Không thể báo cáo mục này.",
+    "importSuccess": "Đã nhập {{notes}} ghi chú, {{flashcards}} thẻ học và {{quiz}} câu hỏi.", "importFailed": "Nhập thất bại.",
+    "published": "Đã đăng.", "publishFailed": "Đăng thất bại.", "rated": "Đã đánh giá “{{title}}” {{stars}}★.", "ratingFailed": "Đánh giá thất bại.",
+    "openImported": "Mở ghi chú đã nhập", "searchPlaceholder": "Tìm bộ thẻ và bộ sưu tập…", "decks": "Bộ thẻ", "collections": "Bộ sưu tập",
+    "empty": "Chưa có mục nào.", "publishShare": "Đăng nội dung chia sẻ", "noShares": "Không có liên kết chia sẻ.", "chooseShare": "Chọn nội dung chia sẻ…",
+    "collectionOption": "Bộ sưu tập: {{name}}", "noteOption": "Ghi chú: {{name}}", "listingTitle": "Tiêu đề",
+    "descriptionOptional": "Mô tả (tùy chọn)", "tagsOptional": "Thẻ, phân cách bằng dấu phẩy (tùy chọn)", "publish": "Đăng"
+  },
   "flashcards": {
     "title": "Thẻ học",
     "subtitle": "Bài học ngắn do AI tạo từ ghi chú của bạn. Bắt đầu một phiên ôn tập hoặc bấm vào bất kỳ thẻ nào.",

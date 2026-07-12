@@ -109,6 +109,19 @@
     "noJobsFilter": "कोई {{filter}} काम नहीं।",
     "running": "चल रहा है"
   },
+  "marketplace": {
+    "title": "मार्केटप्लेस", "browse": "देखें", "myListings": "मेरी सूचियाँ",
+    "ratingSummary": "{{count}} रेटिंग से {{value}}", "noRatings": "अभी कोई रेटिंग नहीं", "rateStars": "{{count}} स्टार दें", "unrated": "रेटिंग नहीं",
+    "collection": "संग्रह", "deck": "डेक", "byAuthor": "{{author}} द्वारा", "importCount": "{{count}} आयात",
+    "unpublish": "प्रकाशन हटाएं", "unpublishFailed": "प्रकाशन नहीं हटाया जा सका।", "importing": "आयात हो रहा है…", "importAction": "मेरी वॉल्ट में आयात करें",
+    "report": "रिपोर्ट करें", "confirmReport": "रिपोर्ट की पुष्टि करें", "reported": "“{{title}}” रिपोर्ट किया गया।", "reportFailed": "सूची रिपोर्ट नहीं की जा सकी।",
+    "importSuccess": "{{notes}} नोट, {{flashcards}} फ्लैशकार्ड और {{quiz}} क्विज़ प्रश्न आयात हुए।", "importFailed": "आयात विफल।",
+    "published": "प्रकाशित।", "publishFailed": "प्रकाशन विफल।", "rated": "“{{title}}” को {{stars}}★ दिया।", "ratingFailed": "रेटिंग विफल।",
+    "openImported": "आयातित नोट खोलें", "searchPlaceholder": "डेक और संग्रह खोजें…", "decks": "डेक", "collections": "संग्रह",
+    "empty": "अभी कोई सूची नहीं।", "publishShare": "शेयर प्रकाशित करें", "noShares": "कोई शेयर लिंक उपलब्ध नहीं।", "chooseShare": "शेयर चुनें…",
+    "collectionOption": "संग्रह: {{name}}", "noteOption": "नोट: {{name}}", "listingTitle": "सूची शीर्षक",
+    "descriptionOptional": "विवरण (वैकल्पिक)", "tagsOptional": "टैग, कॉमा से अलग (वैकल्पिक)", "publish": "प्रकाशित करें"
+  },
   "flashcards": {
     "title": "फ्लैशकार्ड",
     "subtitle": "आपके नोट्स से बने छोटे AI पाठ। एक अध्ययन सत्र शुरू करें या किसी भी कार्ड पर क्लिक करें।",

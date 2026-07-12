@@ -109,6 +109,19 @@
     "noJobsFilter": "Tiada kerja {{filter}}.",
     "running": "Sedang berjalan"
   },
+  "marketplace": {
+    "title": "Pasaran", "browse": "Semak imbas", "myListings": "Senarai saya",
+    "ratingSummary": "{{value}} daripada {{count}} penilaian", "noRatings": "Belum dinilai", "rateStars": "Nilai {{count}} bintang", "unrated": "Belum dinilai",
+    "collection": "koleksi", "deck": "dek", "byAuthor": "oleh {{author}}", "importCount": "{{count}} import",
+    "unpublish": "Nyahterbit", "unpublishFailed": "Gagal menyahterbit senarai.", "importing": "Mengimport…", "importAction": "Import ke bilik kebal saya",
+    "report": "Laporkan", "confirmReport": "Sahkan laporan", "reported": "“{{title}}” telah dilaporkan.", "reportFailed": "Gagal melaporkan senarai.",
+    "importSuccess": "Mengimport {{notes}} nota, {{flashcards}} kad imbas dan {{quiz}} soalan kuiz.", "importFailed": "Import gagal.",
+    "published": "Diterbitkan.", "publishFailed": "Penerbitan gagal.", "rated": "Menilai “{{title}}” {{stars}}★.", "ratingFailed": "Penilaian gagal.",
+    "openImported": "Buka nota yang diimport", "searchPlaceholder": "Cari dek dan koleksi…", "decks": "Dek", "collections": "Koleksi",
+    "empty": "Belum ada senarai.", "publishShare": "Terbitkan perkongsian", "noShares": "Tiada pautan perkongsian.", "chooseShare": "Pilih perkongsian…",
+    "collectionOption": "Koleksi: {{name}}", "noteOption": "Nota: {{name}}", "listingTitle": "Tajuk senarai",
+    "descriptionOptional": "Penerangan (pilihan)", "tagsOptional": "Tag, dipisahkan koma (pilihan)", "publish": "Terbitkan"
+  },
   "flashcards": {
     "title": "Kad Imbas",
     "subtitle": "Pelajaran ringkas yang dijana AI daripada nota anda. Mulakan sesi ulang kaji atau klik mana-mana kad.",
