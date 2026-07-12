@@ -57,6 +57,7 @@
   "clip": { "title": "ウェブクリッパー", "clipping": "クリップ中…", "noUrl": "クリップするURLがありません。", "queued": "クリップしました。AIがページをノートに変換しています。", "failed": "クリップに失敗しました。", "viewActivity": "アクティビティを見る", "backToDesk": "デスクに戻る" },
   "indexes": { "categoriesSummary": "{{categories}}カテゴリ · {{roots}}ルートフォルダ", "treeView": "ツリー表示", "columnsView": "列表示", "tree": "ツリー", "columns": "列", "tagsSummary": "{{count}}タグ" },
   "notifications": { "researchDone": "調査完了：{{topic}}", "deleteNoteConfirm": "「{{title}}」を削除しますか？Markdownソースファイルも削除されます。", "savedNote": "ノートを保存しました：{{title}}", "linkQueued": "リンクをキューに追加：{{title}}", "polishQueued": "推敲をキューに追加：{{title}}", "researchQueued": "調査をキューに追加：{{title}}", "submitFailed": "リクエストを送信できませんでした。" },
+  "importFlow": { "title": "インポート", "noteCreated": "インポートした資料からノートを作成しました。", "jobFailed": "インポート処理に失敗しました。", "structuring": "資料をノートに整理中…", "queued": "キュー済み…", "extracting": "{{name}}からテキストを抽出中…", "submitting": "テキストを送信中…", "extracted": "{{count}}文字を抽出しました。ノートを生成中…", "extractedTruncated": "{{count}}文字を抽出しました（切り詰め済み）。ノートを生成中…", "importFailed": "インポートに失敗しました。", "remove": "削除", "dropPrompt": "PDF、テキスト、音声・動画、ノート写真をここにドロップ", "browse": "参照…", "pastePlaceholder": "…または記事、講義ノート、文字起こしを貼り付け", "titleOptional": "タイトル（任意）", "categoryOptional": "カテゴリ（任意）", "tagsOptional": "タグ、カンマ区切り（任意）", "importing": "インポート中…", "action": "インポート", "openNote": "新しいノートを開く" },
   "capture": {
     "promptQuestion": "何を学びましたか？",
     "readOnlyBanner": "読み取り専用アーカイブ",

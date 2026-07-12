@@ -57,6 +57,7 @@
   "clip": { "title": "网页剪藏", "clipping": "正在剪藏…", "noUrl": "没有可剪藏的网址。", "queued": "已剪藏，AI 正在将页面转换为笔记。", "failed": "剪藏失败。", "viewActivity": "查看活动", "backToDesk": "返回书桌" },
   "indexes": { "categoriesSummary": "{{categories}} 个分类 · {{roots}} 个根文件夹", "treeView": "树状视图", "columnsView": "分栏视图", "tree": "树状", "columns": "分栏", "tagsSummary": "{{count}} 个标签" },
   "notifications": { "researchDone": "研究完成：{{topic}}", "deleteNoteConfirm": "删除「{{title}}」？这会移除 Markdown 源文件。", "savedNote": "笔记已保存：{{title}}", "linkQueued": "链接已排队：{{title}}", "polishQueued": "润色草稿已排队：{{title}}", "researchQueued": "研究已排队：{{title}}", "submitFailed": "提交请求失败。" },
+  "importFlow": { "title": "导入", "noteCreated": "已从导入材料创建笔记。", "jobFailed": "导入任务失败。", "structuring": "正在将材料整理为笔记…", "queued": "已排队…", "extracting": "正在从 {{name}} 提取文本…", "submitting": "正在提交文本…", "extracted": "已提取 {{count}} 个字符。正在生成笔记…", "extractedTruncated": "已提取 {{count}} 个字符（已截断）。正在生成笔记…", "importFailed": "导入失败。", "remove": "移除", "dropPrompt": "将 PDF、文本、音视频或笔记照片拖到此处", "browse": "浏览…", "pastePlaceholder": "…或在此粘贴文章、讲义或转录文本", "titleOptional": "标题（可选）", "categoryOptional": "分类（可选）", "tagsOptional": "标签，用逗号分隔（可选）", "importing": "正在导入…", "action": "导入", "openNote": "打开新笔记" },
   "capture": {
     "promptQuestion": "你学到了什么？",
     "readOnlyBanner": "只读档案",

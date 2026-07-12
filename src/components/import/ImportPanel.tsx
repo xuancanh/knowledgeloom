@@ -12,12 +12,14 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { importSource, fetchJob } from '../../api';
+import { useTranslation } from 'react-i18next';
 
 type Phase = 'idle' | 'uploading' | 'processing' | 'done' | 'error';
 
 const ACCEPT = '.pdf,.txt,.md,.markdown,.mp3,.m4a,.wav,.webm,.ogg,.flac,.mp4,.png,.jpg,.jpeg,.webp,audio/*,video/mp4,video/webm,image/*,application/pdf,text/plain,text/markdown';
 
 export default function ImportPanel({ onOpenNote }: { onOpenNote: (id: string) => void }) {
+  const { t, i18n } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
@@ -37,27 +39,27 @@ export default function ImportPanel({ onOpenNote }: { onOpenNote: (id: string) =
         const job = await fetchJob(jobId);
         if (job.status === 'done') {
           setPhase('done');
-          setNoteId((job as any).note?.id ?? null);
-          setMessage('Note created from the imported material.');
+          setNoteId(job.note?.id ?? null);
+          setMessage(t('importFlow.noteCreated'));
           return;
         }
         if (job.status === 'error') {
           setPhase('error');
-          setMessage(job.error || 'The import job failed.');
+          setMessage(t('importFlow.jobFailed'));
           return;
         }
-        setMessage(job.status === 'running' ? 'Structuring the material into a note…' : 'Queued…');
+        setMessage(job.status === 'running' ? t('importFlow.structuring') : t('importFlow.queued'));
       } catch { /* transient poll error — keep trying */ }
       pollRef.current = window.setTimeout(tick, 1500);
     };
     void tick();
-  }, []);
+  }, [t]);
 
   const submit = useCallback(async () => {
     if (!file && !text.trim()) return;
     setPhase('uploading');
     setNoteId(null);
-    setMessage(file ? `Extracting text from ${file.name}…` : 'Submitting text…');
+    setMessage(file ? t('importFlow.extracting', { name: file.name }) : t('importFlow.submitting'));
     try {
       const result = await importSource({
         file: file ?? undefined,
@@ -67,13 +69,15 @@ export default function ImportPanel({ onOpenNote }: { onOpenNote: (id: string) =
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       });
       setPhase('processing');
-      setMessage(`Extracted ${result.extractedChars.toLocaleString()} characters${result.truncated ? ' (truncated)' : ''}. Generating note…`);
+      setMessage(t(result.truncated ? 'importFlow.extractedTruncated' : 'importFlow.extracted', {
+        count: result.extractedChars.toLocaleString(i18n.language),
+      }));
       pollJob(result.jobId);
-    } catch (err) {
+    } catch {
       setPhase('error');
-      setMessage(err instanceof Error ? err.message : 'Import failed.');
+      setMessage(t('importFlow.importFailed'));
     }
-  }, [file, text, title, category, tags, pollJob]);
+  }, [file, text, title, category, tags, pollJob, t, i18n.language]);
 
   const busy = phase === 'uploading' || phase === 'processing';
 
@@ -94,13 +98,13 @@ export default function ImportPanel({ onOpenNote }: { onOpenNote: (id: string) =
           <>
             <span className="import-file-name">{file.name}</span>
             <span className="import-file-size">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
-            <button className="today-btn" onClick={() => setFile(null)} disabled={busy}>Remove</button>
+            <button className="today-btn" onClick={() => setFile(null)} disabled={busy}>{t('importFlow.remove')}</button>
           </>
         ) : (
           <>
-            <span>Drop a PDF, text, audio/video recording, or photo of notes here</span>
+            <span>{t('importFlow.dropPrompt')}</span>
             <label className="today-btn import-browse">
-              Browse…
+              {t('importFlow.browse')}
               <input
                 type="file"
                 accept={ACCEPT}
@@ -115,7 +119,7 @@ export default function ImportPanel({ onOpenNote }: { onOpenNote: (id: string) =
       {!file && (
         <textarea
           className="import-text"
-          placeholder="…or paste source text here (article, lecture notes, transcript)"
+          placeholder={t('importFlow.pastePlaceholder')}
           rows={8}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -124,20 +128,20 @@ export default function ImportPanel({ onOpenNote }: { onOpenNote: (id: string) =
       )}
 
       <div className="import-meta">
-        <input placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} disabled={busy} />
-        <input placeholder="Category (optional)" value={category} onChange={(e) => setCategory(e.target.value)} disabled={busy} />
-        <input placeholder="Tags, comma-separated (optional)" value={tags} onChange={(e) => setTags(e.target.value)} disabled={busy} />
+        <input placeholder={t('importFlow.titleOptional')} value={title} onChange={(e) => setTitle(e.target.value)} disabled={busy} />
+        <input placeholder={t('importFlow.categoryOptional')} value={category} onChange={(e) => setCategory(e.target.value)} disabled={busy} />
+        <input placeholder={t('importFlow.tagsOptional')} value={tags} onChange={(e) => setTags(e.target.value)} disabled={busy} />
       </div>
 
       <div className="import-actions">
         <button className="today-btn" onClick={() => void submit()} disabled={busy || (!file && !text.trim())}>
-          {busy ? 'Importing…' : 'Import'}
+          {busy ? t('importFlow.importing') : t('importFlow.action')}
         </button>
-        {message && <span className={`import-status ${phase}`}>{message}</span>}
+        {message && <span className={`import-status ${phase}`} role="status">{message}</span>}
       </div>
 
       {phase === 'done' && noteId && (
-        <button className="today-btn import-open" onClick={() => onOpenNote(noteId)}>Open the new note →</button>
+        <button className="today-btn import-open" onClick={() => onOpenNote(noteId)}>{t('importFlow.openNote')} →</button>
       )}
     </>
   );

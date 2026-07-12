@@ -6,13 +6,14 @@
  * a full-page header.
  */
 import ImportPanel from './ImportPanel';
+import { useTranslation } from 'react-i18next';
 
 export default function ImportPage({ onOpenNote }: { onOpenNote: (id: string) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="today-page import-page">
       <header className="today-head">
-        <h1>Import</h1>
-        <p className="import-sub">Turn a PDF, lecture recording, photo of handwritten notes, or pasted text into a knowledge note — flashcards and quiz questions follow automatically.</p>
+        <h1>{t('importFlow.title')}</h1>
       </header>
       <ImportPanel onOpenNote={onOpenNote} />
     </div>

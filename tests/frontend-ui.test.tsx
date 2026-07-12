@@ -22,6 +22,7 @@ import { MultiSelectDropdown } from '../src/components/MultiSelectDropdown';
 import { FlashcardDone } from '../src/components/flashcards/FlashcardDone';
 import ActivityPage from '../src/components/activity/ActivityPage';
 import { NoteTransferDialog } from '../src/components/notes/NoteTransferDialog';
+import ImportPanel from '../src/components/import/ImportPanel';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -139,4 +140,11 @@ test('NoteTransferDialog: chooses a destination and move mode', async () => {
   fireEvent.click(moveButtons[0]);
   fireEvent.click(screen.getAllByRole('button', { name: 'Move note' }).at(-1)!);
   await waitFor(() => assert.deepEqual(transfers, [{ id: 'study', mode: 'move' }]));
+});
+
+test('ImportPanel: renders translated source controls', () => {
+  render(<ImportPanel onOpenNote={() => {}} />);
+  assert.ok(screen.getByText(/Drop a PDF/));
+  assert.ok(screen.getByRole('button', { name: 'Import' }));
+  assert.ok(screen.getByPlaceholderText(/paste source text/));
 });
