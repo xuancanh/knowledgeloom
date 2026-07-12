@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { assistDraft, regenerateNote, createShare, type ApiError, type NoteUpdate } from '../../api';
+import { assistDraft, regenerateNote, createShare, type ApiError, type NoteTransferMode, type NoteTransferResult, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
+import { currentSpaceId, setCurrentSpaceId, type Space } from '../../lib/spaces';
 import {
   categoryId,
   formatCreated,
@@ -13,6 +14,7 @@ import NoteViewer from './NoteViewer';
 import { NoteEditorForm } from './NoteEditorForm';
 import { ReminderSection } from './ReminderSection';
 import { ShareDialog, type ShareOptions } from '../share/ShareDialog';
+import { NoteTransferDialog } from './NoteTransferDialog';
 
 /**
  * Note reader and editor. Edits are saved back to the markdown source file,
@@ -26,6 +28,8 @@ export default function NoteDetail({
   onOpenCategory,
   onOpenTag,
   onDelete,
+  onListSpaces,
+  onTransfer,
   onAssist: _onAssist,
   onCreateReminder,
   onCompleteReminder,
@@ -42,6 +46,8 @@ export default function NoteDetail({
   onOpenCategory: (id: string) => void;
   onOpenTag: (tag: string) => void;
   onDelete: () => void;
+  onListSpaces: () => Promise<Space[]>;
+  onTransfer: (id: string, toSpaceId: string, mode: NoteTransferMode) => Promise<NoteTransferResult>;
   onAssist: (id: string, prompt: string, draft: NoteUpdate) => Promise<NoteUpdate>;
   onCreateReminder: (noteId: string, remindAt: string, message: string) => Promise<void>;
   onCompleteReminder: (id: string) => Promise<void>;
@@ -57,6 +63,7 @@ export default function NoteDetail({
   const [showSource, setShowSource] = useState(false);
   const [shareState, setShareState] = useState<'idle' | 'working' | 'copied'>('idle');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [reading, setReading] = useState(false);
   const [readTheme, setReadTheme] = useState<'light' | 'white' | 'dark' | 'midnight'>(() => {
@@ -270,6 +277,9 @@ export default function NoteDetail({
           <button className="read-inline" onClick={() => setReading(!reading)}>{reading ? t('notes.exitRead') : editing ? t('notes.focusMode') : t('notes.readMode')}</button>
           <button className="edit-inline" onClick={() => editing ? setEditing(false) : openEditor()} disabled={readOnly}>{editing ? t('notes.cancelEdit') : t('notes.editNote')}</button>
           <button className="delete-inline" onClick={onDelete} disabled={readOnly}>{t('notes.deleteNote')}</button>
+          <button className="read-inline" onClick={() => setTransferDialogOpen(true)} disabled={readOnly}>
+            {t('notes.transferAction')}
+          </button>
           <button
             className="read-inline"
             disabled={readOnly || shareState === 'working'}
@@ -418,6 +428,18 @@ export default function NoteDetail({
         </>
       )}
       {shareDialogOpen && <ShareDialog onClose={() => setShareDialogOpen(false)} onCreate={shareNote} />}
+      {transferDialogOpen && (
+        <NoteTransferDialog
+          currentSpaceId={currentSpaceId()}
+          onListSpaces={onListSpaces}
+          onClose={() => setTransferDialogOpen(false)}
+          onTransfer={async (toSpaceId, mode) => {
+            const result = await onTransfer(note.id, toSpaceId, mode);
+            setCurrentSpaceId(result.toSpaceId);
+            window.location.assign(`/notes/${encodeURIComponent(result.noteId)}`);
+          }}
+        />
+      )}
     </div>
   );
 }

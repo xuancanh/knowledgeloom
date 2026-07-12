@@ -718,6 +718,7 @@ async function apiIn(spaceId, method, path, body) {
 }
 
 let spaceId;
+let spaceNoteId;
 
 maybe('spaces: list starts with the default space', async () => {
   const { status, json } = await get('/api/spaces');
@@ -739,9 +740,10 @@ maybe('spaces: create, rename, and full isolation from the default space', async
   // A note created inside the space...
   const note = await apiIn(spaceId, 'POST', '/api/learn', {
     mode: 'write', title: 'Anatomy Basics', body: '# Anatomy\n\nBones.',
-    category: 'Medicine', summary: 'Bones', tags: ['anatomy'],
+    category: 'Medicine', summary: 'Bones', tags: ['anatomy'], links: [noteId],
   });
   assert.ok(note.ok);
+  spaceNoteId = note.json.note.id;
 
   // ...is visible in that space and invisible in the default space.
   const inSpace = await apiIn(spaceId, 'GET', '/api/knowledge');
@@ -750,6 +752,44 @@ maybe('spaces: create, rename, and full isolation from the default space', async
   assert.ok(!inDefault.json.notes.some((n) => n.title === 'Anatomy Basics'));
   // And default-space notes don't leak into the new space.
   assert.ok(!inSpace.json.notes.some((n) => n.title === 'Updated E2E Note'));
+});
+
+maybe('spaces: notes can be copied and moved between owned spaces', async () => {
+  const copied = await post('/api/spaces/transfer-note', {
+    noteId,
+    fromSpaceId: 'default',
+    toSpaceId: spaceId,
+    mode: 'copy',
+  });
+  assert.equal(copied.status, 200, JSON.stringify(copied.json));
+  assert.equal(copied.json.mode, 'copy');
+  assert.match((await apiIn(spaceId, 'GET', `/api/notes/${noteId}`)).json.markdown, /Updated E2E Note/);
+  assert.equal((await get(`/api/notes/${noteId}`)).status, 200, 'copy keeps the source note');
+  assert.equal((await post('/api/spaces/transfer-note', {
+    noteId,
+    fromSpaceId: 'default',
+    toSpaceId: spaceId,
+    mode: 'copy',
+  })).status, 409, 'destination id collisions are never overwritten');
+
+  await apiIn(spaceId, 'POST', '/api/reminders', {
+    noteId: spaceNoteId,
+    remindAt: '2099-01-01T00:00:00.000Z',
+  });
+  const moved = await post('/api/spaces/transfer-note', {
+    noteId: spaceNoteId,
+    fromSpaceId: spaceId,
+    toSpaceId: 'default',
+    mode: 'move',
+  });
+  assert.equal(moved.status, 200, JSON.stringify(moved.json));
+  assert.equal((await apiIn(spaceId, 'GET', `/api/notes/${spaceNoteId}`)).status, 404);
+  const destination = await get(`/api/notes/${spaceNoteId}`);
+  assert.equal(destination.status, 200);
+  assert.match(destination.json.markdown, /title: "Anatomy Basics"/);
+  assert.match(destination.json.markdown, /links: \[\]/, 'cross-space links are removed');
+  const sourceReminders = await apiIn(spaceId, 'GET', `/api/reminders?noteId=${spaceNoteId}`);
+  assert.deepEqual(sourceReminders.json.reminders, []);
 });
 
 maybe('spaces: forged or malformed x-space-id headers are rejected', async () => {

@@ -71,6 +71,7 @@ const MUTATIONS = [
   ['DELETE', '/api/reminders/r1'],
   ['PATCH', '/api/settings', { theme: 'dark' }],
   ['POST', '/api/spaces', { name: 'X' }],
+  ['POST', '/api/spaces/transfer-note', { noteId: 'n1', fromSpaceId: 'default', toSpaceId: 's1', mode: 'move' }],
   ['PATCH', '/api/spaces/s1', { name: 'Y' }],
   ['DELETE', '/api/spaces/s1'],
   ['POST', '/api/import', { text: 'some text' }],

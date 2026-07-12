@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchNoteDocument, markNoteRead, type NoteUpdate, type NoteUpdateResult } from '../../api';
+import { fetchNoteDocument, markNoteRead, type NoteTransferMode, type NoteTransferResult, type NoteUpdate, type NoteUpdateResult } from '../../api';
+import type { Space } from '../../lib/spaces';
 import type { KnowledgeNote, Reminder } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import NoteDetail from '../notes/NoteDetail';
@@ -14,7 +15,7 @@ import NoteDetail from '../notes/NoteDetail';
 export function NoteRoute({
   notes, categories, readOnly, reminders, readCounts,
   onOpenCategory, onOpenTag,
-  onSave, onAssist, onDelete,
+  onSave, onAssist, onListSpaces, onTransfer, onDelete,
   onCreateReminder, onCompleteReminder, onDeleteReminder,
 }: {
   notes: KnowledgeNote[];
@@ -26,6 +27,8 @@ export function NoteRoute({
   onOpenTag: (tag: string) => void;
   onSave: (id: string, update: NoteUpdate, expectedVersion?: string) => Promise<NoteUpdateResult>;
   onAssist: (id: string, prompt: string, draft: NoteUpdate) => Promise<NoteUpdate>;
+  onListSpaces: () => Promise<Space[]>;
+  onTransfer: (id: string, toSpaceId: string, mode: NoteTransferMode) => Promise<NoteTransferResult>;
   onDelete: (note: KnowledgeNote) => Promise<void>;
   onCreateReminder: (noteId: string, remindAt: string, message: string) => Promise<void>;
   onCompleteReminder: (id: string) => Promise<void>;
@@ -74,6 +77,8 @@ export function NoteRoute({
       onOpenTag={onOpenTag}
       onSave={saveNote}
       onAssist={onAssist}
+      onListSpaces={onListSpaces}
+      onTransfer={onTransfer}
       onDelete={() => onDelete(note)}
       onCreateReminder={onCreateReminder}
       onCompleteReminder={onCompleteReminder}

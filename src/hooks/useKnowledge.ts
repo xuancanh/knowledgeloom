@@ -8,11 +8,14 @@ import {
   fetchJobs,
   fetchKnowledge,
   fetchReminders,
+  fetchSpaces,
   fetchStatus,
   patchNote,
   submitLearning,
   updateNote,
   updateReminder,
+  transferNoteToSpace,
+  type NoteTransferMode,
   type NoteUpdate,
 } from '../api';
 import {
@@ -281,6 +284,14 @@ export function useKnowledge() {
     return (await assistNoteEdit(id, prompt, draft)).update;
   }
 
+  const listSpaces = useCallback(async () => {
+    return (await fetchSpaces()).spaces;
+  }, []);
+
+  const handleTransferNote = useCallback(async (id: string, toSpaceId: string, mode: NoteTransferMode) => {
+    return transferNoteToSpace(id, toSpaceId, mode);
+  }, []);
+
   async function submitCapture(payload: CreateNoteRequest) {
     try {
       const result = await submitLearning(payload);
@@ -368,6 +379,8 @@ export function useKnowledge() {
     handleDelete,
     handleSaveNote,
     handleAssistNote,
+    listSpaces,
+    handleTransferNote,
     submitCapture,
     handleCreateReminder,
     handleCompleteReminder,

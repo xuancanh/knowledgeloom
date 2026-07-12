@@ -3,6 +3,7 @@
  *
  *   GET    /api/spaces      — list spaces (default first) + plan limit
  *   POST   /api/spaces      — create a space ({ name })
+ *   POST   /api/spaces/transfer-note — copy/move a note between owned spaces
  *   PATCH  /api/spaces/:id  — rename a space ({ name })
  *   DELETE /api/spaces/:id  — delete a space and all its data
  *
@@ -14,7 +15,8 @@ import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpCode 
 import { SpacesService } from './spaces.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
-import { SpaceNameDto } from './spaces.dto';
+import { WritableGuard } from '../common/guards/writable.guard';
+import { SpaceNameDto, TransferNoteDto } from './spaces.dto';
 
 @Controller('api/spaces')
 @UseGuards(ApiAuthGuard)
@@ -27,18 +29,28 @@ export class SpacesController {
   }
 
   @Post()
+  @UseGuards(WritableGuard)
   create(@CurrentUser() userId: string, @Body() body: SpaceNameDto) {
     return this.spaces.create(userId, body?.name);
   }
 
+  @Post('transfer-note')
+  @HttpCode(200)
+  @UseGuards(WritableGuard)
+  transferNote(@CurrentUser() userId: string, @Body() body: TransferNoteDto) {
+    return this.spaces.transferNote(userId, body);
+  }
+
   @Patch(':id')
   @HttpCode(200)
+  @UseGuards(WritableGuard)
   rename(@CurrentUser() userId: string, @Param('id') id: string, @Body() body: SpaceNameDto) {
     return this.spaces.rename(userId, id, body?.name);
   }
 
   @Delete(':id')
   @HttpCode(200)
+  @UseGuards(WritableGuard)
   delete(@CurrentUser() userId: string, @Param('id') id: string) {
     return this.spaces.delete(userId, id);
   }

@@ -77,6 +77,7 @@ function AuthenticatedApp() {
     openActivity, openSettings, openFlashcards, openQuiz, openAllCategories, openAllTags, openGraph, openLearn, openToday, openMarketplace,
     graphAddLink, graphRemoveLink, graphCreateNote, graphDeleteNote, graphRenameNote, graphSetCategory,
     handleDelete, handleSaveNote,
+    listSpaces, handleTransferNote,
     handleAssistNote, submitCapture, handleCreateReminder, handleCompleteReminder,
     handleDeleteReminder,
   } = useKnowledge();
@@ -222,6 +223,8 @@ function AuthenticatedApp() {
                 onOpenTag={openTag}
                 onSave={handleSaveNote}
                 onAssist={handleAssistNote}
+                onListSpaces={listSpaces}
+                onTransfer={handleTransferNote}
                 onDelete={handleDelete}
                 onCreateReminder={handleCreateReminder}
                 onCompleteReminder={handleCompleteReminder}

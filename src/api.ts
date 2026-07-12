@@ -106,6 +106,28 @@ export async function deleteSpace(id: string): Promise<void> {
   if (!response.ok) throw await apiError(response, 'delete space');
 }
 
+export type NoteTransferMode = 'copy' | 'move';
+export type NoteTransferResult = {
+  noteId: string;
+  fromSpaceId: string;
+  toSpaceId: string;
+  mode: NoteTransferMode;
+};
+
+export async function transferNoteToSpace(
+  noteId: string,
+  toSpaceId: string,
+  mode: NoteTransferMode,
+): Promise<NoteTransferResult> {
+  const response = await apiFetch('/api/spaces/transfer-note', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ noteId, fromSpaceId: currentSpaceId(), toSpaceId, mode }),
+  });
+  if (!response.ok) throw await apiError(response, `${mode} note`);
+  return response.json();
+}
+
 export type RestoreConflictPolicy = 'skip' | 'overwrite' | 'rename';
 export type RestoreResult = {
   dryRun: boolean;

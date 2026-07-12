@@ -9,17 +9,21 @@
  * from the UsageService seam (env MAX_SPACES for self-hosted builds,
  * subscription plan in hosted builds).
  */
-import { Injectable, Inject, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'node:crypto';
 import { rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { SpacesRepository, SpaceRow } from './spaces.repository';
 import { DEFAULT_SPACE_ID, DEFAULT_SPACE_NAME, scopeFor } from './scope.util';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { SearchService } from '../search/search.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
+import { NoteFileRepository } from '../notes/note-file.repository';
+import { RemindersService } from '../reminders/reminders.service';
+import { composeMarkdown, noteRelativePath, parseNote, stripFrontmatter } from '../common/note-parser.util';
+import type { TransferNoteDto } from './spaces.dto';
 import {
   DRIZZLE_DB,
   JOBS_TABLE,
@@ -59,6 +63,8 @@ export class SpacesService {
     private readonly repo: SpacesRepository,
     private readonly search: SearchService,
     private readonly knowledge: KnowledgeService,
+    private readonly notes: NoteFileRepository,
+    private readonly reminders: RemindersService,
     @Inject(USAGE_SERVICE) private readonly usage: UsageService,
     @Inject(DRIZZLE_DB) private readonly db: DrizzleDb,
     @Inject(JOBS_TABLE) private readonly jobsTable: any,
@@ -129,6 +135,62 @@ export class SpacesService {
     if (!row) throw new NotFoundException('space not found');
     await this.repo.rename(userId, spaceId, name);
     return { id: spaceId, name, builtin: false, createdAt: row.createdAt };
+  }
+
+  async transferNote(
+    userId: string,
+    input: TransferNoteDto,
+  ): Promise<{ noteId: string; fromSpaceId: string; toSpaceId: string; mode: 'copy' | 'move' }> {
+    this.assertWritable();
+    if (input.fromSpaceId === input.toSpaceId) {
+      throw new BadRequestException('source and destination spaces must be different');
+    }
+    await Promise.all([
+      this.assertSpaceOwned(userId, input.fromSpaceId),
+      this.assertSpaceOwned(userId, input.toSpaceId),
+    ]);
+
+    const rawNoteId = String(input.noteId || '').trim();
+    const noteId = basename(rawNoteId);
+    if (!noteId || noteId !== rawNoteId) throw new BadRequestException('invalid note id');
+
+    const fromScope = scopeFor(userId, input.fromSpaceId);
+    const toScope = scopeFor(userId, input.toSpaceId);
+    const sourceFile = await this.notes.findById(fromScope, noteId);
+    if (!sourceFile) throw new NotFoundException('note not found in source space');
+    if (await this.notes.findById(toScope, noteId)) {
+      throw new ConflictException('a note with this id already exists in the destination space');
+    }
+
+    const sourceMarkdown = await this.notes.readMarkdown(fromScope, noteId);
+    const source = parseNote(sourceFile, sourceMarkdown);
+    const transferredMarkdown = composeMarkdown({
+      ...source,
+      links: [],
+      bilinks: [],
+      body: stripFrontmatter(sourceMarkdown),
+    });
+    await this.notes.write(
+      toScope,
+      noteRelativePath(noteId, source.category),
+      transferredMarkdown,
+    );
+
+    if (input.mode === 'move') {
+      await this.notes.delete(fromScope, sourceFile);
+      await this.reminders.removeForNote(fromScope, noteId);
+      await this.search.deleteDocument(fromScope, noteId).catch(() => { /* rebuild retries cleanup */ });
+    }
+
+    await this.knowledge.rebuildIndexes(toScope);
+    if (input.mode === 'move') await this.knowledge.rebuildIndexes(fromScope);
+
+    return {
+      noteId,
+      fromSpaceId: input.fromSpaceId,
+      toSpaceId: input.toSpaceId,
+      mode: input.mode,
+    };
   }
 
   /**
@@ -205,6 +267,13 @@ export class SpacesService {
       throw new BadRequestException(`space name must be 1-${NAME_MAX} characters`);
     }
     return name;
+  }
+
+  private async assertSpaceOwned(userId: string, spaceId: string): Promise<void> {
+    if (spaceId === DEFAULT_SPACE_ID) return;
+    if (!(await this.repo.findForUser(userId, spaceId))) {
+      throw new NotFoundException('space not found');
+    }
   }
 
   private assertWritable(): void {

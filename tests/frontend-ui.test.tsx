@@ -14,13 +14,14 @@ import 'global-jsdom/register';
 import * as React from 'react';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from '../src/i18n/locales/en.json';
 import { MultiSelectDropdown } from '../src/components/MultiSelectDropdown';
 import { FlashcardDone } from '../src/components/flashcards/FlashcardDone';
 import ActivityPage from '../src/components/activity/ActivityPage';
+import { NoteTransferDialog } from '../src/components/notes/NoteTransferDialog';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -118,4 +119,24 @@ test('ActivityPage: shows degraded search status without exposing raw errors', (
   assert.ok(screen.getByText('Search index needs attention'));
   assert.match(screen.getByRole('status').textContent ?? '', /meilisearch/);
   assert.doesNotMatch(document.body.textContent ?? '', /secret infrastructure detail/);
+});
+
+test('NoteTransferDialog: chooses a destination and move mode', async () => {
+  const transfers: Array<{ id: string; mode: string }> = [];
+  render(
+    <NoteTransferDialog
+      currentSpaceId="default"
+      onListSpaces={async () => [
+        { id: 'default', name: 'Personal', builtin: true },
+        { id: 'study', name: 'Study', builtin: false },
+      ]}
+      onClose={() => {}}
+      onTransfer={async (id, mode) => { transfers.push({ id, mode }); }}
+    />,
+  );
+  await screen.findByRole('option', { name: 'Study' });
+  const moveButtons = screen.getAllByRole('button', { name: 'Move note' });
+  fireEvent.click(moveButtons[0]);
+  fireEvent.click(screen.getAllByRole('button', { name: 'Move note' }).at(-1)!);
+  await waitFor(() => assert.deepEqual(transfers, [{ id: 'study', mode: 'move' }]));
 });

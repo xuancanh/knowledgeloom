@@ -11,9 +11,11 @@ import { SpacesController } from './spaces.controller';
 import { SpacesService } from './spaces.service';
 import { SearchModule } from '../search/search.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
+import { NotesFileModule } from '../notes/notes-file.module';
+import { RemindersModule } from '../reminders/reminders.module';
 
 @Module({
-  imports: [SearchModule, KnowledgeModule],
+  imports: [SearchModule, KnowledgeModule, NotesFileModule, RemindersModule],
   controllers: [SpacesController],
   providers: [SpacesService],
 })
