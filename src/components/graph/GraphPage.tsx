@@ -151,9 +151,9 @@ export default function GraphPage({
   const [linkDrag, setLinkDrag] = useState<{ from: string; x: number; y: number; over: string | null } | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [panning, setPanning] = useState(false);
-  const [inspectorTitle, setInspectorTitle] = useState('');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [hoverAnchor, setHoverAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
 
   const stageRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{
@@ -164,22 +164,10 @@ export default function GraphPage({
     moved?: boolean;
   } | null>(null);
 
-  // Sync inspector title when selection changes
-  useEffect(() => {
-    if (selected && byId[selected]) setInspectorTitle(byId[selected].title);
-  }, [selected, byId]);
-
-  // Ensure new notes get positions
-  useEffect(() => {
-    setPositions((prev) => {
-      const missing = notes.filter((n) => !prev[n.id]);
-      if (!missing.length) return prev;
-      const base = computeLayout(notes);
-      const next = { ...prev };
-      missing.forEach((n) => { next[n.id] = prev[n.id] || base[n.id] || { x: 80, y: 80 }; });
-      return next;
-    });
-  }, [notes]);
+  const effectivePositions = useMemo(
+    () => ({ ...computeLayout(notes), ...positions }),
+    [notes, positions],
+  );
 
   // Persist positions
   useEffect(() => {
@@ -296,6 +284,11 @@ export default function GraphPage({
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
   }, [transform.k, toWorld, onAddLink]);
 
+  const removeEdge = useCallback((edge: Edge) => {
+    void onRemoveLink(edge.a, edge.b);
+    if (edge.bi) void onRemoveLink(edge.b, edge.a);
+  }, [onRemoveLink]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -308,12 +301,11 @@ export default function GraphPage({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selEdge]);
+  }, [selEdge, removeEdge]);
 
   const onNodeEnter = useCallback((e: React.MouseEvent, id: string) => {
     if (drag.current) return;
-    const p = positions[id] || { x: 0, y: 0 };
+    const p = effectivePositions[id] || { x: 0, y: 0 };
     const r = stageRef.current?.getBoundingClientRect();
     if (!r) return;
     setHoveredId(id);
@@ -321,7 +313,7 @@ export default function GraphPage({
       x: r.left + p.x * transform.k + transform.x,
       y: r.top + p.y * transform.k + transform.y,
     });
-  }, [positions, transform]);
+  }, [effectivePositions, transform]);
 
   const onNodeLeave = useCallback(() => {
     setHoveredId(null);
@@ -340,7 +332,7 @@ export default function GraphPage({
 
   const startNodeDrag = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    drag.current = { mode: 'node', id, sx: e.clientX, sy: e.clientY, ox: positions[id]?.x ?? 0, oy: positions[id]?.y ?? 0, moved: false };
+    drag.current = { mode: 'node', id, sx: e.clientX, sy: e.clientY, ox: effectivePositions[id]?.x ?? 0, oy: effectivePositions[id]?.y ?? 0, moved: false };
     setDraggingId(id);
     setHoveredId(null);
   };
@@ -378,8 +370,8 @@ export default function GraphPage({
 
   const fit = useCallback(() => {
     if (!stageRef.current || !visible.length) return;
-    const xs = visible.map((n) => positions[n.id]?.x ?? 0);
-    const ys = visible.map((n) => positions[n.id]?.y ?? 0);
+    const xs = visible.map((n) => effectivePositions[n.id]?.x ?? 0);
+    const ys = visible.map((n) => effectivePositions[n.id]?.y ?? 0);
     const minX = Math.min(...xs), maxX = Math.max(...xs) + NODE_W;
     const minY = Math.min(...ys), maxY = Math.max(...ys) + NODE_H;
     const r = stageRef.current.getBoundingClientRect();
@@ -394,7 +386,7 @@ export default function GraphPage({
       x: pad - minX * k + (r.width - pad * 2 - (maxX - minX) * k) / 2,
       y: pad - minY * k + (r.height - pad * 2 - (maxY - minY) * k) / 2,
     });
-  }, [visible, positions]);
+  }, [visible, effectivePositions]);
 
   const didFit = useRef(false);
   useEffect(() => {
@@ -407,6 +399,17 @@ export default function GraphPage({
     obs.observe(el);
     return () => obs.disconnect();
   }, [visible.length, fit]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setStageSize({ width, height });
+    });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
 
   const tidy = useCallback(() => {
     setPositions((prev) => ({ ...prev, ...computeLayout(visible) }));
@@ -434,8 +437,8 @@ export default function GraphPage({
 
   // Edge geometry
   const center = (id: string): Pos => ({
-    x: (positions[id]?.x ?? 0) + NODE_W / 2,
-    y: (positions[id]?.y ?? 0) + NODE_H / 2,
+    x: (effectivePositions[id]?.x ?? 0) + NODE_W / 2,
+    y: (effectivePositions[id]?.y ?? 0) + NODE_H / 2,
   });
 
   const edgePath = (eg: Edge) => {
@@ -467,11 +470,6 @@ export default function GraphPage({
     return inHood ? 'hi' : 'dim';
   };
 
-  const removeEdge = (eg: Edge) => {
-    onRemoveLink(eg.a, eg.b);
-    if (eg.bi) onRemoveLink(eg.b, eg.a);
-  };
-
   // Stats
   const orphanCount = useMemo(
     () => notes.filter((n) => n.links.length === 0 && (n.bilinks ?? []).length === 0 && inAdj[n.id]?.length === 0).length,
@@ -482,24 +480,23 @@ export default function GraphPage({
   // Minimap
   const mm = useMemo(() => {
     if (!visible.length) return null;
-    const xs = visible.map((n) => positions[n.id]?.x ?? 0);
-    const ys = visible.map((n) => positions[n.id]?.y ?? 0);
+    const xs = visible.map((n) => effectivePositions[n.id]?.x ?? 0);
+    const ys = visible.map((n) => effectivePositions[n.id]?.y ?? 0);
     const minX = Math.min(...xs) - 40, maxX = Math.max(...xs) + NODE_W + 40;
     const minY = Math.min(...ys) - 40, maxY = Math.max(...ys) + NODE_H + 40;
     const W = 184, H = 124;
     const s = Math.min(W / ((maxX - minX) || 1), H / ((maxY - minY) || 1));
     return { minX, minY, s, W, H };
-  }, [visible, positions]);
+  }, [visible, effectivePositions]);
 
-  const mmRect = () => {
-    if (!mm || !stageRef.current) return null;
-    const r = stageRef.current.getBoundingClientRect();
+  const arrow = useMemo(() => {
+    if (!mm || stageSize.width === 0 || stageSize.height === 0) return null;
     const vx = (-transform.x / transform.k - mm.minX) * mm.s;
     const vy = (-transform.y / transform.k - mm.minY) * mm.s;
-    const vw = (r.width / transform.k) * mm.s;
-    const vh = (r.height / transform.k) * mm.s;
+    const vw = (stageSize.width / transform.k) * mm.s;
+    const vh = (stageSize.height / transform.k) * mm.s;
     return { vx, vy, vw, vh };
-  };
+  }, [mm, stageSize, transform]);
 
   const onMinimap = (e: React.MouseEvent) => {
     if (!mm || !stageRef.current) return;
@@ -511,7 +508,6 @@ export default function GraphPage({
   };
 
   const sel = selected ? byId[selected] : null;
-  const arrow = mmRect();
 
   const addNodeCenter = async () => {
     if (!stageRef.current) return;
@@ -658,7 +654,7 @@ export default function GraphPage({
 
           {/* Nodes */}
           {visible.map((n) => {
-            const p = positions[n.id] || { x: 0, y: 0 };
+            const p = effectivePositions[n.id] || { x: 0, y: 0 };
             const cat = catById[n.category] as (UiCategory & { color?: string }) | undefined;
             const deg = (outAdj[n.id]?.length ?? 0) + (inAdj[n.id]?.length ?? 0);
             let cls = 'gnode';
@@ -715,11 +711,14 @@ export default function GraphPage({
                 <button type="button" className="close" onClick={() => setSelected(null)} aria-label={t('common.close')}>×</button>
               </div>
               <textarea
+                key={sel.id}
                 className="ins-title"
                 rows={2}
-                value={inspectorTitle}
-                onChange={(e) => setInspectorTitle(e.target.value)}
-                onBlur={() => { if (inspectorTitle.trim() && inspectorTitle !== sel.title) onRenameNote(sel.id, inspectorTitle.trim()); }}
+                defaultValue={sel.title}
+                onBlur={(event) => {
+                  const title = event.currentTarget.value.trim();
+                  if (title && title !== sel.title) void onRenameNote(sel.id, title);
+                }}
               />
               <div className="ins-catpick">
                 {categories.map((c) => (
@@ -779,7 +778,7 @@ export default function GraphPage({
                   stroke="var(--rule-2)" strokeWidth="0.6" />;
               })}
               {visible.map((n) => {
-                const p = positions[n.id] || { x: 0, y: 0 };
+                const p = effectivePositions[n.id] || { x: 0, y: 0 };
                 const cat = catById[n.category] as (UiCategory & { color?: string }) | undefined;
                 return <rect key={'mn' + n.id}
                   x={(p.x - mm.minX) * mm.s} y={(p.y - mm.minY) * mm.s}
