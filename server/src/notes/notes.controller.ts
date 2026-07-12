@@ -11,13 +11,15 @@
  *
  * All routes require authentication. Write routes also require writable mode.
  */
-import { Controller, Get, Put, Patch, Delete, Post, Param, Body, HttpCode, UseGuards, BadRequestException, Inject } from '@nestjs/common';
+import { Controller, Get, Put, Patch, Delete, Post, Param, Body, Headers, HttpCode, UseGuards, BadRequestException, Inject, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { NotesService } from './notes.service';
 import { ApiAuthGuard } from '../auth/auth.guard';
 import { CurrentScope } from '../auth/current-scope.decorator';
 import { WritableGuard } from '../common/guards/writable.guard';
 import { USAGE_SERVICE, UsageService } from '../usage/usage.interface';
 import { RegenerateDto } from './notes.dto';
+import { noteEtag, versionFromIfMatch } from './note-version.util';
 
 @Controller('api/notes')
 @UseGuards(ApiAuthGuard)
@@ -35,20 +37,36 @@ export class NotesController {
   }
 
   @Get(':id')
-  async getMarkdown(@CurrentScope() userId: string, @Param('id') id: string) {
-    return { markdown: await this.notesService.getMarkdown(userId, id) };
+  async getMarkdown(
+    @CurrentScope() userId: string,
+    @Param('id') id: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const document = await this.notesService.getDocument(userId, id);
+    response.setHeader('ETag', noteEtag(document.version));
+    return document;
   }
 
   @Put(':id')
   @UseGuards(WritableGuard)
-  update(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
-    return this.notesService.update(userId, id, body || {});
+  update(
+    @CurrentScope() userId: string,
+    @Param('id') id: string,
+    @Headers('if-match') ifMatch: string | undefined,
+    @Body() body: any,
+  ) {
+    return this.notesService.update(userId, id, body || {}, versionFromIfMatch(ifMatch));
   }
 
   @Patch(':id')
   @UseGuards(WritableGuard)
-  patch(@CurrentScope() userId: string, @Param('id') id: string, @Body() body: any) {
-    return this.notesService.update(userId, id, body || {});
+  patch(
+    @CurrentScope() userId: string,
+    @Param('id') id: string,
+    @Headers('if-match') ifMatch: string | undefined,
+    @Body() body: any,
+  ) {
+    return this.notesService.update(userId, id, body || {}, versionFromIfMatch(ifMatch));
   }
 
   @Delete(':id')

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchNoteMarkdown, markNoteRead, type NoteUpdate } from '../../api';
+import { fetchNoteDocument, markNoteRead, type NoteUpdate, type NoteUpdateResult } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import NoteDetail from '../notes/NoteDetail';
@@ -24,7 +24,7 @@ export function NoteRoute({
   readCounts?: Record<string, number>;
   onOpenCategory: (id: string) => void;
   onOpenTag: (tag: string) => void;
-  onSave: (id: string, update: NoteUpdate) => Promise<void>;
+  onSave: (id: string, update: NoteUpdate, expectedVersion?: string) => Promise<NoteUpdateResult>;
   onAssist: (id: string, prompt: string, draft: NoteUpdate) => Promise<NoteUpdate>;
   onDelete: (note: KnowledgeNote) => Promise<void>;
   onCreateReminder: (noteId: string, remindAt: string, message: string) => Promise<void>;
@@ -33,13 +33,32 @@ export function NoteRoute({
 }) {
   const { id } = useParams<{ id: string }>();
   const [markdown, setMarkdown] = useState('');
+  const [version, setVersion] = useState<string>();
   const note = notes.find((n) => n.id === id) ?? null;
 
   useEffect(() => {
     if (!note) return;
-    fetchNoteMarkdown(note.id).then(setMarkdown).catch(() => setMarkdown(''));
+    let active = true;
+    fetchNoteDocument(note.id)
+      .then((document) => {
+        if (!active) return;
+        setMarkdown(document.markdown);
+        setVersion(document.version);
+      })
+      .catch(() => {
+        if (!active) return;
+        setMarkdown('');
+        setVersion(undefined);
+      });
     markNoteRead(note.id).catch(() => {});
+    return () => { active = false; };
   }, [note?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function saveNote(noteId: string, update: NoteUpdate): Promise<void> {
+    const result = await onSave(noteId, update, version);
+    setMarkdown(result.markdown);
+    setVersion(result.version);
+  }
 
   if (!note) return null;
   return (
@@ -53,7 +72,7 @@ export function NoteRoute({
       readCount={readCounts?.[note.id]}
       onOpenCategory={onOpenCategory}
       onOpenTag={onOpenTag}
-      onSave={onSave}
+      onSave={saveNote}
       onAssist={onAssist}
       onDelete={() => onDelete(note)}
       onCreateReminder={onCreateReminder}

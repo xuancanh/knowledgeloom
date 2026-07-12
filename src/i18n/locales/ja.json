@@ -207,6 +207,8 @@
     "regenQueued": "✓ キュー済み",
     "regenLoading": "…",
     "readOnlyBanner": "読み取り専用モード：このデプロイでは編集、削除、Codexジョブが無効です。",
+    "editConflict": "このノートは開いた後に変更されました。下書きは保持されています。ノートを再読み込みしてから保存してください。",
+    "saveFailed": "ノートを保存できませんでした。",
     "tagCount": "{{count}}個のタグ",
     "tagCount_plural": "{{count}}個のタグ",
     "originalLink": "元のリンク",

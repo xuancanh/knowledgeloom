@@ -207,6 +207,8 @@
     "regenQueued": "✓ Beratur",
     "regenLoading": "…",
     "readOnlyBanner": "Mod baca sahaja: pengeditan, pemadaman, dan kerja Codex dilumpuhkan dalam penerapan ini.",
+    "editConflict": "Nota ini berubah selepas anda membukanya. Draf anda masih ada; muat semula nota sebelum menyimpan.",
+    "saveFailed": "Gagal menyimpan nota.",
     "tagCount": "{{count}} tag",
     "tagCount_plural": "{{count}} tag",
     "originalLink": "Pautan asal",

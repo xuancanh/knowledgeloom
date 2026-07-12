@@ -133,6 +133,28 @@ maybe('notes: full update persists', async () => {
   assert.match(recheck.markdown, /Updated E2E Note/);
 });
 
+maybe('notes: concurrent edits reject the stale writer', async () => {
+  const opened = await fetch(`${BASE}/api/notes/${noteId}`);
+  assert.equal(opened.status, 200);
+  const document = await opened.json();
+  const etag = opened.headers.get('etag');
+  assert.ok(etag);
+  assert.equal(etag, `"${document.version}"`);
+
+  const request = (summary) => fetch(`${BASE}/api/notes/${noteId}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json', 'if-match': etag },
+    body: JSON.stringify({ summary }),
+  });
+  const responses = await Promise.all([request('Concurrent edit A'), request('Concurrent edit B')]);
+  assert.deepEqual(responses.map((response) => response.status).sort(), [200, 409]);
+
+  const winner = await responses.find((response) => response.status === 200).json();
+  const recheck = await (await fetch(`${BASE}/api/notes/${noteId}`)).json();
+  assert.equal(recheck.version, winner.version);
+  assert.match(recheck.markdown, /summary: "Concurrent edit [AB]"/);
+});
+
 maybe('notes: partial patch keeps other fields', async () => {
   const { status, json } = await patch(`/api/notes/${noteId}`, { summary: 'Patched summary' });
   assert.equal(status, 200);

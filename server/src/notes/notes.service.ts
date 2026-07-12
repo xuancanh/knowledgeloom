@@ -10,7 +10,7 @@
  *
  * All methods require a userId parameter — data is scoped per user.
  */
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { basename, join } from 'node:path';
 import { NoteFileRepository } from './note-file.repository';
@@ -30,10 +30,12 @@ import {
   noteRelativePath,
   uniqueNoteSlug,
 } from '../common/note-parser.util';
+import { noteVersion } from './note-version.util';
 
 @Injectable()
 export class NotesService {
   private readonly readOnly: boolean;
+  private readonly updateLocks = new Map<string, Promise<void>>();
 
   constructor(
     private readonly noteRepo: NoteFileRepository,
@@ -57,6 +59,11 @@ export class NotesService {
   /** Returns the raw markdown for the editor. */
   async getMarkdown(userId: string, id: string): Promise<string> {
     return this.noteRepo.readMarkdown(userId, basename(id));
+  }
+
+  async getDocument(userId: string, id: string): Promise<{ markdown: string; version: string }> {
+    const markdown = await this.getMarkdown(userId, id);
+    return { markdown, version: noteVersion(markdown) };
   }
 
   /**
@@ -97,38 +104,43 @@ export class NotesService {
    * Rewrites one note file from editor data and triggers a full rebuild.
    * Handles category-driven file moves transparently.
    */
-  async update(userId: string, id: string, updates: any): Promise<any> {
+  async update(userId: string, id: string, updates: any, expectedVersion?: string): Promise<any> {
     this.assertWritable();
     const safeId = basename(id);
-    const currentFile = await this.noteRepo.findById(userId, safeId);
-    if (!currentFile) throw new NotFoundException('note not found');
+    return this.withUpdateLock(`${userId}:${safeId}`, async () => {
+      const currentFile = await this.noteRepo.findById(userId, safeId);
+      if (!currentFile) throw new NotFoundException('note not found');
 
-    const currentMarkdown = await this.noteRepo.readMarkdown(userId, safeId);
-    const current = parseNote(currentFile, currentMarkdown);
+      const currentMarkdown = await this.noteRepo.readMarkdown(userId, safeId);
+      if (expectedVersion !== undefined && noteVersion(currentMarkdown) !== expectedVersion) {
+        throw new ConflictException('note changed since it was opened');
+      }
+      const current = parseNote(currentFile, currentMarkdown);
 
-    const markdown = composeMarkdown({
-      title: updates.title ?? current.title,
-      category: updates.category ?? current.category,
-      summary: updates.summary ?? current.summary,
-      tags: updates.tags ?? current.tags,
-      links: updates.links ?? current.links,
-      bilinks: updates.bilinks ?? current.bilinks,
-      createdAt: updates.createdAt ?? current.createdAt,
-      sourceUrl: updates.sourceUrl ?? current.sourceUrl,
-      originalRequest: updates.originalRequest ?? current.originalRequest,
-      body: updates.body ?? stripFrontmatter(currentMarkdown),
+      const markdown = composeMarkdown({
+        title: updates.title ?? current.title,
+        category: updates.category ?? current.category,
+        summary: updates.summary ?? current.summary,
+        tags: updates.tags ?? current.tags,
+        links: updates.links ?? current.links,
+        bilinks: updates.bilinks ?? current.bilinks,
+        createdAt: updates.createdAt ?? current.createdAt,
+        sourceUrl: updates.sourceUrl ?? current.sourceUrl,
+        originalRequest: updates.originalRequest ?? current.originalRequest,
+        body: updates.body ?? stripFrontmatter(currentMarkdown),
+      });
+
+      const nextCategory = updates.category ?? current.category;
+      const nextFile = noteRelativePath(safeId, nextCategory);
+      await this.noteRepo.write(userId, nextFile, markdown);
+      if (nextFile !== currentFile) {
+        await this.noteRepo.delete(userId, currentFile);
+      }
+
+      const state = await this.knowledgeService.rebuildIndexes(userId);
+      const note = state.notes.find((n) => n.id === safeId);
+      return { note, state, markdown, version: noteVersion(markdown) };
     });
-
-    const nextCategory = updates.category ?? current.category;
-    const nextFile = noteRelativePath(safeId, nextCategory);
-    await this.noteRepo.write(userId, nextFile, markdown);
-    if (nextFile !== currentFile) {
-      await this.noteRepo.delete(userId, currentFile);
-    }
-
-    const state = await this.knowledgeService.rebuildIndexes(userId);
-    const note = state.notes.find((n) => n.id === safeId);
-    return { note, state, markdown };
   }
 
   /**
@@ -245,5 +257,20 @@ export class NotesService {
 
   private assertWritable(): void {
     if (this.readOnly) throw new ForbiddenException('service is running in read-only mode');
+  }
+
+  private async withUpdateLock<T>(key: string, operation: () => Promise<T>): Promise<T> {
+    const previous = this.updateLocks.get(key) ?? Promise.resolve();
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const tail = previous.catch(() => {}).then(() => gate);
+    this.updateLocks.set(key, tail);
+    await previous.catch(() => {});
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (this.updateLocks.get(key) === tail) this.updateLocks.delete(key);
+    }
   }
 }

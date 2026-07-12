@@ -271,9 +271,10 @@ export function useKnowledge() {
     navigate('/home', { replace: true });
   }
 
-  async function handleSaveNote(id: string, update: NoteUpdate) {
-    const result = await updateNote(id, update);
+  async function handleSaveNote(id: string, update: NoteUpdate, expectedVersion?: string) {
+    const result = await updateNote(id, update, expectedVersion);
     setState(result.state);
+    return result;
   }
 
   async function handleAssistNote(id: string, prompt: string, draft: NoteUpdate) {

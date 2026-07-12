@@ -174,11 +174,19 @@ export async function fetchKnowledge(): Promise<KnowledgeState> {
   return state;
 }
 
-export async function fetchNoteMarkdown(id: string): Promise<string> {
+export interface NoteDocument {
+  markdown: string;
+  version: string;
+}
+
+export async function fetchNoteDocument(id: string): Promise<NoteDocument> {
   const response = await apiFetch(`/api/notes/${encodeURIComponent(id)}`);
   if (!response.ok) throw await apiError(response, 'load note');
-  const data = await response.json();
-  return data.markdown;
+  return response.json();
+}
+
+export async function fetchNoteMarkdown(id: string): Promise<string> {
+  return (await fetchNoteDocument(id)).markdown;
 }
 
 export async function deleteNote(id: string): Promise<{ deleted: string; state: KnowledgeState }> {
@@ -327,10 +335,19 @@ export async function assistNoteEdit(id: string, prompt: string, draft: NoteUpda
   return response.json();
 }
 
-export async function updateNote(id: string, update: NoteUpdate): Promise<{ note: KnowledgeNote; state: KnowledgeState; markdown: string }> {
+export interface NoteUpdateResult {
+  note: KnowledgeNote;
+  state: KnowledgeState;
+  markdown: string;
+  version: string;
+}
+
+export async function updateNote(id: string, update: NoteUpdate, expectedVersion?: string): Promise<NoteUpdateResult> {
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (expectedVersion) headers['if-match'] = `"${expectedVersion}"`;
   const response = await apiFetch(`/api/notes/${encodeURIComponent(id)}`, {
     method: 'PUT',
-    headers: { 'content-type': 'application/json' },
+    headers,
     body: JSON.stringify(update),
   });
   if (!response.ok) throw await apiError(response, 'update note');

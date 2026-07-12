@@ -207,6 +207,8 @@
     "regenQueued": "✓ 已排队",
     "regenLoading": "…",
     "readOnlyBanner": "只读模式：在此部署中编辑、删除和 Codex 任务已禁用。",
+    "editConflict": "此笔记在你打开后已被修改。你的草稿仍在，请重新加载笔记后再保存。",
+    "saveFailed": "保存笔记失败。",
     "tagCount": "{{count}} 个标签",
     "tagCount_plural": "{{count}} 个标签",
     "originalLink": "原始链接",

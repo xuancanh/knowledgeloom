@@ -207,6 +207,8 @@
     "regenQueued": "✓ Queued",
     "regenLoading": "…",
     "readOnlyBanner": "Read-only mode: editing, deletion, and Codex jobs are disabled in this deployment.",
+    "editConflict": "This note changed after you opened it. Your draft is still here; reload the note before saving again.",
+    "saveFailed": "Failed to save the note.",
     "tagCount": "{{count}} tag",
     "tagCount_plural": "{{count}} tags",
     "originalLink": "Original link",

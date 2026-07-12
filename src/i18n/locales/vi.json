@@ -207,6 +207,8 @@
     "regenQueued": "✓ Đã xếp hàng",
     "regenLoading": "…",
     "readOnlyBanner": "Chế độ chỉ đọc: chỉnh sửa, xóa và công việc Codex bị tắt trong triển khai này.",
+    "editConflict": "Ghi chú này đã thay đổi sau khi bạn mở. Bản nháp vẫn còn; hãy tải lại ghi chú trước khi lưu.",
+    "saveFailed": "Không thể lưu ghi chú.",
     "tagCount": "{{count}} thẻ",
     "tagCount_plural": "{{count}} thẻ",
     "originalLink": "Liên kết gốc",

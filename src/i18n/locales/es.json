@@ -208,6 +208,8 @@
     "regenQueued": "✓ En cola",
     "regenLoading": "…",
     "readOnlyBanner": "Modo solo lectura: la edición, eliminación y trabajos de Codex están deshabilitados en este despliegue.",
+    "editConflict": "Esta nota cambió después de abrirla. Tu borrador sigue aquí; vuelve a cargar la nota antes de guardar.",
+    "saveFailed": "No se pudo guardar la nota.",
     "tagCount": "{{count}} etiqueta",
     "tagCount_plural": "{{count}} etiquetas",
     "originalLink": "Enlace original",

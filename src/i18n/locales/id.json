@@ -207,6 +207,8 @@
     "regenQueued": "✓ Diantrean",
     "regenLoading": "…",
     "readOnlyBanner": "Mode hanya-baca: pengeditan, penghapusan, dan pekerjaan Codex dinonaktifkan di penerapan ini.",
+    "editConflict": "Catatan ini berubah setelah Anda membukanya. Draf Anda masih tersimpan; muat ulang catatan sebelum menyimpan.",
+    "saveFailed": "Gagal menyimpan catatan.",
     "tagCount": "{{count}} tag",
     "tagCount_plural": "{{count}} tag",
     "originalLink": "Tautan asli",

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { assistDraft, regenerateNote, createShare, type NoteUpdate } from '../../api';
+import { assistDraft, regenerateNote, createShare, type ApiError, type NoteUpdate } from '../../api';
 import type { KnowledgeNote, Reminder } from '../../types';
 import {
   categoryId,
@@ -188,7 +188,12 @@ export default function NoteDetail({
       await onSave(note.id, currentDraft());
       setEditing(false);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Failed to save note');
+      const status = error && typeof error === 'object' && 'status' in error
+        ? (error as ApiError).status
+        : undefined;
+      setSaveError(status === 409
+        ? t('notes.editConflict')
+        : error instanceof Error ? error.message : t('notes.saveFailed'));
     } finally {
       setSaving(false);
     }

@@ -21,6 +21,16 @@ import {
   normalizeArray,
   noteIdExistsSync,
 } from '../server/src/common/note-parser.util';
+import { noteEtag, noteVersion, versionFromIfMatch } from '../server/src/notes/note-version.util';
+
+test('note version: hashes content and round-trips through an ETag', () => {
+  const version = noteVersion('# Note\n\nBody');
+  assert.equal(version, noteVersion('# Note\n\nBody'));
+  assert.notEqual(version, noteVersion('# Note\n\nChanged'));
+  assert.equal(versionFromIfMatch(noteEtag(version)), version);
+  assert.equal(versionFromIfMatch(undefined), undefined);
+  assert.equal(versionFromIfMatch('*'), undefined);
+});
 
 // ── parseNote ────────────────────────────────────────────────────────────────
 

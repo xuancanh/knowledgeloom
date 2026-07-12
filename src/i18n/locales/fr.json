@@ -207,6 +207,8 @@
     "regenQueued": "✓ En file",
     "regenLoading": "…",
     "readOnlyBanner": "Mode lecture seule : l'édition, la suppression et les tâches Codex sont désactivées dans ce déploiement.",
+    "editConflict": "Cette note a changé depuis son ouverture. Votre brouillon est conservé ; rechargez la note avant d’enregistrer.",
+    "saveFailed": "Impossible d’enregistrer la note.",
     "tagCount": "{{count}} étiquette",
     "tagCount_plural": "{{count}} étiquettes",
     "originalLink": "Lien original",
