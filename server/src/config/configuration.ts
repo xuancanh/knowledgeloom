@@ -87,8 +87,14 @@ export default () => {
     aiFlashcardsDisabled: process.env.AI_FLASHCARDS_DISABLED === '1',
     redisHost: process.env.REDIS_HOST || 'localhost',
     redisPort: Number(process.env.REDIS_PORT || 6379),
+    redisPassword: process.env.REDIS_PASSWORD || '',
     // Optional logical database — lets tests/parallel envs isolate queues and counters.
     redisDb: Number(process.env.REDIS_DB || 0),
+    publicRateLimitStore: process.env.PUBLIC_RATE_LIMIT_STORE
+      || (process.env.NODE_ENV === 'production' ? 'redis' : 'memory'),
+    publicRateLimit: Number(process.env.PUBLIC_RATE_LIMIT || 120),
+    shareUnlockRateLimit: Number(process.env.SHARE_UNLOCK_RATE_LIMIT || 10),
+    publicRateLimitPrefix: process.env.PUBLIC_RATE_LIMIT_PREFIX || 'kl:rate-limit:',
     meiliHost: process.env.MEILI_HOST || 'http://localhost:7700',
     meiliMasterKey: process.env.MEILI_MASTER_KEY || '',
     meiliIndex,

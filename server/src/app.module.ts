@@ -82,6 +82,7 @@ const baseImports = (options: AppModuleOptions) => [
           connection: {
             host: config.get<string>('redisHost'),
             port: config.get<number>('redisPort'),
+            password: config.get<string>('redisPassword') || undefined,
             db: config.get<number>('redisDb') || 0,
           },
         }),

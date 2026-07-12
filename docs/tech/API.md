@@ -14,7 +14,10 @@ HTTP status. Structured errors keep extra fields (e.g. quota errors carry
 (transcription, vision, TTS) return `501` with a message naming the env var.
 
 **Rate limits** — unauthenticated endpoints are limited per IP
-(`PUBLIC_RATE_LIMIT`, default 120 req/min → `429`).
+(`PUBLIC_RATE_LIMIT`, default 120 req/min → `429`). Production defaults to
+atomic Redis counters shared by all replicas (`PUBLIC_RATE_LIMIT_STORE=redis`);
+single-process development defaults to `memory`. Store outages fail closed with
+`503`, and limited responses include `Retry-After` plus `RateLimit-*` headers.
 
 **Spaces** — every data route accepts an optional `x-space-id` header
 selecting one of the caller's spaces (isolated sub-workspaces). Omitted or

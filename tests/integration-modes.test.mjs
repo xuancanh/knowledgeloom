@@ -173,7 +173,10 @@ maybe('audio import without transcription config → 501 with a clear message', 
 });
 
 maybe('public endpoints: security headers set, per-IP rate limit enforced', async () => {
-  const base = await bootServer(9361 + (process.pid % 40), { PUBLIC_RATE_LIMIT: '5' });
+  const base = await bootServer(9361 + (process.pid % 40), {
+    PUBLIC_RATE_LIMIT: '5',
+    PUBLIC_RATE_LIMIT_PREFIX: `modes:${process.pid}:memory:`,
+  });
 
   const res = await fetch(`${base}/api/status`);
   assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
@@ -189,6 +192,20 @@ maybe('public endpoints: security headers set, per-IP rate limit enforced', asyn
     if (r.status === 429) limited++;
   }
   assert.ok(limited >= 4, `expected 429s after the limit, got ${limited}`);
+});
+
+maybe('public endpoints: Redis allowance is shared across server replicas', async () => {
+  const prefix = `modes:${process.pid}:shared:`;
+  const env = { PUBLIC_RATE_LIMIT: '5', PUBLIC_RATE_LIMIT_STORE: 'redis', PUBLIC_RATE_LIMIT_PREFIX: prefix };
+  const baseA = await bootServer(9371 + (process.pid % 20), env);
+  const baseB = await bootServer(9391 + (process.pid % 20), env);
+  const responses = [];
+  for (let i = 0; i < 3; i++) {
+    responses.push(await fetch(`${baseA}/api/marketplace`));
+    responses.push(await fetch(`${baseB}/api/marketplace`));
+  }
+  assert.deepEqual(responses.map((r) => r.status), [200, 200, 200, 200, 200, 429]);
+  assert.ok(Number(responses[5].headers.get('retry-after')) > 0);
 });
 
 maybe('read-only mode: reads succeed, writes are rejected', async () => {

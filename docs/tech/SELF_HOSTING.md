@@ -28,6 +28,7 @@ most likely to touch:
 | Note storage | `NOTE_STORAGE`, `S3_*` | `local` filesystem (default) or any S3-compatible bucket |
 | Search | `SEARCH_PROVIDER`, `MEILI_*` | `meilisearch` (default) or `inmemory` (zero dependencies) |
 | Job queue | `REDIS_HOST`, `REDIS_PORT` | Real Redis protocol (BullMQ), not a REST shim |
+| Public rate limits | `PUBLIC_RATE_LIMIT_STORE`, `PUBLIC_RATE_LIMIT` | Redis in production (shared across replicas); memory in development |
 | AI / TTS / STT / vision | `AI_*`, `TTS_*`, `TRANSCRIBE_*`, `VISION_*` | Any OpenAI-compatible endpoints; unset = those features return `501` |
 | Auth | `AUTH_SECRET` | Bearer token required for an internet-exposed local-auth instance (single user) |
 | Spaces | `MAX_SPACES` | Cap the number of spaces per user (unset/0 = unlimited) |

@@ -22,6 +22,13 @@ import { ConfigService } from '@nestjs/config';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import * as express from 'express';
+import Redis from 'ioredis';
+import {
+  createPublicRateLimitMiddleware,
+  MemoryRateLimitStore,
+  RedisRateLimitStore,
+  type RateLimitStore,
+} from './common/public-rate-limiter';
 
 /** Converts any unhandled exception into the { error: message } JSON shape. */
 @Catch()
@@ -79,34 +86,71 @@ export async function createApp(options: AppModuleOptions = {}): Promise<INestAp
     next();
   });
 
+  const config = app.get(ConfigService);
+  // Local auth without a secret is convenient in development, but every way
+  // of constructing a production app must fail closed unless explicitly opted in.
+  if (process.env.NODE_ENV === 'production') {
+    const authProvider = config.get<string>('authProvider');
+    const authSecret = config.get<string>('authSecret');
+    const localMode = !options.authStrategy && (!authProvider || authProvider === 'local');
+    if (localMode && !authSecret && process.env.ALLOW_UNAUTHENTICATED_LOCAL !== '1') {
+      await app.close();
+      throw new Error(
+        'Refusing to start production with unauthenticated local auth. ' +
+        'Set AUTH_SECRET (or AUTH_PROVIDER), or explicitly set ALLOW_UNAUTHENTICATED_LOCAL=1 ' +
+        'when network access is restricted.',
+      );
+    }
+  }
+
   // Public endpoints (share links, marketplace browsing) are unauthenticated
   // by design; a per-IP fixed-window limiter keeps them from becoming a free
   // file-read amplifier. Authenticated routes are not limited here.
-  const RATE_LIMIT = Number(process.env.PUBLIC_RATE_LIMIT || 120); // req/min/ip
-  const SHARE_UNLOCK_RATE_LIMIT = Number(process.env.SHARE_UNLOCK_RATE_LIMIT || 10);
-  const hits = new Map<string, { count: number; windowStart: number }>();
-  app.use((req: any, res: any, next: any) => {
-    const isShareUnlock = /^\/api\/shares\/[^/]+\/public$/.test(req.path) && req.method === 'POST';
-    const isPublic = (isShareUnlock || req.method === 'GET')
-      && /^\/api\/(shares\/[^/]+\/public|marketplace(\/|$))/.test(req.path);
-    if (!isPublic) return next();
-    const now = Date.now();
-    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
-    const key = isShareUnlock ? `share-unlock:${req.path}:${ip}` : `public:${ip}`;
-    const limit = isShareUnlock ? SHARE_UNLOCK_RATE_LIMIT : RATE_LIMIT;
-    const entry = hits.get(key);
-    if (!entry || now - entry.windowStart > 60_000) {
-      hits.set(key, { count: 1, windowStart: now });
-      if (hits.size > 10_000) hits.clear(); // crude memory bound
-      return next();
+  const rateLimitStoreName = config.get<string>('publicRateLimitStore');
+  const publicLimit = config.get<number>('publicRateLimit');
+  const shareUnlockLimit = config.get<number>('shareUnlockRateLimit');
+  if (!Number.isInteger(publicLimit) || publicLimit < 1 || !Number.isInteger(shareUnlockLimit) || shareUnlockLimit < 1) {
+    await app.close();
+    throw new Error('PUBLIC_RATE_LIMIT and SHARE_UNLOCK_RATE_LIMIT must be positive integers');
+  }
+  let rateLimitStore: RateLimitStore;
+  if (rateLimitStoreName === 'redis') {
+    const redis = new Redis({
+      host: config.get<string>('redisHost'),
+      port: config.get<number>('redisPort'),
+      password: config.get<string>('redisPassword') || undefined,
+      db: config.get<number>('redisDb') || 0,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 1,
+    });
+    redis.on('error', () => { /* request middleware returns a controlled 503 */ });
+    try {
+      await redis.connect();
+    } catch (error) {
+      redis.disconnect();
+      await app.close();
+      const ErrorWithCause = Error as unknown as new (
+        message: string,
+        options: { cause: unknown },
+      ) => Error;
+      throw new ErrorWithCause(
+        `PUBLIC_RATE_LIMIT_STORE=redis requires a reachable Redis server: ${(error as Error).message}`,
+        { cause: error },
+      );
     }
-    entry.count += 1;
-    if (entry.count > limit) {
-      res.status(429).json({ error: 'rate limit exceeded — try again shortly' });
-      return;
-    }
-    next();
-  });
+    rateLimitStore = new RedisRateLimitStore(redis, config.get<string>('publicRateLimitPrefix'));
+  } else if (rateLimitStoreName === 'memory') {
+    rateLimitStore = new MemoryRateLimitStore();
+  } else {
+    await app.close();
+    throw new Error(`Unsupported PUBLIC_RATE_LIMIT_STORE: ${rateLimitStoreName}`);
+  }
+  app.getHttpServer().once('close', () => rateLimitStore.close());
+  app.use(createPublicRateLimitMiddleware(rateLimitStore, {
+    publicLimit,
+    shareUnlockLimit,
+  }));
 
   // whitelist strips properties not declared on a validated DTO, so any future
   // class-validated body is protected from mass-assignment by default. (Current
@@ -146,22 +190,6 @@ export async function startApp(options: AppModuleOptions = {}): Promise<INestApp
   const config = app.get(ConfigService);
   const port = config.get<number>('port');
   const readOnly = config.get<boolean>('readOnly');
-
-  // Local auth without a secret is convenient in development, but a production
-  // listener must fail closed unless the operator explicitly accepts that mode.
-  if (process.env.NODE_ENV === 'production') {
-    const authProvider = config.get<string>('authProvider');
-    const authSecret = config.get<string>('authSecret');
-    const localMode = !options.authStrategy && (!authProvider || authProvider === 'local');
-    if (localMode && !authSecret && process.env.ALLOW_UNAUTHENTICATED_LOCAL !== '1') {
-      await app.close();
-      throw new Error(
-        'Refusing to start production with unauthenticated local auth. ' +
-        'Set AUTH_SECRET (or AUTH_PROVIDER), or explicitly set ALLOW_UNAUTHENTICATED_LOCAL=1 ' +
-        'when network access is restricted.',
-      );
-    }
-  }
 
   await app.listen(port);
   console.log(`Knowledge API listening on http://localhost:${port}`);
