@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeNote } from '../types';
 
 /**
@@ -13,6 +14,7 @@ export default function MiniGraph({
   notes: KnowledgeNote[];
   onOpen: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const related = useMemo(() => {
     const biSet = new Set(note.bilinks ?? []);
     const monoLinks = note.links.filter((id) => !biSet.has(id));
@@ -63,10 +65,10 @@ export default function MiniGraph({
         })}
       </svg>
       <div className="legend">
-        <span>● <span style={{ color: 'var(--accent)' }}>here</span></span>
-        <span>● <span style={{ color: 'var(--ink-2)' }}>links to</span></span>
-        <span>● <span style={{ color: 'var(--teal)' }}>bidirectional</span></span>
-        <span>● <span style={{ color: 'var(--ochre)' }}>linked from</span></span>
+        <span>● <span style={{ color: 'var(--accent)' }}>{t('notes.graphHere')}</span></span>
+        <span>● <span style={{ color: 'var(--ink-2)' }}>{t('notes.graphLinksTo')}</span></span>
+        <span>● <span style={{ color: 'var(--teal)' }}>{t('notes.graphBidirectional')}</span></span>
+        <span>● <span style={{ color: 'var(--ochre)' }}>{t('notes.graphLinkedFrom')}</span></span>
       </div>
     </div>
   );

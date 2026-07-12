@@ -92,7 +92,9 @@ export function LinkEditor({
                   <button
                     className={`link-dir-btn${isBi ? ' link-dir-bi' : ''}`}
                     onClick={() => toggleDirection(n.id)}
-                    title={isBi ? 'Bidirectional — click for mono' : 'Monodirectional — click for bidirectional'}
+                    title={isBi ? t('notes.makeMonodirectional') : t('notes.makeBidirectional')}
+                    aria-label={isBi ? t('notes.makeMonodirectional') : t('notes.makeBidirectional')}
+                    aria-pressed={isBi}
                   >
                     {isBi ? '↔' : '→'}
                   </button>

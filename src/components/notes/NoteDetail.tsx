@@ -300,9 +300,9 @@ export default function NoteDetail({
               {regenDropOpen && (
                 <div className="regen-drop">
                   <div className="regen-size-row">
-                    <button className={genSize === 'small' ? 'active' : ''} onClick={() => setGenSizeAndSave('small')}>S</button>
-                    <button className={genSize === 'medium' ? 'active' : ''} onClick={() => setGenSizeAndSave('medium')}>M</button>
-                    <button className={genSize === 'large' ? 'active' : ''} onClick={() => setGenSizeAndSave('large')}>L</button>
+                    <button className={genSize === 'small' ? 'active' : ''} onClick={() => setGenSizeAndSave('small')} title={t('notes.generationSizeSmall')} aria-label={t('notes.generationSizeSmall')} aria-pressed={genSize === 'small'}>S</button>
+                    <button className={genSize === 'medium' ? 'active' : ''} onClick={() => setGenSizeAndSave('medium')} title={t('notes.generationSizeMedium')} aria-label={t('notes.generationSizeMedium')} aria-pressed={genSize === 'medium'}>M</button>
+                    <button className={genSize === 'large' ? 'active' : ''} onClick={() => setGenSizeAndSave('large')} title={t('notes.generationSizeLarge')} aria-label={t('notes.generationSizeLarge')} aria-pressed={genSize === 'large'}>L</button>
                   </div>
                   <button onClick={() => handleRegenerate('flashcards')}>{t('notes.regenFlashcards')}</button>
                   <button onClick={() => handleRegenerate('quiz')}>{t('notes.regenQuiz')}</button>
@@ -405,9 +405,9 @@ export default function NoteDetail({
             {toolbarOpen && (
               <>
                 <span className="read-toolbar-group">
-                  <button onClick={() => setReadSizeState('s')} className={readSize === 's' ? 'active' : ''}>A</button>
-                  <button onClick={() => setReadSizeState('m')} className={readSize === 'm' ? 'active' : ''} style={{ fontSize: '1.15em' }}>A</button>
-                  <button onClick={() => setReadSizeState('l')} className={readSize === 'l' ? 'active' : ''} style={{ fontSize: '1.3em' }}>A</button>
+                  <button onClick={() => setReadSizeState('s')} className={readSize === 's' ? 'active' : ''} title={t('notes.readingSizeSmall')} aria-label={t('notes.readingSizeSmall')} aria-pressed={readSize === 's'}>A</button>
+                  <button onClick={() => setReadSizeState('m')} className={readSize === 'm' ? 'active' : ''} title={t('notes.readingSizeMedium')} aria-label={t('notes.readingSizeMedium')} aria-pressed={readSize === 'm'} style={{ fontSize: '1.15em' }}>A</button>
+                  <button onClick={() => setReadSizeState('l')} className={readSize === 'l' ? 'active' : ''} title={t('notes.readingSizeLarge')} aria-label={t('notes.readingSizeLarge')} aria-pressed={readSize === 'l'} style={{ fontSize: '1.3em' }}>A</button>
                 </span>
                 <span className="read-toolbar-group">
                   <button onClick={() => setReadWidthState('narrow')} className={readWidth === 'narrow' ? 'active' : ''}>{t('notes.widthNarrow')}</button>

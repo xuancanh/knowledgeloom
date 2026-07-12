@@ -194,17 +194,17 @@ export function FlashcardBrowse({
               onChange={(e) => onSearchChange(e.target.value)}
             />
             {searchQuery && (
-              <button className="fc-search-clear" onClick={() => onSearchChange('')}>✕</button>
+              <button className="fc-search-clear" onClick={() => onSearchChange('')} aria-label={t('common.clear')}>✕</button>
             )}
           </div>
           <MultiSelectDropdown
-            label="Category"
+            label={t('common.categories')}
             items={catOptions}
             selected={selectedCategories}
             onChange={onSelectedCategoriesChange}
           />
           <MultiSelectDropdown
-            label="Tag"
+            label={t('common.tags')}
             items={tagOptions}
             selected={selectedTags}
             onChange={onSelectedTagsChange}
@@ -217,13 +217,13 @@ export function FlashcardBrowse({
           {selectedCategories.map((cat) => (
             <span key={cat} className="fc-filter-chip">
               {cat}
-              <button onClick={() => onSelectedCategoriesChange(selectedCategories.filter((c) => c !== cat))}>✕</button>
+              <button onClick={() => onSelectedCategoriesChange(selectedCategories.filter((c) => c !== cat))} aria-label={t('common.removeFilter', { filter: cat })}>✕</button>
             </span>
           ))}
           {selectedTags.map((tag) => (
             <span key={tag} className="fc-filter-chip">
               #{tag}
-              <button onClick={() => onSelectedTagsChange(selectedTags.filter((t) => t !== tag))}>✕</button>
+              <button onClick={() => onSelectedTagsChange(selectedTags.filter((t) => t !== tag))} aria-label={t('common.removeFilter', { filter: tag })}>✕</button>
             </span>
           ))}
           {(selectedCategories.length + selectedTags.length) > 1 && (
@@ -285,7 +285,7 @@ export function FlashcardBrowse({
             })}
             {ratingFilter && (
               <button className="fc-rating-chip fc-rating-clear" onClick={() => onRatingFilterChange(null)}>
-                Clear ✕
+                {t('common.clear')} ✕
               </button>
             )}
           </div>
@@ -316,7 +316,8 @@ export function FlashcardBrowse({
                     <button
                       className="fc-tile-remove"
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: card.id, prompt: card.prompt }); }}
-                      title="Remove flashcard"
+                      title={t('flashcards.removeFlashcard')}
+                      aria-label={t('flashcards.removeFlashcard')}
                     >
                       ✕
                     </button>
@@ -538,7 +539,7 @@ function CardPreviewModal({
   return (
     <div className="fc-dialog-overlay" onClick={onClose}>
       <div className="fc-preview-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="fc-preview-close" onClick={onClose} aria-label="Close">✕</button>
+        <button className="fc-preview-close" onClick={onClose} aria-label={t('common.close')}>✕</button>
 
         <div className="fc-preview-stage">
           <div className="fc-scene">

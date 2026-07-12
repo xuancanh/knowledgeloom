@@ -118,11 +118,11 @@ export default function QuizBrowse({
               spellCheck={false}
             />
             {search && (
-              <button className="qz-search-clear" onClick={() => onSearchChange('')} aria-label="Clear">✕</button>
+              <button className="qz-search-clear" onClick={() => onSearchChange('')} aria-label={t('common.clear')}>✕</button>
             )}
           </div>
-          <MultiSelectDropdown label="Category" items={catOptions} selected={activeCategories} onChange={onCategoriesChange} />
-          <MultiSelectDropdown label="Tag" items={tagOptions} selected={activeTags} onChange={onTagsChange} />
+          <MultiSelectDropdown label={t('common.categories')} items={catOptions} selected={activeCategories} onChange={onCategoriesChange} />
+          <MultiSelectDropdown label={t('common.tags')} items={tagOptions} selected={activeTags} onChange={onTagsChange} />
         </div>
 
         {/* Active filter chips */}
@@ -131,13 +131,13 @@ export default function QuizBrowse({
             {activeCategories.map((cat) => (
               <span key={cat} className="fc-filter-chip">
                 {cat}
-                <button onClick={() => onCategoriesChange(activeCategories.filter((c) => c !== cat))}>✕</button>
+                <button onClick={() => onCategoriesChange(activeCategories.filter((c) => c !== cat))} aria-label={t('common.removeFilter', { filter: cat })}>✕</button>
               </span>
             ))}
             {activeTags.map((tag) => (
               <span key={tag} className="fc-filter-chip">
                 #{tag}
-                <button onClick={() => onTagsChange(activeTags.filter((t) => t !== tag))}>✕</button>
+                <button onClick={() => onTagsChange(activeTags.filter((t) => t !== tag))} aria-label={t('common.removeFilter', { filter: tag })}>✕</button>
               </span>
             ))}
             {(activeCategories.length + activeTags.length) > 1 && (
@@ -264,7 +264,7 @@ function QuizPreviewModal({ question, onRate, onClose }: {
   return (
     <div className="fc-dialog-overlay" onClick={onClose}>
       <div className="qz-preview-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="fc-preview-close" onClick={onClose} aria-label="Close">✕</button>
+        <button className="fc-preview-close" onClick={onClose} aria-label={t('common.close')}>✕</button>
 
         <div className="qz-card">
           <div className="qz-card-head">

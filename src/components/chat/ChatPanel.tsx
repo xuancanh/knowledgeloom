@@ -152,26 +152,28 @@ export function ChatPanel({ notes, categories }: Props) {
 
         {/* Mode selector: ask questions vs be quizzed Socratically */}
         <div className={styles.scopeBar}>
-          <span className={styles.scopeKey}>Mode</span>
+          <span className={styles.scopeKey}>{t('chat.mode')}</span>
           <div className={styles.scopeChips}>
             <button
               className={`${styles.chip}${mode === 'chat' ? ` ${styles.chipActive}` : ''}`}
               onClick={() => setMode('chat')}
-              title="Ask questions about your notes"
+              title={t('chat.askTitle')}
+              aria-pressed={mode === 'chat'}
             >
-              Ask
+              {t('chat.ask')}
             </button>
             <button
               className={`${styles.chip}${mode === 'tutor' ? ` ${styles.chipActive}` : ''}`}
               onClick={() => {
                 setMode('tutor');
                 if (!streaming && messages.length === 0) {
-                  sendMessage('Start quizzing me on this material.', scope, 'tutor');
+                  sendMessage(t('chat.startTutorPrompt'), scope, 'tutor');
                 }
               }}
-              title="Socratic tutor: get quizzed with citations to your notes"
+              title={t('chat.tutorTitle')}
+              aria-pressed={mode === 'tutor'}
             >
-              Tutor me
+              {t('chat.tutor')}
             </button>
           </div>
         </div>
