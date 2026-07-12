@@ -68,7 +68,7 @@ export async function createApp(options: AppModuleOptions = {}): Promise<INestAp
   app.enableCors({
     origin: corsOrigin,
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    allowedHeaders: 'content-type,authorization,x-space-id',
+    allowedHeaders: 'content-type,authorization,x-space-id,if-match',
   });
 
   // Baseline security headers (no framework dependency needed for these).
