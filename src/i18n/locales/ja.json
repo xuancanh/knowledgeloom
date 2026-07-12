@@ -513,6 +513,9 @@
     "usePasswordInstead": "← パスワードでサインイン",
     "signInMagicLink": "✉ ログインリンクでサインイン"
   },
+  "editor": {
+    "startWriting": "書き始める…", "url": "URL", "formatting": "書式", "bold": "太字 (⌘B)", "italic": "斜体 (⌘I)", "underline": "下線 (⌘U)", "strikethrough": "取り消し線", "inlineCode": "インラインコード", "heading1": "見出し 1", "heading2": "見出し 2", "heading3": "見出し 3", "bulletList": "箇条書き", "numberedList": "番号付きリスト", "blockquote": "引用", "codeBlock": "コードブロック", "horizontalRule": "水平線", "link": "リンク", "insertImage": "画像を挿入", "insertTable": "3×3 表を挿入", "addColumn": "後ろに列を追加", "addRow": "後ろに行を追加", "deleteColumn": "列を削除", "deleteRow": "行を削除", "deleteTable": "表を削除", "uploading": "アップロード中…"
+  },
   "graph": {
     "title": "知識の織り目", "nodes": "{{count}} ノード", "nodes_plural": "{{count}} ノード", "edges": "{{count}} エッジ", "edges_plural": "{{count}} エッジ", "links": "{{count}} リンク", "links_plural": "{{count}} リンク", "orphans": "孤立 {{count}} 件", "orphans_plural": "孤立 {{count}} 件", "untitled": "無題のノート",
     "path": "経路", "pathTitle": "前提知識の経路を強調", "curve": "曲線", "curveTitle": "曲線エッジを切り替え", "tidy": "整列", "tidyTitle": "表示ノードを前提知識の階層に整列", "auto": "自動", "autoTitle": "フィルター変更時に再整列", "node": "ノード", "addNode": "ノードを追加", "backfill": "双方向化", "backfillTitle": "相互リンクを双方向リンクに変換",

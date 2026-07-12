@@ -27,6 +27,7 @@ import ImportPanel from '../src/components/import/ImportPanel';
 import TodayPage from '../src/components/study/TodayPage';
 import LearnPage from '../src/components/learn/LearnPage';
 import GraphPage from '../src/components/graph/GraphPage';
+import NoteEditor from '../src/components/notes/NoteEditor';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -252,4 +253,12 @@ test('GraphPage: keyboard selection opens an accessible note inspector', () => {
   } finally {
     globalThis.ResizeObserver = originalResizeObserver;
   }
+});
+
+test('NoteEditor: formatting controls expose translated accessible names', async () => {
+  render(<NoteEditor initialValue="Hello" />);
+  assert.ok(await screen.findByRole('toolbar', { name: 'Formatting' }));
+  assert.ok(screen.getByRole('button', { name: /Bold/ }));
+  assert.ok(screen.getByRole('button', { name: 'Insert image' }));
+  assert.ok(screen.getByRole('button', { name: 'Insert 3×3 table' }));
 });

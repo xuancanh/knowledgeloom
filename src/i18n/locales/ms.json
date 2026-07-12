@@ -513,6 +513,9 @@
     "usePasswordInstead": "← Guna kata laluan",
     "signInMagicLink": "✉ Log masuk dengan pautan log masuk"
   },
+  "editor": {
+    "startWriting": "Mula menulis…", "url": "URL", "formatting": "Pemformatan", "bold": "Tebal (⌘B)", "italic": "Condong (⌘I)", "underline": "Garis bawah (⌘U)", "strikethrough": "Potong", "inlineCode": "Kod sebaris", "heading1": "Tajuk 1", "heading2": "Tajuk 2", "heading3": "Tajuk 3", "bulletList": "Senarai berbulet", "numberedList": "Senarai bernombor", "blockquote": "Petikan", "codeBlock": "Blok kod", "horizontalRule": "Garis mendatar", "link": "Pautan", "insertImage": "Sisip imej", "insertTable": "Sisip jadual 3×3", "addColumn": "Tambah lajur selepas", "addRow": "Tambah baris selepas", "deleteColumn": "Padam lajur", "deleteRow": "Padam baris", "deleteTable": "Padam jadual", "uploading": "Memuat naik…"
+  },
   "graph": {
     "title": "Jalinan", "nodes": "{{count}} nod", "nodes_plural": "{{count}} nod", "edges": "{{count}} sisi", "edges_plural": "{{count}} sisi", "links": "{{count}} pautan", "links_plural": "{{count}} pautan", "orphans": "{{count}} nod terasing", "orphans_plural": "{{count}} nod terasing", "untitled": "Nota tanpa tajuk",
     "path": "Laluan", "pathTitle": "Serlahkan rantaian prasyarat", "curve": "Lengkung", "curveTitle": "Tukar sisi melengkung", "tidy": "Susun", "tidyTitle": "Susun nod mengikut lapisan prasyarat", "auto": "Auto", "autoTitle": "Susun semula apabila penapis berubah", "node": "Nod", "addNode": "Tambah nod", "backfill": "Lengkapkan", "backfillTitle": "Tukar pautan bersama kepada dua hala",

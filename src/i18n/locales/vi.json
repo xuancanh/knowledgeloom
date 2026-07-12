@@ -513,6 +513,9 @@
     "usePasswordInstead": "← Dùng mật khẩu",
     "signInMagicLink": "✉ Đăng nhập bằng liên kết đăng nhập"
   },
+  "editor": {
+    "startWriting": "Bắt đầu viết…", "url": "URL", "formatting": "Định dạng", "bold": "In đậm (⌘B)", "italic": "In nghiêng (⌘I)", "underline": "Gạch chân (⌘U)", "strikethrough": "Gạch ngang", "inlineCode": "Mã trong dòng", "heading1": "Tiêu đề 1", "heading2": "Tiêu đề 2", "heading3": "Tiêu đề 3", "bulletList": "Danh sách dấu đầu dòng", "numberedList": "Danh sách đánh số", "blockquote": "Trích dẫn", "codeBlock": "Khối mã", "horizontalRule": "Đường ngang", "link": "Liên kết", "insertImage": "Chèn ảnh", "insertTable": "Chèn bảng 3×3", "addColumn": "Thêm cột phía sau", "addRow": "Thêm hàng phía sau", "deleteColumn": "Xóa cột", "deleteRow": "Xóa hàng", "deleteTable": "Xóa bảng", "uploading": "Đang tải lên…"
+  },
   "graph": {
     "title": "Mạng dệt", "nodes": "{{count}} nút", "nodes_plural": "{{count}} nút", "edges": "{{count}} cạnh", "edges_plural": "{{count}} cạnh", "links": "{{count}} liên kết", "links_plural": "{{count}} liên kết", "orphans": "{{count}} nút rời", "orphans_plural": "{{count}} nút rời", "untitled": "Ghi chú chưa đặt tên",
     "path": "Đường dẫn", "pathTitle": "Làm nổi chuỗi kiến thức tiên quyết", "curve": "Đường cong", "curveTitle": "Bật tắt cạnh cong", "tidy": "Sắp xếp", "tidyTitle": "Xếp nút theo tầng kiến thức tiên quyết", "auto": "Tự động", "autoTitle": "Sắp xếp lại khi bộ lọc thay đổi", "node": "Nút", "addNode": "Thêm nút", "backfill": "Bổ sung", "backfillTitle": "Đổi liên kết tương hỗ thành hai chiều",

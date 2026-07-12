@@ -513,6 +513,9 @@
     "usePasswordInstead": "← 使用密码登录",
     "signInMagicLink": "✉ 使用登录链接登录"
   },
+  "editor": {
+    "startWriting": "开始写作…", "url": "网址", "formatting": "格式", "bold": "粗体 (⌘B)", "italic": "斜体 (⌘I)", "underline": "下划线 (⌘U)", "strikethrough": "删除线", "inlineCode": "行内代码", "heading1": "一级标题", "heading2": "二级标题", "heading3": "三级标题", "bulletList": "项目符号列表", "numberedList": "编号列表", "blockquote": "引用", "codeBlock": "代码块", "horizontalRule": "水平分隔线", "link": "链接", "insertImage": "插入图片", "insertTable": "插入 3×3 表格", "addColumn": "在后面添加列", "addRow": "在后面添加行", "deleteColumn": "删除列", "deleteRow": "删除行", "deleteTable": "删除表格", "uploading": "正在上传…"
+  },
   "graph": {
     "title": "知识织网", "nodes": "{{count}} 个节点", "nodes_plural": "{{count}} 个节点", "edges": "{{count}} 条边", "edges_plural": "{{count}} 条边", "links": "{{count}} 个链接", "links_plural": "{{count}} 个链接", "orphans": "{{count}} 个孤立节点", "orphans_plural": "{{count}} 个孤立节点", "untitled": "无标题笔记",
     "path": "路径", "pathTitle": "突出显示前置知识链", "curve": "曲线", "curveTitle": "切换曲线边", "tidy": "整理", "tidyTitle": "按前置层级排列可见节点", "auto": "自动", "autoTitle": "筛选变化时重新排列", "node": "节点", "addNode": "添加节点", "backfill": "补全双向", "backfillTitle": "将相互链接转换为双向链接",

@@ -5,11 +5,10 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Markdown } from '@tiptap/markdown';
-import UnderlineExt from '@tiptap/extension-underline';
-import LinkExt from '@tiptap/extension-link';
 import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table';
 import { Image as ImageExt } from '@tiptap/extension-image';
 import { uploadImage } from '../../api';
+import { useTranslation } from 'react-i18next';
 
 export type NoteEditorHandle = {
   getValue: () => string;
@@ -30,6 +29,7 @@ function Btn({
       type="button"
       className={`ne-btn${active ? ' ne-btn--active' : ''}`}
       title={title}
+      aria-label={title}
       onMouseDown={(e) => { e.preventDefault(); onClick(); }}
       disabled={disabled}
       aria-pressed={active}
@@ -47,18 +47,20 @@ const NoteEditor = forwardRef<NoteEditorHandle, {
   initialValue?: string;
   placeholder?: string;
   disabled?: boolean;
-}>(function NoteEditor({ initialValue = '', placeholder = 'Start writing…', disabled = false }, ref) {
+}>(function NoteEditor({ initialValue = '', placeholder, disabled = false }, ref) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initRef = useRef(false);
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ codeBlock: { HTMLAttributes: { class: 'ne-code-block' } } }),
-      Placeholder.configure({ placeholder }),
+      StarterKit.configure({
+        codeBlock: { HTMLAttributes: { class: 'ne-code-block' } },
+        link: { openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } },
+      }),
+      Placeholder.configure({ placeholder: placeholder ?? t('editor.startWriting') }),
       Markdown,
-      UnderlineExt,
-      LinkExt.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
@@ -158,7 +160,7 @@ const NoteEditor = forwardRef<NoteEditorHandle, {
 
   function setLink() {
     const prev = editor?.getAttributes('link').href || '';
-    const url = window.prompt('URL', prev);
+    const url = window.prompt(t('editor.url'), prev);
     if (url === null) return;
     if (!url) {
       editor?.chain().focus().extendMarkRange('link').unsetLink().run();
@@ -173,38 +175,38 @@ const NoteEditor = forwardRef<NoteEditorHandle, {
 
   return (
     <div className="note-editor">
-      <div className="ne-toolbar" role="toolbar" aria-label="Formatting">
-        <Btn active={editor.isActive('bold')} title="Bold (⌘B)" onClick={() => editor.chain().focus().toggleBold().run()}>B</Btn>
-        <Btn active={editor.isActive('italic')} title="Italic (⌘I)" onClick={() => editor.chain().focus().toggleItalic().run()}>I</Btn>
-        <Btn active={editor.isActive('underline')} title="Underline (⌘U)" onClick={() => editor.chain().focus().toggleUnderline().run()}>U</Btn>
-        <Btn active={editor.isActive('strike')} title="Strikethrough" onClick={() => editor.chain().focus().toggleStrike().run()}>S̶</Btn>
-        <Btn active={editor.isActive('code')} title="Inline code" onClick={() => editor.chain().focus().toggleCode().run()}>`</Btn>
+      <div className="ne-toolbar" role="toolbar" aria-label={t('editor.formatting')}>
+        <Btn active={editor.isActive('bold')} title={t('editor.bold')} onClick={() => editor.chain().focus().toggleBold().run()}>B</Btn>
+        <Btn active={editor.isActive('italic')} title={t('editor.italic')} onClick={() => editor.chain().focus().toggleItalic().run()}>I</Btn>
+        <Btn active={editor.isActive('underline')} title={t('editor.underline')} onClick={() => editor.chain().focus().toggleUnderline().run()}>U</Btn>
+        <Btn active={editor.isActive('strike')} title={t('editor.strikethrough')} onClick={() => editor.chain().focus().toggleStrike().run()}>S̶</Btn>
+        <Btn active={editor.isActive('code')} title={t('editor.inlineCode')} onClick={() => editor.chain().focus().toggleCode().run()}>`</Btn>
         <Sep />
-        <Btn active={editor.isActive('heading', { level: 1 })} title="Heading 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>H1</Btn>
-        <Btn active={editor.isActive('heading', { level: 2 })} title="Heading 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</Btn>
-        <Btn active={editor.isActive('heading', { level: 3 })} title="Heading 3" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>H3</Btn>
+        <Btn active={editor.isActive('heading', { level: 1 })} title={t('editor.heading1')} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>H1</Btn>
+        <Btn active={editor.isActive('heading', { level: 2 })} title={t('editor.heading2')} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>H2</Btn>
+        <Btn active={editor.isActive('heading', { level: 3 })} title={t('editor.heading3')} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>H3</Btn>
         <Sep />
-        <Btn active={editor.isActive('bulletList')} title="Bullet list" onClick={() => editor.chain().focus().toggleBulletList().run()}>•</Btn>
-        <Btn active={editor.isActive('orderedList')} title="Numbered list" onClick={() => editor.chain().focus().toggleOrderedList().run()}>1.</Btn>
+        <Btn active={editor.isActive('bulletList')} title={t('editor.bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()}>•</Btn>
+        <Btn active={editor.isActive('orderedList')} title={t('editor.numberedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()}>1.</Btn>
         <Sep />
-        <Btn active={editor.isActive('blockquote')} title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()}>❝</Btn>
-        <Btn active={editor.isActive('codeBlock')} title="Code block" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>{'{}'}</Btn>
-        <Btn active={false} title="Horizontal rule" onClick={() => editor.chain().focus().setHorizontalRule().run()}>—</Btn>
+        <Btn active={editor.isActive('blockquote')} title={t('editor.blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}>❝</Btn>
+        <Btn active={editor.isActive('codeBlock')} title={t('editor.codeBlock')} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>{'{}'}</Btn>
+        <Btn active={false} title={t('editor.horizontalRule')} onClick={() => editor.chain().focus().setHorizontalRule().run()}>—</Btn>
         <Sep />
-        <Btn active={editor.isActive('link')} title="Link" onClick={setLink}>🔗</Btn>
-        <Btn active={false} title="Insert image" onClick={openFilePicker}>🖼</Btn>
-        <Btn active={false} title="Insert 3×3 table" onClick={insertTable}>⊞</Btn>
+        <Btn active={editor.isActive('link')} title={t('editor.link')} onClick={setLink}>🔗</Btn>
+        <Btn active={false} title={t('editor.insertImage')} onClick={openFilePicker}>🖼</Btn>
+        <Btn active={false} title={t('editor.insertTable')} onClick={insertTable}>⊞</Btn>
         {inTable && (
           <>
             <Sep />
-            <Btn active={false} title="Add column after" onClick={() => editor.chain().focus().addColumnAfter().run()}>+col</Btn>
-            <Btn active={false} title="Add row after" onClick={() => editor.chain().focus().addRowAfter().run()}>+row</Btn>
-            <Btn active={false} title="Delete column" onClick={() => editor.chain().focus().deleteColumn().run()}>-col</Btn>
-            <Btn active={false} title="Delete row" onClick={() => editor.chain().focus().deleteRow().run()}>-row</Btn>
-            <Btn active={false} title="Delete table" onClick={() => editor.chain().focus().deleteTable().run()}>⊠</Btn>
+            <Btn active={false} title={t('editor.addColumn')} onClick={() => editor.chain().focus().addColumnAfter().run()}>+col</Btn>
+            <Btn active={false} title={t('editor.addRow')} onClick={() => editor.chain().focus().addRowAfter().run()}>+row</Btn>
+            <Btn active={false} title={t('editor.deleteColumn')} onClick={() => editor.chain().focus().deleteColumn().run()}>-col</Btn>
+            <Btn active={false} title={t('editor.deleteRow')} onClick={() => editor.chain().focus().deleteRow().run()}>-row</Btn>
+            <Btn active={false} title={t('editor.deleteTable')} onClick={() => editor.chain().focus().deleteTable().run()}>⊠</Btn>
           </>
         )}
-        {uploading && <span className="ne-uploading" style={{ marginLeft: 'auto' }}>Uploading…</span>}
+        {uploading && <span className="ne-uploading" role="status" style={{ marginLeft: 'auto' }}>{t('editor.uploading')}</span>}
       </div>
 
       {/* Inline bubble menu rendered inside the editor DOM */}
@@ -232,6 +234,7 @@ function NoteEditorBubble({
   editor: ReturnType<typeof useEditor>;
   onSetLink: () => void;
 }) {
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -267,15 +270,15 @@ function NoteEditorBubble({
 
   return (
     <div ref={menuRef} className="ne-bubble" style={{ display: 'none', position: 'absolute', zIndex: 20 }}>
-      <button type="button" className={`ne-btn${editor.isActive('bold') ? ' ne-btn--active' : ''}`} title="Bold"
+      <button type="button" className={`ne-btn${editor.isActive('bold') ? ' ne-btn--active' : ''}`} title={t('editor.bold')} aria-label={t('editor.bold')}
         onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleBold().run(); }}>B</button>
-      <button type="button" className={`ne-btn${editor.isActive('italic') ? ' ne-btn--active' : ''}`} title="Italic"
+      <button type="button" className={`ne-btn${editor.isActive('italic') ? ' ne-btn--active' : ''}`} title={t('editor.italic')} aria-label={t('editor.italic')}
         onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleItalic().run(); }}>I</button>
-      <button type="button" className={`ne-btn${editor.isActive('underline') ? ' ne-btn--active' : ''}`} title="Underline"
+      <button type="button" className={`ne-btn${editor.isActive('underline') ? ' ne-btn--active' : ''}`} title={t('editor.underline')} aria-label={t('editor.underline')}
         onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleUnderline().run(); }}>U</button>
-      <button type="button" className={`ne-btn${editor.isActive('code') ? ' ne-btn--active' : ''}`} title="Code"
+      <button type="button" className={`ne-btn${editor.isActive('code') ? ' ne-btn--active' : ''}`} title={t('editor.inlineCode')} aria-label={t('editor.inlineCode')}
         onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleCode().run(); }}>`</button>
-      <button type="button" className={`ne-btn${editor.isActive('link') ? ' ne-btn--active' : ''}`} title="Link"
+      <button type="button" className={`ne-btn${editor.isActive('link') ? ' ne-btn--active' : ''}`} title={t('editor.link')} aria-label={t('editor.link')}
         onMouseDown={(e) => { e.preventDefault(); onSetLink(); }}>🔗</button>
     </div>
   );

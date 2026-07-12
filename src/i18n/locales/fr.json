@@ -513,6 +513,9 @@
     "usePasswordInstead": "← Utiliser le mot de passe",
     "signInMagicLink": "✉ Se connecter avec un lien de connexion"
   },
+  "editor": {
+    "startWriting": "Commencez à écrire…", "url": "URL", "formatting": "Mise en forme", "bold": "Gras (⌘B)", "italic": "Italique (⌘I)", "underline": "Souligné (⌘U)", "strikethrough": "Barré", "inlineCode": "Code en ligne", "heading1": "Titre 1", "heading2": "Titre 2", "heading3": "Titre 3", "bulletList": "Liste à puces", "numberedList": "Liste numérotée", "blockquote": "Citation", "codeBlock": "Bloc de code", "horizontalRule": "Ligne horizontale", "link": "Lien", "insertImage": "Insérer une image", "insertTable": "Insérer un tableau 3×3", "addColumn": "Ajouter une colonne après", "addRow": "Ajouter une ligne après", "deleteColumn": "Supprimer la colonne", "deleteRow": "Supprimer la ligne", "deleteTable": "Supprimer le tableau", "uploading": "Envoi…"
+  },
   "graph": {
     "title": "La trame", "nodes": "{{count}} nœud", "nodes_plural": "{{count}} nœuds", "edges": "{{count}} arête", "edges_plural": "{{count}} arêtes", "links": "{{count}} lien", "links_plural": "{{count}} liens", "orphans": "{{count}} orphelin", "orphans_plural": "{{count}} orphelins", "untitled": "Note sans titre",
     "path": "Chemin", "pathTitle": "Surligner la chaîne des prérequis", "curve": "Courbe", "curveTitle": "Basculer les arêtes courbes", "tidy": "Ranger", "tidyTitle": "Ranger les nœuds visibles par niveaux de prérequis", "auto": "Auto", "autoTitle": "Réorganiser quand les filtres changent", "node": "Nœud", "addNode": "Ajouter un nœud", "backfill": "Compléter", "backfillTitle": "Convertir les liens mutuels en liens bidirectionnels",

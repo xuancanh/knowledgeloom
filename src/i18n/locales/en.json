@@ -513,6 +513,9 @@
     "usePasswordInstead": "← Use password instead",
     "signInMagicLink": "✉ Sign in with magic link"
   },
+  "editor": {
+    "startWriting": "Start writing…", "url": "URL", "formatting": "Formatting", "bold": "Bold (⌘B)", "italic": "Italic (⌘I)", "underline": "Underline (⌘U)", "strikethrough": "Strikethrough", "inlineCode": "Inline code", "heading1": "Heading 1", "heading2": "Heading 2", "heading3": "Heading 3", "bulletList": "Bullet list", "numberedList": "Numbered list", "blockquote": "Blockquote", "codeBlock": "Code block", "horizontalRule": "Horizontal rule", "link": "Link", "insertImage": "Insert image", "insertTable": "Insert 3×3 table", "addColumn": "Add column after", "addRow": "Add row after", "deleteColumn": "Delete column", "deleteRow": "Delete row", "deleteTable": "Delete table", "uploading": "Uploading…"
+  },
   "graph": {
     "title": "The Weave", "nodes": "{{count}} node", "nodes_plural": "{{count}} nodes", "edges": "{{count}} edge", "edges_plural": "{{count}} edges", "links": "{{count}} link", "links_plural": "{{count}} links", "orphans": "{{count}} orphan", "orphans_plural": "{{count}} orphans", "untitled": "Untitled note",
     "path": "Path", "pathTitle": "Highlight prerequisite chain", "curve": "Curve", "curveTitle": "Toggle curved edges", "tidy": "Tidy", "tidyTitle": "Arrange visible nodes into prerequisite layers", "auto": "Auto", "autoTitle": "Reorganize when filters change", "node": "Node", "addNode": "Add a node", "backfill": "Backfill", "backfillTitle": "Convert mutual links to bidirectional links",

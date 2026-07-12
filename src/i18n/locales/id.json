@@ -513,6 +513,9 @@
     "usePasswordInstead": "← Gunakan kata sandi",
     "signInMagicLink": "✉ Masuk dengan tautan masuk"
   },
+  "editor": {
+    "startWriting": "Mulai menulis…", "url": "URL", "formatting": "Pemformatan", "bold": "Tebal (⌘B)", "italic": "Miring (⌘I)", "underline": "Garis bawah (⌘U)", "strikethrough": "Coret", "inlineCode": "Kode sebaris", "heading1": "Judul 1", "heading2": "Judul 2", "heading3": "Judul 3", "bulletList": "Daftar berpoin", "numberedList": "Daftar bernomor", "blockquote": "Kutipan", "codeBlock": "Blok kode", "horizontalRule": "Garis horizontal", "link": "Tautan", "insertImage": "Sisipkan gambar", "insertTable": "Sisipkan tabel 3×3", "addColumn": "Tambah kolom setelah", "addRow": "Tambah baris setelah", "deleteColumn": "Hapus kolom", "deleteRow": "Hapus baris", "deleteTable": "Hapus tabel", "uploading": "Mengunggah…"
+  },
   "graph": {
     "title": "Jalinan", "nodes": "{{count}} simpul", "nodes_plural": "{{count}} simpul", "edges": "{{count}} sisi", "edges_plural": "{{count}} sisi", "links": "{{count}} tautan", "links_plural": "{{count}} tautan", "orphans": "{{count}} simpul terpisah", "orphans_plural": "{{count}} simpul terpisah", "untitled": "Catatan tanpa judul",
     "path": "Jalur", "pathTitle": "Sorot rantai prasyarat", "curve": "Kurva", "curveTitle": "Ubah sisi melengkung", "tidy": "Rapikan", "tidyTitle": "Susun simpul terlihat menurut tingkat prasyarat", "auto": "Otomatis", "autoTitle": "Susun ulang saat filter berubah", "node": "Simpul", "addNode": "Tambah simpul", "backfill": "Lengkapi", "backfillTitle": "Ubah tautan timbal balik menjadi dua arah",

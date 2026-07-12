@@ -516,6 +516,9 @@
     "usePasswordInstead": "← Usar contraseña",
     "signInMagicLink": "✉ Iniciar sesión con enlace de acceso"
   },
+  "editor": {
+    "startWriting": "Empieza a escribir…", "url": "URL", "formatting": "Formato", "bold": "Negrita (⌘B)", "italic": "Cursiva (⌘I)", "underline": "Subrayado (⌘U)", "strikethrough": "Tachado", "inlineCode": "Código en línea", "heading1": "Encabezado 1", "heading2": "Encabezado 2", "heading3": "Encabezado 3", "bulletList": "Lista con viñetas", "numberedList": "Lista numerada", "blockquote": "Cita", "codeBlock": "Bloque de código", "horizontalRule": "Línea horizontal", "link": "Enlace", "insertImage": "Insertar imagen", "insertTable": "Insertar tabla 3×3", "addColumn": "Añadir columna después", "addRow": "Añadir fila después", "deleteColumn": "Eliminar columna", "deleteRow": "Eliminar fila", "deleteTable": "Eliminar tabla", "uploading": "Subiendo…"
+  },
   "graph": {
     "title": "La trama", "nodes": "{{count}} nodo", "nodes_plural": "{{count}} nodos", "edges": "{{count}} arista", "edges_plural": "{{count}} aristas", "links": "{{count}} enlace", "links_plural": "{{count}} enlaces", "orphans": "{{count}} huérfano", "orphans_plural": "{{count}} huérfanos", "untitled": "Nota sin título",
     "path": "Ruta", "pathTitle": "Resaltar la cadena de requisitos", "curve": "Curva", "curveTitle": "Alternar aristas curvas", "tidy": "Ordenar", "tidyTitle": "Ordenar los nodos visibles por niveles de requisitos", "auto": "Auto", "autoTitle": "Reorganizar al cambiar los filtros", "node": "Nodo", "addNode": "Añadir nodo", "backfill": "Completar", "backfillTitle": "Convertir enlaces mutuos en bidireccionales",

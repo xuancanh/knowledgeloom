@@ -513,6 +513,9 @@
     "usePasswordInstead": "← पासवर्ड का उपयोग करें",
     "signInMagicLink": "✉ साइन-इन लिंक से साइन इन"
   },
+  "editor": {
+    "startWriting": "लिखना शुरू करें…", "url": "URL", "formatting": "स्वरूपण", "bold": "बोल्ड (⌘B)", "italic": "इटैलिक (⌘I)", "underline": "रेखांकित (⌘U)", "strikethrough": "काटा हुआ", "inlineCode": "पंक्ति में कोड", "heading1": "शीर्षक 1", "heading2": "शीर्षक 2", "heading3": "शीर्षक 3", "bulletList": "बुलेट सूची", "numberedList": "क्रमांकित सूची", "blockquote": "उद्धरण", "codeBlock": "कोड ब्लॉक", "horizontalRule": "क्षैतिज रेखा", "link": "लिंक", "insertImage": "चित्र जोड़ें", "insertTable": "3×3 तालिका जोड़ें", "addColumn": "बाद में कॉलम जोड़ें", "addRow": "बाद में पंक्ति जोड़ें", "deleteColumn": "कॉलम हटाएँ", "deleteRow": "पंक्ति हटाएँ", "deleteTable": "तालिका हटाएँ", "uploading": "अपलोड हो रहा है…"
+  },
   "graph": {
     "title": "ज्ञान-जाल", "nodes": "{{count}} नोड", "nodes_plural": "{{count}} नोड", "edges": "{{count}} किनारा", "edges_plural": "{{count}} किनारे", "links": "{{count}} लिंक", "links_plural": "{{count}} लिंक", "orphans": "{{count}} अलग नोड", "orphans_plural": "{{count}} अलग नोड", "untitled": "बिना शीर्षक का नोट",
     "path": "पथ", "pathTitle": "पूर्वज्ञान शृंखला उभारें", "curve": "वक्र", "curveTitle": "वक्र किनारे बदलें", "tidy": "व्यवस्थित करें", "tidyTitle": "दिख रहे नोड को पूर्वज्ञान स्तरों में सजाएँ", "auto": "स्वतः", "autoTitle": "फ़िल्टर बदलने पर फिर व्यवस्थित करें", "node": "नोड", "addNode": "नोड जोड़ें", "backfill": "पूरा करें", "backfillTitle": "आपसी लिंक को द्विदिश बनाएँ",
