@@ -513,6 +513,13 @@
     "usePasswordInstead": "← पासवर्ड का उपयोग करें",
     "signInMagicLink": "✉ साइन-इन लिंक से साइन इन"
   },
+  "graph": {
+    "title": "ज्ञान-जाल", "nodes": "{{count}} नोड", "nodes_plural": "{{count}} नोड", "edges": "{{count}} किनारा", "edges_plural": "{{count}} किनारे", "links": "{{count}} लिंक", "links_plural": "{{count}} लिंक", "orphans": "{{count}} अलग नोड", "orphans_plural": "{{count}} अलग नोड", "untitled": "बिना शीर्षक का नोट",
+    "path": "पथ", "pathTitle": "पूर्वज्ञान शृंखला उभारें", "curve": "वक्र", "curveTitle": "वक्र किनारे बदलें", "tidy": "व्यवस्थित करें", "tidyTitle": "दिख रहे नोड को पूर्वज्ञान स्तरों में सजाएँ", "auto": "स्वतः", "autoTitle": "फ़िल्टर बदलने पर फिर व्यवस्थित करें", "node": "नोड", "addNode": "नोड जोड़ें", "backfill": "पूरा करें", "backfillTitle": "आपसी लिंक को द्विदिश बनाएँ",
+    "zoomOut": "छोटा करें", "zoomIn": "बड़ा करें", "fit": "फिट करें", "fitTitle": "ग्राफ़ को स्क्रीन पर फिट करें", "map": "मानचित्र", "mapTitle": "छोटा मानचित्र बदलें", "selectNode": "{{title}} चुनें; खोलने के लिए Enter दबाएँ", "dragToLink": "लिंक करने के लिए खींचें", "dragToLinkFrom": "{{title}} से लिंक करने के लिए खींचें", "setCategory": "श्रेणी {{category}} करें",
+    "prerequisites": "पूर्वज्ञान", "noPrerequisites": "यह आधार है, इससे पहले कुछ नहीं।", "unlocks": "आगे खोलता है", "noUnlocks": "अभी इस पर कुछ नहीं बना। लिंक के लिए किनारे का बिंदु खींचें।", "removeLink": "लिंक हटाएँ", "removeLinkTo": "{{title}} का लिंक हटाएँ", "removeSelectedEdge": "चुना किनारा हटाएँ", "openNote": "नोट खोलें",
+    "hintMove": "नोड खींचें · ज़ूम के लिए स्क्रॉल करें", "hintLink": "लिंक के लिए किनारे का बिंदु खींचें", "hintCut": "किनारा चुनकर Delete दबाएँ", "hintAdd": "जोड़ने के लिए कैनवास पर डबल-क्लिक करें", "prerequisiteCount": "{{count}} पूर्वज्ञान", "prerequisiteCount_plural": "{{count}} पूर्वज्ञान", "unlockCount": "{{count}} आगे का नोड", "unlockCount_plural": "{{count}} आगे के नोड"
+  },
   "learn": {
     "title": "सीखें", "loadingNotes": "नोट लोड हो रहे हैं…", "notesReady": "{{count}} नोट सीखने के लिए तैयार", "notesReady_plural": "{{count}} नोट सीखने के लिए तैयार", "intro": "अपने ज्ञान वॉल्ट से अध्ययन योजना बनाएँ।", "planSession": "सत्र की योजना बनाएँ", "back": "वापस",
     "dailyGoal": "दैनिक लक्ष्य · {{value}}/{{goal}} XP", "dayStreak": "लगातार दिन", "totalXp": "कुल XP", "lesson": "पाठ", "slides": "स्लाइड", "podcast": "पॉडकास्ट", "read": "पढ़ें", "cards": "कार्ड", "quiz": "प्रश्नोत्तरी", "exit": "बाहर जाएँ", "backToWeave": "ज्ञान-जाल पर वापस",

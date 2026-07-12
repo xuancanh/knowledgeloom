@@ -513,6 +513,13 @@
     "usePasswordInstead": "← 使用密码登录",
     "signInMagicLink": "✉ 使用登录链接登录"
   },
+  "graph": {
+    "title": "知识织网", "nodes": "{{count}} 个节点", "nodes_plural": "{{count}} 个节点", "edges": "{{count}} 条边", "edges_plural": "{{count}} 条边", "links": "{{count}} 个链接", "links_plural": "{{count}} 个链接", "orphans": "{{count}} 个孤立节点", "orphans_plural": "{{count}} 个孤立节点", "untitled": "无标题笔记",
+    "path": "路径", "pathTitle": "突出显示前置知识链", "curve": "曲线", "curveTitle": "切换曲线边", "tidy": "整理", "tidyTitle": "按前置层级排列可见节点", "auto": "自动", "autoTitle": "筛选变化时重新排列", "node": "节点", "addNode": "添加节点", "backfill": "补全双向", "backfillTitle": "将相互链接转换为双向链接",
+    "zoomOut": "缩小", "zoomIn": "放大", "fit": "适应", "fitTitle": "让图谱适应屏幕", "map": "小地图", "mapTitle": "切换小地图", "selectNode": "选择「{{title}}」；按 Enter 打开", "dragToLink": "拖动以链接", "dragToLinkFrom": "从「{{title}}」拖动以链接", "setCategory": "将分类设为 {{category}}",
+    "prerequisites": "前置知识", "noPrerequisites": "这是基础节点，之前没有其他内容。", "unlocks": "后续内容", "noUnlocks": "暂时没有后续内容。拖动侧边圆点进行链接。", "removeLink": "移除链接", "removeLinkTo": "移除与「{{title}}」的链接", "removeSelectedEdge": "移除所选边", "openNote": "打开笔记",
+    "hintMove": "拖动节点 · 滚动缩放", "hintLink": "拖动侧边圆点进行链接", "hintCut": "选择边并按 Delete 删除", "hintAdd": "双击画布添加节点", "prerequisiteCount": "{{count}} 个前置节点", "prerequisiteCount_plural": "{{count}} 个前置节点", "unlockCount": "{{count}} 个后续节点", "unlockCount_plural": "{{count}} 个后续节点"
+  },
   "learn": {
     "title": "课程", "loadingNotes": "正在加载笔记…", "notesReady": "{{count}} 篇笔记可供学习", "notesReady_plural": "{{count}} 篇笔记可供学习", "intro": "从知识库制定学习计划。", "planSession": "规划学习", "back": "返回",
     "dailyGoal": "每日目标 · {{value}}/{{goal}} XP", "dayStreak": "连续学习天数", "totalXp": "总 XP", "lesson": "课程", "slides": "幻灯片", "podcast": "播客", "read": "阅读", "cards": "卡片", "quiz": "测验", "exit": "退出", "backToWeave": "返回知识网络",

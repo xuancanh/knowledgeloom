@@ -15,6 +15,7 @@ import * as React from 'react';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from '../src/i18n/locales/en.json';
@@ -25,6 +26,7 @@ import { NoteTransferDialog } from '../src/components/notes/NoteTransferDialog';
 import ImportPanel from '../src/components/import/ImportPanel';
 import TodayPage from '../src/components/study/TodayPage';
 import LearnPage from '../src/components/learn/LearnPage';
+import GraphPage from '../src/components/graph/GraphPage';
 
 await i18n.use(initReactI18next).init({
   lng: 'en',
@@ -204,5 +206,50 @@ test('LearnPage: opens a translated, accessible learning planner', async () => {
     assert.equal(screen.queryByRole('dialog'), null);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test('GraphPage: keyboard selection opens an accessible note inspector', () => {
+  const originalResizeObserver = globalThis.ResizeObserver;
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as typeof ResizeObserver;
+
+  try {
+    render(
+      <MemoryRouter>
+        <GraphPage
+          state={{
+            notes: [{
+              id: 'note-1', fileName: 'note-1.md', path: 'Topic/note-1.md', title: 'Graph Theory',
+              category: 'Topic', summary: 'Connected concepts.', tags: [], links: [], bilinks: [],
+              createdAt: '2026-01-01T00:00:00.000Z',
+            }],
+            categories: [], graph: [],
+          }}
+          categories={[{
+            id: 'Topic', name: 'Topic', slug: 'topic', count: 1, summaries: [],
+            notes: [], color: 'moss', summary: '',
+          }]}
+          tagCounts={[]}
+          onAddLink={async () => {}}
+          onRemoveLink={async () => {}}
+          onAddNote={async () => 'new-note'}
+          onDeleteNote={async () => {}}
+          onRenameNote={async () => {}}
+          onSetCategory={async () => {}}
+        />
+      </MemoryRouter>,
+    );
+    assert.ok(screen.getByText('The Weave'));
+    const node = screen.getByRole('button', { name: /Select Graph Theory/ });
+    fireEvent.keyDown(node, { key: ' ' });
+    assert.ok(screen.getByRole('button', { name: /^Open note/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    assert.equal(screen.queryByRole('button', { name: /^Open note/ }), null);
+  } finally {
+    globalThis.ResizeObserver = originalResizeObserver;
   }
 });

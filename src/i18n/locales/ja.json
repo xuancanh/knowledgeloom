@@ -513,6 +513,13 @@
     "usePasswordInstead": "← パスワードでサインイン",
     "signInMagicLink": "✉ ログインリンクでサインイン"
   },
+  "graph": {
+    "title": "知識の織り目", "nodes": "{{count}} ノード", "nodes_plural": "{{count}} ノード", "edges": "{{count}} エッジ", "edges_plural": "{{count}} エッジ", "links": "{{count}} リンク", "links_plural": "{{count}} リンク", "orphans": "孤立 {{count}} 件", "orphans_plural": "孤立 {{count}} 件", "untitled": "無題のノート",
+    "path": "経路", "pathTitle": "前提知識の経路を強調", "curve": "曲線", "curveTitle": "曲線エッジを切り替え", "tidy": "整列", "tidyTitle": "表示ノードを前提知識の階層に整列", "auto": "自動", "autoTitle": "フィルター変更時に再整列", "node": "ノード", "addNode": "ノードを追加", "backfill": "双方向化", "backfillTitle": "相互リンクを双方向リンクに変換",
+    "zoomOut": "縮小", "zoomIn": "拡大", "fit": "全体表示", "fitTitle": "グラフを画面に合わせる", "map": "マップ", "mapTitle": "ミニマップを切り替え", "selectNode": "{{title}}を選択。Enter で開く", "dragToLink": "ドラッグしてリンク", "dragToLinkFrom": "{{title}}からドラッグしてリンク", "setCategory": "カテゴリーを{{category}}に設定",
+    "prerequisites": "前提知識", "noPrerequisites": "基礎ノードです。前に来るものはありません。", "unlocks": "次に学べる内容", "noUnlocks": "まだ次の内容はありません。側面の点をドラッグしてリンクします。", "removeLink": "リンクを削除", "removeLinkTo": "{{title}}へのリンクを削除", "removeSelectedEdge": "選択したエッジを削除", "openNote": "ノートを開く",
+    "hintMove": "ノードをドラッグ · スクロールで拡大縮小", "hintLink": "側面の点をドラッグしてリンク", "hintCut": "エッジを選択して Delete で削除", "hintAdd": "キャンバスをダブルクリックして追加", "prerequisiteCount": "前提 {{count}} 件", "prerequisiteCount_plural": "前提 {{count}} 件", "unlockCount": "次の内容 {{count}} 件", "unlockCount_plural": "次の内容 {{count}} 件"
+  },
   "learn": {
     "title": "レッスン", "loadingNotes": "ノートを読み込み中…", "notesReady": "{{count}} 件のノートを学習できます", "notesReady_plural": "{{count}} 件のノートを学習できます", "intro": "知識保管庫から学習プランを作成します。", "planSession": "セッションを計画", "back": "戻る",
     "dailyGoal": "1日の目標 · {{value}}/{{goal}} XP", "dayStreak": "連続学習日数", "totalXp": "合計 XP", "lesson": "レッスン", "slides": "スライド", "podcast": "ポッドキャスト", "read": "読む", "cards": "カード", "quiz": "クイズ", "exit": "終了", "backToWeave": "知識ネットワークに戻る",

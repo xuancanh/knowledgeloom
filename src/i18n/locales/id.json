@@ -513,6 +513,13 @@
     "usePasswordInstead": "← Gunakan kata sandi",
     "signInMagicLink": "✉ Masuk dengan tautan masuk"
   },
+  "graph": {
+    "title": "Jalinan", "nodes": "{{count}} simpul", "nodes_plural": "{{count}} simpul", "edges": "{{count}} sisi", "edges_plural": "{{count}} sisi", "links": "{{count}} tautan", "links_plural": "{{count}} tautan", "orphans": "{{count}} simpul terpisah", "orphans_plural": "{{count}} simpul terpisah", "untitled": "Catatan tanpa judul",
+    "path": "Jalur", "pathTitle": "Sorot rantai prasyarat", "curve": "Kurva", "curveTitle": "Ubah sisi melengkung", "tidy": "Rapikan", "tidyTitle": "Susun simpul terlihat menurut tingkat prasyarat", "auto": "Otomatis", "autoTitle": "Susun ulang saat filter berubah", "node": "Simpul", "addNode": "Tambah simpul", "backfill": "Lengkapi", "backfillTitle": "Ubah tautan timbal balik menjadi dua arah",
+    "zoomOut": "Perkecil", "zoomIn": "Perbesar", "fit": "Sesuaikan", "fitTitle": "Sesuaikan graf ke layar", "map": "Peta", "mapTitle": "Ubah peta mini", "selectNode": "Pilih {{title}}; tekan Enter untuk membuka", "dragToLink": "Seret untuk menautkan", "dragToLinkFrom": "Seret untuk menautkan dari {{title}}", "setCategory": "Atur kategori ke {{category}}",
+    "prerequisites": "Prasyarat", "noPrerequisites": "Ini fondasi, tidak ada yang mendahuluinya.", "unlocks": "Membuka", "noUnlocks": "Belum ada yang dibangun di atasnya. Seret titik samping untuk menautkan.", "removeLink": "Hapus tautan", "removeLinkTo": "Hapus tautan ke {{title}}", "removeSelectedEdge": "Hapus sisi terpilih", "openNote": "Buka catatan",
+    "hintMove": "Seret simpul · gulir untuk memperbesar", "hintLink": "Seret titik samping untuk menautkan", "hintCut": "Pilih sisi lalu tekan Delete untuk memotong", "hintAdd": "Klik dua kali kanvas untuk menambah", "prerequisiteCount": "{{count}} prasyarat", "prerequisiteCount_plural": "{{count}} prasyarat", "unlockCount": "{{count}} pembuka", "unlockCount_plural": "{{count}} pembuka"
+  },
   "learn": {
     "title": "Pelajaran", "loadingNotes": "Memuat catatan…", "notesReady": "{{count}} catatan siap dipelajari", "notesReady_plural": "{{count}} catatan siap dipelajari", "intro": "Buat rencana belajar dari brankas pengetahuanmu.", "planSession": "Rencanakan sesi", "back": "Kembali",
     "dailyGoal": "Target harian · {{value}}/{{goal}} XP", "dayStreak": "Hari beruntun", "totalXp": "Total XP", "lesson": "pelajaran", "slides": "Slide", "podcast": "Podcast", "read": "Baca", "cards": "Kartu", "quiz": "Kuis", "exit": "Keluar", "backToWeave": "Kembali ke jejaring",

@@ -513,6 +513,13 @@
     "usePasswordInstead": "← Guna kata laluan",
     "signInMagicLink": "✉ Log masuk dengan pautan log masuk"
   },
+  "graph": {
+    "title": "Jalinan", "nodes": "{{count}} nod", "nodes_plural": "{{count}} nod", "edges": "{{count}} sisi", "edges_plural": "{{count}} sisi", "links": "{{count}} pautan", "links_plural": "{{count}} pautan", "orphans": "{{count}} nod terasing", "orphans_plural": "{{count}} nod terasing", "untitled": "Nota tanpa tajuk",
+    "path": "Laluan", "pathTitle": "Serlahkan rantaian prasyarat", "curve": "Lengkung", "curveTitle": "Tukar sisi melengkung", "tidy": "Susun", "tidyTitle": "Susun nod mengikut lapisan prasyarat", "auto": "Auto", "autoTitle": "Susun semula apabila penapis berubah", "node": "Nod", "addNode": "Tambah nod", "backfill": "Lengkapkan", "backfillTitle": "Tukar pautan bersama kepada dua hala",
+    "zoomOut": "Zum keluar", "zoomIn": "Zum masuk", "fit": "Muat", "fitTitle": "Muatkan graf pada skrin", "map": "Peta", "mapTitle": "Tukar peta mini", "selectNode": "Pilih {{title}}; tekan Enter untuk buka", "dragToLink": "Seret untuk memaut", "dragToLinkFrom": "Seret untuk memaut dari {{title}}", "setCategory": "Tetapkan kategori kepada {{category}}",
+    "prerequisites": "Prasyarat", "noPrerequisites": "Ini asas, tiada yang mendahuluinya.", "unlocks": "Membuka", "noUnlocks": "Belum ada yang dibina di atasnya. Seret titik sisi untuk memaut.", "removeLink": "Buang pautan", "removeLinkTo": "Buang pautan ke {{title}}", "removeSelectedEdge": "Buang sisi dipilih", "openNote": "Buka nota",
+    "hintMove": "Seret nod · tatal untuk zum", "hintLink": "Seret titik sisi untuk memaut", "hintCut": "Pilih sisi dan tekan Delete untuk memotong", "hintAdd": "Klik dua kali kanvas untuk tambah", "prerequisiteCount": "{{count}} prasyarat", "prerequisiteCount_plural": "{{count}} prasyarat", "unlockCount": "{{count}} pembuka", "unlockCount_plural": "{{count}} pembuka"
+  },
   "learn": {
     "title": "Pelajaran", "loadingNotes": "Memuatkan nota…", "notesReady": "{{count}} nota sedia dipelajari", "notesReady_plural": "{{count}} nota sedia dipelajari", "intro": "Bina rancangan pembelajaran daripada peti pengetahuan anda.", "planSession": "Rancang sesi", "back": "Kembali",
     "dailyGoal": "Matlamat harian · {{value}}/{{goal}} XP", "dayStreak": "Hari berturut-turut", "totalXp": "Jumlah XP", "lesson": "pelajaran", "slides": "Slaid", "podcast": "Podcast", "read": "Baca", "cards": "Kad", "quiz": "Kuiz", "exit": "Keluar", "backToWeave": "Kembali ke jaringan",

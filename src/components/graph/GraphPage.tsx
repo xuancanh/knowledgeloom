@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeState, KnowledgeNote } from '../../types';
 import type { UiCategory } from '../../lib/view';
 import { backfillBilinks } from '../../api';
@@ -107,6 +108,7 @@ export default function GraphPage({
   onSetCategory: (id: string, category: string) => Promise<void>;
 }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const notes = state.notes;
 
   const byId = useMemo(() => Object.fromEntries(notes.map((n) => [n.id, n])), [notes]);
@@ -515,7 +517,7 @@ export default function GraphPage({
     if (!stageRef.current) return;
     const r = stageRef.current.getBoundingClientRect();
     const w = toWorld(r.left + r.width / 2, r.top + r.height / 2);
-    const id = await onAddNote('Untitled note');
+    const id = await onAddNote(t('graph.untitled'));
     if (id) setPositions((p) => ({ ...p, [id]: { x: w.x - NODE_W / 2, y: w.y - NODE_H / 2 } }));
     setSelected(id);
   };
@@ -525,7 +527,7 @@ export default function GraphPage({
         (e.target as Element).closest('.graph-inspector') ||
         (e.target as Element).closest('.graph-minimap')) return;
     const w = toWorld(e.clientX, e.clientY);
-    const id = await onAddNote('Untitled note');
+    const id = await onAddNote(t('graph.untitled'));
     if (id) setPositions((p) => ({ ...p, [id]: { x: w.x - NODE_W / 2, y: w.y - NODE_H / 2 } }));
     setSelected(id);
   };
@@ -534,25 +536,25 @@ export default function GraphPage({
     <div className="graph-view">
       {/* Toolbar */}
       <div className="graph-toolbar">
-        <span className="tb-title"><span className="glyph">⊹</span> The Weave</span>
+        <span className="tb-title"><span className="glyph">⊹</span> {t('graph.title')}</span>
         <span className="tb-stats">
-          <span><b>{visible.length}</b> nodes</span>
-          <span><b>{edges.length}</b> edges</span>
-          <span><b>{totalLinks}</b> links</span>
-          {orphanCount > 0 && <span><b>{orphanCount}</b> orphan{orphanCount !== 1 ? 's' : ''}</span>}
+          <span>{t('graph.nodes', { count: visible.length })}</span>
+          <span>{t('graph.edges', { count: edges.length })}</span>
+          <span>{t('graph.links', { count: totalLinks })}</span>
+          {orphanCount > 0 && <span>{t('graph.orphans', { count: orphanCount })}</span>}
         </span>
 
         <span className="tb-spacer" />
 
         <div className="tb-group">
           <MultiSelectDropdown
-            label="Category"
+            label={t('common.categories')}
             items={catOptions}
             selected={selectedCats}
             onChange={setSelectedCats}
           />
           <MultiSelectDropdown
-            label="Tag"
+            label={t('common.tags')}
             items={tagOptions}
             selected={selectedTags}
             onChange={setSelectedTags}
@@ -562,28 +564,28 @@ export default function GraphPage({
         <span className="tb-rule" />
 
         <div className="tb-group">
-          <button className={'tb-btn' + (pathMode ? ' on' : '')} onClick={() => setPathMode((p) => !p)} title="Highlight prerequisite chain">
-            <span className="glyph">⥱</span> Path
+          <button className={'tb-btn' + (pathMode ? ' on' : '')} onClick={() => setPathMode((p) => !p)} title={t('graph.pathTitle')}>
+            <span className="glyph">⥱</span> {t('graph.path')}
           </button>
-          <button className={'tb-btn' + (edgeStyle === 'curved' ? ' on' : '')} onClick={() => setEdgeStyle((s) => s === 'curved' ? 'straight' : 'curved')} title="Toggle curved edges">
-            <span className="glyph">~</span> Curve
+          <button className={'tb-btn' + (edgeStyle === 'curved' ? ' on' : '')} onClick={() => setEdgeStyle((s) => s === 'curved' ? 'straight' : 'curved')} title={t('graph.curveTitle')}>
+            <span className="glyph">~</span> {t('graph.curve')}
           </button>
-          <button className="tb-btn" onClick={tidy} title="Re-arrange visible nodes into prerequisite layers"><span className="glyph">⌗</span> Tidy</button>
-          <button className={'tb-btn' + (autoOrganize ? ' on' : '')} onClick={() => setAutoOrganize((v) => !v)} title="Auto-reorganize when filter changes">Auto</button>
-          <button className="tb-btn" onClick={addNodeCenter} title="Add a node"><span className="glyph">+</span> Node</button>
-          <button className="tb-btn" onClick={doBackfill} disabled={backfilling} title="Convert mutual mono-links to bidirectional links">
-            {backfilling ? '…' : <><span className="glyph">⇄</span> Backfill</>}
+          <button className="tb-btn" onClick={tidy} title={t('graph.tidyTitle')}><span className="glyph">⌗</span> {t('graph.tidy')}</button>
+          <button className={'tb-btn' + (autoOrganize ? ' on' : '')} onClick={() => setAutoOrganize((v) => !v)} title={t('graph.autoTitle')}>{t('graph.auto')}</button>
+          <button className="tb-btn" onClick={addNodeCenter} title={t('graph.addNode')}><span className="glyph">+</span> {t('graph.node')}</button>
+          <button className="tb-btn" onClick={doBackfill} disabled={backfilling} title={t('graph.backfillTitle')}>
+            {backfilling ? '…' : <><span className="glyph">⇄</span> {t('graph.backfill')}</>}
           </button>
         </div>
 
         <span className="tb-rule" />
 
         <div className="tb-group">
-          <button className="tb-btn icon" onClick={() => zoomBy(1 / 1.2)} title="Zoom out">−</button>
+          <button className="tb-btn icon" onClick={() => zoomBy(1 / 1.2)} title={t('graph.zoomOut')} aria-label={t('graph.zoomOut')}>−</button>
           <span className="zoom-readout">{Math.round(transform.k * 100)}%</span>
-          <button className="tb-btn icon" onClick={() => zoomBy(1.2)} title="Zoom in">+</button>
-          <button className="tb-btn" onClick={fit} title="Fit graph to screen"><span className="glyph">⤢</span> Fit</button>
-          <button className={'tb-btn' + (showMinimap ? ' on' : '')} onClick={() => setShowMinimap((v) => !v)} title="Toggle minimap">Map</button>
+          <button className="tb-btn icon" onClick={() => zoomBy(1.2)} title={t('graph.zoomIn')} aria-label={t('graph.zoomIn')}>+</button>
+          <button className="tb-btn" onClick={fit} title={t('graph.fitTitle')}><span className="glyph">⤢</span> {t('graph.fit')}</button>
+          <button className={'tb-btn' + (showMinimap ? ' on' : '')} onClick={() => setShowMinimap((v) => !v)} title={t('graph.mapTitle')}>{t('graph.map')}</button>
         </div>
       </div>
 
@@ -636,7 +638,9 @@ export default function GraphPage({
               const { mid } = edgePath(selEdge);
               return (
                 <g className="edge-del" transform={`translate(${mid.x} ${mid.y})`}
-                  onClick={(e) => { e.stopPropagation(); removeEdge(selEdge); setSelEdge(null); }}>
+                  role="button" tabIndex={0} aria-label={t('graph.removeSelectedEdge')}
+                  onClick={(e) => { e.stopPropagation(); removeEdge(selEdge); setSelEdge(null); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { removeEdge(selEdge); setSelEdge(null); } }}>
                   <circle r="9" />
                   <line x1="-3.5" y1="-3.5" x2="3.5" y2="3.5" />
                   <line x1="3.5" y1="-3.5" x2="-3.5" y2="3.5" />
@@ -681,6 +685,13 @@ export default function GraphPage({
                 onMouseEnter={(e) => onNodeEnter(e, n.id)}
                 onMouseLeave={onNodeLeave}
                 onDoubleClick={(e) => { e.stopPropagation(); navigate(`/notes/${encodeURIComponent(n.id)}`); }}
+                role="button"
+                tabIndex={0}
+                aria-label={t('graph.selectNode', { title: n.title })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') navigate(`/notes/${encodeURIComponent(n.id)}`);
+                  if (e.key === ' ') { e.preventDefault(); setSelected(n.id); setSelEdge(null); }
+                }}
               >
                 <div className="gn-cat">
                   <span className={'dot ' + (cat?.color ?? '')} />
@@ -688,7 +699,7 @@ export default function GraphPage({
                   <span className="deg">{deg}</span>
                 </div>
                 <div className="gn-title">{n.title}</div>
-                <div className="gport" title="Drag to link" onMouseDown={(e) => startLink(e, n.id)} />
+                <button type="button" className="gport" title={t('graph.dragToLink')} aria-label={t('graph.dragToLinkFrom', { title: n.title })} onMouseDown={(e) => startLink(e, n.id)} />
               </div>
             );
           })}
@@ -701,7 +712,7 @@ export default function GraphPage({
               <div className="ins-cat">
                 <span className={'dot ' + ((catById[sel.category] as UiCategory & { color?: string })?.color ?? '')} />
                 {(catById[sel.category] as UiCategory | undefined)?.name || sel.category}
-                <span className="close" onClick={() => setSelected(null)}>×</span>
+                <button type="button" className="close" onClick={() => setSelected(null)} aria-label={t('common.close')}>×</button>
               </div>
               <textarea
                 className="ins-title"
@@ -712,10 +723,10 @@ export default function GraphPage({
               />
               <div className="ins-catpick">
                 {categories.map((c) => (
-                  <span key={c.id} className={'cp' + (c.id === sel.category ? ' active' : '')} title={c.name}
+                  <button type="button" key={c.id} className={'cp' + (c.id === sel.category ? ' active' : '')} title={c.name} aria-label={t('graph.setCategory', { category: c.name })}
                     onClick={() => onSetCategory(sel.id, c.id)}>
                     <span className={'dot ' + (c as UiCategory & { color?: string }).color} />
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -724,41 +735,41 @@ export default function GraphPage({
               {sel.summary && <p className="ins-summary">{sel.summary}</p>}
 
               <div className="ins-block">
-                <div className="ins-sec"><span className="ar">←</span> Prerequisites <span className="n">· {inAdj[sel.id]?.length ?? 0}</span></div>
-                {(!inAdj[sel.id]?.length) && <div className="ins-empty">A foundation — nothing comes before it.</div>}
+                <div className="ins-sec"><span className="ar">←</span> {t('graph.prerequisites')} <span className="n">· {inAdj[sel.id]?.length ?? 0}</span></div>
+                {(!inAdj[sel.id]?.length) && <div className="ins-empty">{t('graph.noPrerequisites')}</div>}
                 {(inAdj[sel.id] ?? []).map((id) => byId[id] && (
-                  <div key={id} className="ins-link" onClick={() => setSelected(id)}>
+                  <div key={id} className="ins-link" role="button" tabIndex={0} onClick={() => setSelected(id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelected(id); }}>
                     <span className={'il-dot dot ' + ((catById[byId[id].category] as UiCategory & { color?: string })?.color ?? '')} />
                     <span className="il-title">{byId[id].title}</span>
-                    <span className="il-x" title="Remove link" onClick={(e) => { e.stopPropagation(); onRemoveLink(id, sel.id); }}>×</span>
+                    <button type="button" className="il-x" title={t('graph.removeLink')} aria-label={t('graph.removeLinkTo', { title: byId[id].title })} onClick={(e) => { e.stopPropagation(); onRemoveLink(id, sel.id); }}>×</button>
                   </div>
                 ))}
               </div>
 
               <div className="ins-block">
-                <div className="ins-sec">Unlocks <span className="ar">→</span> <span className="n">· {sel.links.length}</span></div>
-                {sel.links.filter((l) => byId[l]).length === 0 && <div className="ins-empty">Nothing builds on this yet. Drag the side handle to link.</div>}
+                <div className="ins-sec">{t('graph.unlocks')} <span className="ar">→</span> <span className="n">· {sel.links.length}</span></div>
+                {sel.links.filter((l) => byId[l]).length === 0 && <div className="ins-empty">{t('graph.noUnlocks')}</div>}
                 {sel.links.filter((l) => byId[l]).map((id) => (
-                  <div key={id} className="ins-link" onClick={() => setSelected(id)}>
+                  <div key={id} className="ins-link" role="button" tabIndex={0} onClick={() => setSelected(id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelected(id); }}>
                     <span className={'il-dot dot ' + ((catById[byId[id].category] as UiCategory & { color?: string })?.color ?? '')} />
                     <span className="il-title">{byId[id].title}</span>
-                    <span className="il-x" title="Remove link" onClick={(e) => { e.stopPropagation(); onRemoveLink(sel.id, id); }}>×</span>
+                    <button type="button" className="il-x" title={t('graph.removeLink')} aria-label={t('graph.removeLinkTo', { title: byId[id].title })} onClick={(e) => { e.stopPropagation(); onRemoveLink(sel.id, id); }}>×</button>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="ins-foot">
-              <button className="open-btn" onClick={() => navigate(`/notes/${encodeURIComponent(sel.id)}`)}>Open note →</button>
-              <button className="del-btn" onClick={() => { onDeleteNote(sel.id); setSelected(null); }}>Delete</button>
+              <button className="open-btn" onClick={() => navigate(`/notes/${encodeURIComponent(sel.id)}`)}>{t('graph.openNote')} →</button>
+              <button className="del-btn" onClick={() => { onDeleteNote(sel.id); setSelected(null); }}>{t('common.delete')}</button>
             </div>
           </div>
         )}
 
         {/* Minimap */}
         {showMinimap && mm && (
-          <div className="graph-minimap" onMouseDown={onMinimap}>
-            <span className="mm-label">Map</span>
+          <div className="graph-minimap" onMouseDown={onMinimap} aria-hidden="true">
+            <span className="mm-label">{t('graph.map')}</span>
             <svg viewBox={`0 0 ${mm.W} ${mm.H}`}>
               {edges.map((eg) => {
                 const A = center(eg.a), B = center(eg.b);
@@ -783,10 +794,10 @@ export default function GraphPage({
 
         {/* Hint */}
         <div className="graph-hint">
-          <span><b>Drag</b> nodes · <b>scroll</b> to zoom</span>
-          <span>Drag the <b>side dot</b> to link</span>
-          <span>Click edge → <kbd>⌫</kbd> to cut</span>
-          <span><b>Double-click</b> canvas to add</span>
+          <span>{t('graph.hintMove')}</span>
+          <span>{t('graph.hintLink')}</span>
+          <span>{t('graph.hintCut')}</span>
+          <span>{t('graph.hintAdd')}</span>
         </div>
 
         {/* Hover popup */}
@@ -814,8 +825,8 @@ export default function GraphPage({
                 </div>
               )}
               <div className="ghp-stats">
-                <span><b>{inAdj[note.id]?.length ?? 0}</b> prerequisites</span>
-                <span><b>{outAdj[note.id]?.length ?? 0}</b> unlocks</span>
+                <span>{t('graph.prerequisiteCount', { count: inAdj[note.id]?.length ?? 0 })}</span>
+                <span>{t('graph.unlockCount', { count: outAdj[note.id]?.length ?? 0 })}</span>
               </div>
             </div>
           );

@@ -513,6 +513,13 @@
     "usePasswordInstead": "← Dùng mật khẩu",
     "signInMagicLink": "✉ Đăng nhập bằng liên kết đăng nhập"
   },
+  "graph": {
+    "title": "Mạng dệt", "nodes": "{{count}} nút", "nodes_plural": "{{count}} nút", "edges": "{{count}} cạnh", "edges_plural": "{{count}} cạnh", "links": "{{count}} liên kết", "links_plural": "{{count}} liên kết", "orphans": "{{count}} nút rời", "orphans_plural": "{{count}} nút rời", "untitled": "Ghi chú chưa đặt tên",
+    "path": "Đường dẫn", "pathTitle": "Làm nổi chuỗi kiến thức tiên quyết", "curve": "Đường cong", "curveTitle": "Bật tắt cạnh cong", "tidy": "Sắp xếp", "tidyTitle": "Xếp nút theo tầng kiến thức tiên quyết", "auto": "Tự động", "autoTitle": "Sắp xếp lại khi bộ lọc thay đổi", "node": "Nút", "addNode": "Thêm nút", "backfill": "Bổ sung", "backfillTitle": "Đổi liên kết tương hỗ thành hai chiều",
+    "zoomOut": "Thu nhỏ", "zoomIn": "Phóng to", "fit": "Vừa khung", "fitTitle": "Đưa sơ đồ vừa màn hình", "map": "Bản đồ", "mapTitle": "Bật tắt bản đồ nhỏ", "selectNode": "Chọn {{title}}; nhấn Enter để mở", "dragToLink": "Kéo để liên kết", "dragToLinkFrom": "Kéo để liên kết từ {{title}}", "setCategory": "Đặt danh mục thành {{category}}",
+    "prerequisites": "Kiến thức tiên quyết", "noPrerequisites": "Đây là nền tảng, không có gì đứng trước.", "unlocks": "Mở khóa", "noUnlocks": "Chưa có nội dung xây trên nút này. Kéo chấm bên để liên kết.", "removeLink": "Xóa liên kết", "removeLinkTo": "Xóa liên kết đến {{title}}", "removeSelectedEdge": "Xóa cạnh đã chọn", "openNote": "Mở ghi chú",
+    "hintMove": "Kéo nút · cuộn để thu phóng", "hintLink": "Kéo chấm bên để liên kết", "hintCut": "Chọn cạnh rồi nhấn Delete để cắt", "hintAdd": "Nhấp đúp vùng vẽ để thêm", "prerequisiteCount": "{{count}} kiến thức tiên quyết", "prerequisiteCount_plural": "{{count}} kiến thức tiên quyết", "unlockCount": "{{count}} nội dung mở khóa", "unlockCount_plural": "{{count}} nội dung mở khóa"
+  },
   "learn": {
     "title": "Bài học", "loadingNotes": "Đang tải ghi chú…", "notesReady": "{{count}} ghi chú sẵn sàng học", "notesReady_plural": "{{count}} ghi chú sẵn sàng học", "intro": "Tạo kế hoạch học từ kho kiến thức của bạn.", "planSession": "Lập kế hoạch buổi học", "back": "Quay lại",
     "dailyGoal": "Mục tiêu hằng ngày · {{value}}/{{goal}} XP", "dayStreak": "Chuỗi ngày", "totalXp": "Tổng XP", "lesson": "bài học", "slides": "Trang chiếu", "podcast": "Podcast", "read": "Đọc", "cards": "Thẻ", "quiz": "Câu hỏi", "exit": "Thoát", "backToWeave": "Về mạng kiến thức",

@@ -513,6 +513,13 @@
     "usePasswordInstead": "← Utiliser le mot de passe",
     "signInMagicLink": "✉ Se connecter avec un lien de connexion"
   },
+  "graph": {
+    "title": "La trame", "nodes": "{{count}} nœud", "nodes_plural": "{{count}} nœuds", "edges": "{{count}} arête", "edges_plural": "{{count}} arêtes", "links": "{{count}} lien", "links_plural": "{{count}} liens", "orphans": "{{count}} orphelin", "orphans_plural": "{{count}} orphelins", "untitled": "Note sans titre",
+    "path": "Chemin", "pathTitle": "Surligner la chaîne des prérequis", "curve": "Courbe", "curveTitle": "Basculer les arêtes courbes", "tidy": "Ranger", "tidyTitle": "Ranger les nœuds visibles par niveaux de prérequis", "auto": "Auto", "autoTitle": "Réorganiser quand les filtres changent", "node": "Nœud", "addNode": "Ajouter un nœud", "backfill": "Compléter", "backfillTitle": "Convertir les liens mutuels en liens bidirectionnels",
+    "zoomOut": "Réduire", "zoomIn": "Agrandir", "fit": "Ajuster", "fitTitle": "Ajuster le graphe à l’écran", "map": "Carte", "mapTitle": "Basculer la minicarte", "selectNode": "Sélectionner {{title}} ; Entrée pour ouvrir", "dragToLink": "Faire glisser pour lier", "dragToLinkFrom": "Faire glisser depuis {{title}} pour lier", "setCategory": "Définir la catégorie sur {{category}}",
+    "prerequisites": "Prérequis", "noPrerequisites": "Une base : rien ne la précède.", "unlocks": "Débloque", "noUnlocks": "Rien ne s’appuie encore dessus. Faites glisser le point latéral pour lier.", "removeLink": "Supprimer le lien", "removeLinkTo": "Supprimer le lien vers {{title}}", "removeSelectedEdge": "Supprimer l’arête sélectionnée", "openNote": "Ouvrir la note",
+    "hintMove": "Faites glisser les nœuds · défilez pour zoomer", "hintLink": "Faites glisser le point latéral pour lier", "hintCut": "Sélectionnez une arête puis Suppr pour couper", "hintAdd": "Double-cliquez sur le canevas pour ajouter", "prerequisiteCount": "{{count}} prérequis", "prerequisiteCount_plural": "{{count}} prérequis", "unlockCount": "{{count}} suite", "unlockCount_plural": "{{count}} suites"
+  },
   "learn": {
     "title": "Apprendre", "loadingNotes": "Chargement des notes…", "notesReady": "{{count}} note prête à apprendre", "notesReady_plural": "{{count}} notes prêtes à apprendre", "intro": "Créez un parcours depuis votre coffre de connaissances.", "planSession": "Planifier une session", "back": "Retour",
     "dailyGoal": "Objectif quotidien · {{value}}/{{goal}} XP", "dayStreak": "Jours consécutifs", "totalXp": "XP total", "lesson": "leçon", "slides": "Diapositives", "podcast": "Podcast", "read": "Lire", "cards": "Cartes", "quiz": "Quiz", "exit": "Quitter", "backToWeave": "Retour au réseau",

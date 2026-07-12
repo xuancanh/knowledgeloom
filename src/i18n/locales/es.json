@@ -516,6 +516,13 @@
     "usePasswordInstead": "← Usar contraseña",
     "signInMagicLink": "✉ Iniciar sesión con enlace de acceso"
   },
+  "graph": {
+    "title": "La trama", "nodes": "{{count}} nodo", "nodes_plural": "{{count}} nodos", "edges": "{{count}} arista", "edges_plural": "{{count}} aristas", "links": "{{count}} enlace", "links_plural": "{{count}} enlaces", "orphans": "{{count}} huérfano", "orphans_plural": "{{count}} huérfanos", "untitled": "Nota sin título",
+    "path": "Ruta", "pathTitle": "Resaltar la cadena de requisitos", "curve": "Curva", "curveTitle": "Alternar aristas curvas", "tidy": "Ordenar", "tidyTitle": "Ordenar los nodos visibles por niveles de requisitos", "auto": "Auto", "autoTitle": "Reorganizar al cambiar los filtros", "node": "Nodo", "addNode": "Añadir nodo", "backfill": "Completar", "backfillTitle": "Convertir enlaces mutuos en bidireccionales",
+    "zoomOut": "Alejar", "zoomIn": "Acercar", "fit": "Ajustar", "fitTitle": "Ajustar el grafo a la pantalla", "map": "Mapa", "mapTitle": "Alternar minimapa", "selectNode": "Seleccionar {{title}}; pulsa Entrar para abrir", "dragToLink": "Arrastra para enlazar", "dragToLinkFrom": "Arrastra para enlazar desde {{title}}", "setCategory": "Asignar categoría {{category}}",
+    "prerequisites": "Requisitos", "noPrerequisites": "Es una base: nada viene antes.", "unlocks": "Desbloquea", "noUnlocks": "Aún no depende nada de esto. Arrastra el punto lateral para enlazar.", "removeLink": "Quitar enlace", "removeLinkTo": "Quitar enlace a {{title}}", "removeSelectedEdge": "Quitar arista seleccionada", "openNote": "Abrir nota",
+    "hintMove": "Arrastra nodos · desplázate para ampliar", "hintLink": "Arrastra el punto lateral para enlazar", "hintCut": "Selecciona una arista y pulsa Supr para cortar", "hintAdd": "Haz doble clic en el lienzo para añadir", "prerequisiteCount": "{{count}} requisito", "prerequisiteCount_plural": "{{count}} requisitos", "unlockCount": "{{count}} desbloqueo", "unlockCount_plural": "{{count}} desbloqueos"
+  },
   "learn": {
     "title": "Aprender", "loadingNotes": "Cargando notas…", "notesReady": "{{count}} nota lista para aprender", "notesReady_plural": "{{count}} notas listas para aprender", "intro": "Crea un plan de aprendizaje desde tu bóveda.", "planSession": "Planificar sesión", "back": "Volver",
     "dailyGoal": "Meta diaria · {{value}}/{{goal}} XP", "dayStreak": "Días seguidos", "totalXp": "XP total", "lesson": "lección", "slides": "Diapositivas", "podcast": "Pódcast", "read": "Leer", "cards": "Tarjetas", "quiz": "Cuestionario", "exit": "Salir", "backToWeave": "Volver a la red",

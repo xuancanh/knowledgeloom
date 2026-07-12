@@ -513,6 +513,13 @@
     "usePasswordInstead": "← Use password instead",
     "signInMagicLink": "✉ Sign in with magic link"
   },
+  "graph": {
+    "title": "The Weave", "nodes": "{{count}} node", "nodes_plural": "{{count}} nodes", "edges": "{{count}} edge", "edges_plural": "{{count}} edges", "links": "{{count}} link", "links_plural": "{{count}} links", "orphans": "{{count}} orphan", "orphans_plural": "{{count}} orphans", "untitled": "Untitled note",
+    "path": "Path", "pathTitle": "Highlight prerequisite chain", "curve": "Curve", "curveTitle": "Toggle curved edges", "tidy": "Tidy", "tidyTitle": "Arrange visible nodes into prerequisite layers", "auto": "Auto", "autoTitle": "Reorganize when filters change", "node": "Node", "addNode": "Add a node", "backfill": "Backfill", "backfillTitle": "Convert mutual links to bidirectional links",
+    "zoomOut": "Zoom out", "zoomIn": "Zoom in", "fit": "Fit", "fitTitle": "Fit graph to screen", "map": "Map", "mapTitle": "Toggle minimap", "selectNode": "Select {{title}}; press Enter to open", "dragToLink": "Drag to link", "dragToLinkFrom": "Drag to link from {{title}}", "setCategory": "Set category to {{category}}",
+    "prerequisites": "Prerequisites", "noPrerequisites": "A foundation — nothing comes before it.", "unlocks": "Unlocks", "noUnlocks": "Nothing builds on this yet. Drag the side handle to link.", "removeLink": "Remove link", "removeLinkTo": "Remove link to {{title}}", "removeSelectedEdge": "Remove selected edge", "openNote": "Open note",
+    "hintMove": "Drag nodes · scroll to zoom", "hintLink": "Drag the side dot to link", "hintCut": "Select an edge and press Delete to cut", "hintAdd": "Double-click canvas to add", "prerequisiteCount": "{{count}} prerequisite", "prerequisiteCount_plural": "{{count}} prerequisites", "unlockCount": "{{count}} unlock", "unlockCount_plural": "{{count}} unlocks"
+  },
   "learn": {
     "title": "Learn", "loadingNotes": "Loading notes…", "notesReady": "{{count}} note ready to learn", "notesReady_plural": "{{count}} notes ready to learn", "intro": "Build a learning plan from your knowledge vault.", "planSession": "Plan a session", "back": "Back",
     "dailyGoal": "Daily goal · {{value}}/{{goal}} XP", "dayStreak": "Day streak", "totalXp": "Total XP", "lesson": "lesson", "slides": "Slides", "podcast": "Podcast", "read": "Read", "cards": "Cards", "quiz": "Quiz", "exit": "Exit", "backToWeave": "Back to the weave",
