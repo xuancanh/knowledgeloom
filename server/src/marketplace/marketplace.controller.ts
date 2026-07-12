@@ -293,7 +293,7 @@ export class PublicMarketplaceController {
     if (!listing) throw new NotFoundException('listing not found');
     const share = await this.shares.findActive(listing.shareId);
     if (!share) throw new NotFoundException('listing content is no longer available');
-    const payload = await this.payloads.build(share);
+    const payload = await this.payloads.buildPreview(share);
     const agg = (await this.ratings.aggregates([listing.id])).get(listing.id);
     const comments = await this.ratings.comments(listing.id);
     return { listing: publicListing(listing, agg), shareUrl: `/share/${share.id}`, payload, comments };

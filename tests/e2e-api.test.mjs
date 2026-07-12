@@ -403,6 +403,17 @@ maybe('shares: category collection share is public and revocable', async () => {
   assert.ok(pub.json.notes.some((n) => n.title === 'Updated E2E Note'));
   assert.ok(pub.json.notes.every((n) => typeof n.body === 'string'));
 
+  const listing = await post('/api/marketplace/publish', {
+    shareId: share.id,
+    title: 'E2E collection preview',
+  });
+  assert.equal(listing.status, 201);
+  const detail = await get(`/api/marketplace/${listing.json.listing.id}`);
+  assert.equal(detail.status, 200);
+  assert.equal(detail.json.payload.kind, 'category');
+  assert.equal(detail.json.payload.collection.truncated, undefined);
+  assert.equal((await del(`/api/marketplace/${listing.json.listing.id}`)).status, 200);
+
   // Unknown category is rejected; revocation still works.
   assert.equal((await post('/api/shares', { category: 'No/Such/Category' })).status, 404);
   assert.equal((await del(`/api/shares/${share.id}`)).status, 200);

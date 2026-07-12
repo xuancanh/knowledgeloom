@@ -8,6 +8,7 @@ import { NoteFileRepository } from '../notes/note-file.repository';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { parseNote, stripFrontmatter } from '../common/note-parser.util';
 import type { ShareRow } from './shares.repository';
+import { limitMarketplacePreview } from './share-payload-limit.util';
 
 /** Category shares include at most this many notes, newest first. */
 const COLLECTION_NOTE_CAP = 50;
@@ -69,6 +70,10 @@ export class SharePayloadService {
       if (oldest) this.cache.delete(oldest);
     }
     return payload;
+  }
+
+  async buildPreview(share: Pick<ShareRow, 'userId' | 'noteId' | 'kind' | 'createdAt'>): Promise<SharePayload> {
+    return limitMarketplacePreview(await this.build(share));
   }
 
   private async buildNote(share: Pick<ShareRow, 'userId' | 'noteId' | 'createdAt'>): Promise<SharePayload> {
