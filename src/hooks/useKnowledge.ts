@@ -25,6 +25,7 @@ import {
 } from '../lib/view';
 import { loadTemplates, type GuidanceTemplate } from '../lib/guidance';
 import type { CreateNoteRequest, KnowledgeNote, KnowledgeState, LearnJob, Reminder } from '../types';
+import { useTranslation } from 'react-i18next';
 
 type Theme = 'light' | 'white' | 'dark' | 'midnight' | 'simplistic';
 type FontStyle = 'serif' | 'sans';
@@ -71,6 +72,7 @@ function loadTheme(): Theme {
  * App.tsx is the sole consumer — it distributes values via props.
  */
 export function useKnowledge() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -111,7 +113,7 @@ export function useKnowledge() {
         for (const job of jobState.jobs) {
           const was = byId.get(job.id);
           if (was && was.status !== 'done' && job.status === 'done')
-            pushToast('success', `Research done: ${job.topic}`);
+            pushToast('success', t('notifications.researchDone', { topic: job.topic }));
         }
       }
       hasLoadedJobs.current = true;
@@ -119,7 +121,7 @@ export function useKnowledge() {
     });
     setReadOnly(status.readOnly);
     setReminders(reminderState.reminders);
-  }, [pushToast]);
+  }, [pushToast, t]);
 
   useEffect(() => {
     window.setTimeout(() => loadAll().catch(console.error), 0);
@@ -268,7 +270,7 @@ export function useKnowledge() {
   }
 
   async function handleDelete(note: KnowledgeNote) {
-    if (!window.confirm(`Delete "${note.title}"? This removes the markdown source file.`)) return;
+    if (!window.confirm(t('notifications.deleteNoteConfirm', { title: note.title }))) return;
     const result = await deleteNote(note.id);
     setState(result.state);
     navigate('/home', { replace: true });
@@ -297,15 +299,17 @@ export function useKnowledge() {
       const result = await submitLearning(payload);
       setJobs((prev) => [result.job, ...prev.filter((j) => j.id !== result.job.id)]);
       if (result.state) {
-        pushToast('success', `Saved note: ${result.note?.title || payload.title}`);
+        pushToast('success', t('notifications.savedNote', { title: result.note?.title || payload.title }));
         setState(result.state);
         if (result.note?.id) navigate(`/notes/${encodeURIComponent(result.note.id)}`);
         return;
       }
-      const label = payload.mode === 'link' ? 'Link queued' : payload.mode === 'polish' ? 'Draft queued for polishing' : 'Research queued';
-      pushToast('info', `${label}: ${payload.title}`);
-    } catch (error) {
-      pushToast('error', error instanceof Error ? error.message : 'Failed to submit request');
+      const key = payload.mode === 'link' ? 'notifications.linkQueued'
+        : payload.mode === 'polish' ? 'notifications.polishQueued'
+        : 'notifications.researchQueued';
+      pushToast('info', t(key, { title: payload.title }));
+    } catch {
+      pushToast('error', t('notifications.submitFailed'));
     }
   }
 

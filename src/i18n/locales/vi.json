@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "Tìm ghi chú, thẻ và danh mục…", "themeWarm": "Ấm", "themeWhite": "Trắng", "themeMinimal": "Tối giản", "themeDark": "Tối", "themeNight": "Ban đêm", "fontSerif": "Có chân", "fontSans": "Không chân", "compact": "Gọn", "comfort": "Thoải mái" },
   "clip": { "title": "Lưu trang web", "clipping": "Đang lưu…", "noUrl": "Không có URL để lưu.", "queued": "Đã lưu; AI đang chuyển trang thành ghi chú.", "failed": "Lưu trang thất bại.", "viewActivity": "Xem hoạt động", "backToDesk": "Về bàn làm việc" },
   "indexes": { "categoriesSummary": "{{categories}} danh mục · {{roots}} thư mục gốc", "treeView": "Dạng cây", "columnsView": "Dạng cột", "tree": "Cây", "columns": "Cột", "tagsSummary": "{{count}} thẻ" },
+  "notifications": { "researchDone": "Nghiên cứu hoàn tất: {{topic}}", "deleteNoteConfirm": "Xóa “{{title}}”? Tệp Markdown nguồn sẽ bị xóa.", "savedNote": "Đã lưu ghi chú: {{title}}", "linkQueued": "Liên kết đã xếp hàng: {{title}}", "polishQueued": "Bản nháp đã xếp hàng để chỉnh sửa: {{title}}", "researchQueued": "Nghiên cứu đã xếp hàng: {{title}}", "submitFailed": "Không thể gửi yêu cầu." },
   "capture": {
     "promptQuestion": "Bạn vừa học được điều gì?",
     "readOnlyBanner": "Lưu trữ chỉ đọc",

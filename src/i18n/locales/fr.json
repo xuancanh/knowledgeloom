@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "Rechercher notes, étiquettes et catégories…", "themeWarm": "Chaud", "themeWhite": "Blanc", "themeMinimal": "Minimal", "themeDark": "Sombre", "themeNight": "Nuit", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Compact", "comfort": "Confort" },
   "clip": { "title": "Capture web", "clipping": "Capture…", "noUrl": "Aucune URL à capturer.", "queued": "Page capturée ; l’IA la transforme en note.", "failed": "Échec de la capture.", "viewActivity": "Voir l’activité", "backToDesk": "Retour au bureau" },
   "indexes": { "categoriesSummary": "{{categories}} catégories · {{roots}} dossiers racine", "treeView": "Vue arborescente", "columnsView": "Vue en colonnes", "tree": "Arbre", "columns": "Colonnes", "tagsSummary": "{{count}} étiquettes" },
+  "notifications": { "researchDone": "Recherche terminée : {{topic}}", "deleteNoteConfirm": "Supprimer « {{title}} » ? Le fichier source Markdown sera supprimé.", "savedNote": "Note enregistrée : {{title}}", "linkQueued": "Lien mis en file : {{title}}", "polishQueued": "Brouillon mis en file pour révision : {{title}}", "researchQueued": "Recherche mise en file : {{title}}", "submitFailed": "Impossible d’envoyer la demande." },
   "capture": {
     "promptQuestion": "Qu'avez-vous appris ?",
     "readOnlyBanner": "Archive en lecture seule",

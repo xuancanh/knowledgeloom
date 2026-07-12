@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "Cari catatan, tag, dan kategori…", "themeWarm": "Hangat", "themeWhite": "Putih", "themeMinimal": "Minimal", "themeDark": "Gelap", "themeNight": "Malam", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Ringkas", "comfort": "Nyaman" },
   "clip": { "title": "Pemotong web", "clipping": "Memotong…", "noUrl": "Tidak ada URL untuk dipotong.", "queued": "Halaman dipotong; AI sedang mengubahnya menjadi catatan.", "failed": "Pemotongan gagal.", "viewActivity": "Lihat aktivitas", "backToDesk": "Kembali ke meja" },
   "indexes": { "categoriesSummary": "{{categories}} kategori · {{roots}} folder akar", "treeView": "Tampilan pohon", "columnsView": "Tampilan kolom", "tree": "Pohon", "columns": "Kolom", "tagsSummary": "{{count}} tag" },
+  "notifications": { "researchDone": "Riset selesai: {{topic}}", "deleteNoteConfirm": "Hapus “{{title}}”? Berkas sumber Markdown akan dihapus.", "savedNote": "Catatan disimpan: {{title}}", "linkQueued": "Tautan diantrekan: {{title}}", "polishQueued": "Draf diantrekan untuk dirapikan: {{title}}", "researchQueued": "Riset diantrekan: {{title}}", "submitFailed": "Gagal mengirim permintaan." },
   "capture": {
     "promptQuestion": "Apa yang kamu pelajari?",
     "readOnlyBanner": "Arsip hanya-baca",

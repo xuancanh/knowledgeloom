@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "Search notes, tags, categories…", "themeWarm": "Warm", "themeWhite": "White", "themeMinimal": "Minimal", "themeDark": "Dark", "themeNight": "Night", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Compact", "comfort": "Comfort" },
   "clip": { "title": "Web clipper", "clipping": "Clipping…", "noUrl": "No URL to clip.", "queued": "Clipped — the AI is turning the page into a note.", "failed": "Clip failed.", "viewActivity": "View activity", "backToDesk": "Back to desk" },
   "indexes": { "categoriesSummary": "{{categories}} categories · {{roots}} root folders", "treeView": "Tree view", "columnsView": "Columns view", "tree": "Tree", "columns": "Columns", "tagsSummary": "{{count}} tags" },
+  "notifications": { "researchDone": "Research done: {{topic}}", "deleteNoteConfirm": "Delete “{{title}}”? This removes the markdown source file.", "savedNote": "Saved note: {{title}}", "linkQueued": "Link queued: {{title}}", "polishQueued": "Draft queued for polishing: {{title}}", "researchQueued": "Research queued: {{title}}", "submitFailed": "Failed to submit the request." },
   "capture": {
     "promptQuestion": "What did you learn?",
     "readOnlyBanner": "Read-only archive",

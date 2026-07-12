@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "Buscar notas, etiquetas y categorías…", "themeWarm": "Cálido", "themeWhite": "Blanco", "themeMinimal": "Mínimo", "themeDark": "Oscuro", "themeNight": "Noche", "fontSerif": "Serif", "fontSans": "Sans", "compact": "Compacto", "comfort": "Cómodo" },
   "clip": { "title": "Recortador web", "clipping": "Recortando…", "noUrl": "No hay URL para recortar.", "queued": "Página recortada; la IA la está convirtiendo en una nota.", "failed": "Error al recortar.", "viewActivity": "Ver actividad", "backToDesk": "Volver al escritorio" },
   "indexes": { "categoriesSummary": "{{categories}} categorías · {{roots}} carpetas raíz", "treeView": "Vista de árbol", "columnsView": "Vista en columnas", "tree": "Árbol", "columns": "Columnas", "tagsSummary": "{{count}} etiquetas" },
+  "notifications": { "researchDone": "Investigación terminada: {{topic}}", "deleteNoteConfirm": "¿Eliminar «{{title}}»? Se borrará el archivo Markdown original.", "savedNote": "Nota guardada: {{title}}", "linkQueued": "Enlace en cola: {{title}}", "polishQueued": "Borrador en cola para mejorar: {{title}}", "researchQueued": "Investigación en cola: {{title}}", "submitFailed": "No se pudo enviar la solicitud." },
   "capture": {
     "promptQuestion": "¿Qué aprendiste?",
     "readOnlyBanner": "Archivo de solo lectura",

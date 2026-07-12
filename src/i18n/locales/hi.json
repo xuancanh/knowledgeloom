@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "नोट, टैग और श्रेणियाँ खोजें…", "themeWarm": "गर्म", "themeWhite": "सफेद", "themeMinimal": "न्यूनतम", "themeDark": "गहरा", "themeNight": "रात", "fontSerif": "सेरिफ़", "fontSans": "सैन्स", "compact": "कॉम्पैक्ट", "comfort": "आरामदायक" },
   "clip": { "title": "वेब क्लिपर", "clipping": "क्लिप हो रहा है…", "noUrl": "क्लिप करने के लिए URL नहीं है।", "queued": "पेज क्लिप हो गया; AI इसे नोट में बदल रहा है।", "failed": "क्लिप विफल।", "viewActivity": "गतिविधि देखें", "backToDesk": "डेस्क पर लौटें" },
   "indexes": { "categoriesSummary": "{{categories}} श्रेणियाँ · {{roots}} रूट फ़ोल्डर", "treeView": "ट्री दृश्य", "columnsView": "कॉलम दृश्य", "tree": "ट्री", "columns": "कॉलम", "tagsSummary": "{{count}} टैग" },
+  "notifications": { "researchDone": "शोध पूरा: {{topic}}", "deleteNoteConfirm": "“{{title}}” हटाएं? Markdown स्रोत फ़ाइल हट जाएगी।", "savedNote": "नोट सहेजा गया: {{title}}", "linkQueued": "लिंक कतार में: {{title}}", "polishQueued": "सुधार के लिए ड्राफ़्ट कतार में: {{title}}", "researchQueued": "शोध कतार में: {{title}}", "submitFailed": "अनुरोध भेजा नहीं जा सका।" },
   "capture": {
     "promptQuestion": "आपने क्या सीखा?",
     "readOnlyBanner": "केवल पढ़ने योग्य संग्रह",

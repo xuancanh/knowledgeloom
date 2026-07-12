@@ -56,6 +56,7 @@
   "shell": { "searchPlaceholder": "ノート、タグ、カテゴリを検索…", "themeWarm": "暖色", "themeWhite": "白", "themeMinimal": "ミニマル", "themeDark": "ダーク", "themeNight": "夜", "fontSerif": "明朝体", "fontSans": "ゴシック体", "compact": "コンパクト", "comfort": "標準" },
   "clip": { "title": "ウェブクリッパー", "clipping": "クリップ中…", "noUrl": "クリップするURLがありません。", "queued": "クリップしました。AIがページをノートに変換しています。", "failed": "クリップに失敗しました。", "viewActivity": "アクティビティを見る", "backToDesk": "デスクに戻る" },
   "indexes": { "categoriesSummary": "{{categories}}カテゴリ · {{roots}}ルートフォルダ", "treeView": "ツリー表示", "columnsView": "列表示", "tree": "ツリー", "columns": "列", "tagsSummary": "{{count}}タグ" },
+  "notifications": { "researchDone": "調査完了：{{topic}}", "deleteNoteConfirm": "「{{title}}」を削除しますか？Markdownソースファイルも削除されます。", "savedNote": "ノートを保存しました：{{title}}", "linkQueued": "リンクをキューに追加：{{title}}", "polishQueued": "推敲をキューに追加：{{title}}", "researchQueued": "調査をキューに追加：{{title}}", "submitFailed": "リクエストを送信できませんでした。" },
   "capture": {
     "promptQuestion": "何を学びましたか？",
     "readOnlyBanner": "読み取り専用アーカイブ",
