@@ -71,7 +71,6 @@ export class KnowledgeService {
 
     if (due && !this.backgroundRebuilds.has(userId)) {
       const p = this.rebuildIndexes(userId)
-        .then((s) => { this.lastRebuildAt.set(userId, Date.now()); return s; })
         .catch((err: Error) => { this.logger.error(`Background rebuild failed: ${err.message}`); return cached!; })
         .finally(() => { this.backgroundRebuilds.delete(userId); });
       this.backgroundRebuilds.set(userId, p);
@@ -106,9 +105,11 @@ export class KnowledgeService {
     if (this.deletingScopes.has(userId)) throw this.scopeDeletingError();
     const previous = this.activeRebuilds.get(userId);
     const rebuild = (previous ? previous.catch(() => undefined) : Promise.resolve())
-      .then(() => {
+      .then(async () => {
         if (this.deletingScopes.has(userId)) throw this.scopeDeletingError();
-        return this.performRebuild(userId);
+        const state = await this.performRebuild(userId);
+        this.lastRebuildAt.set(userId, Date.now());
+        return state;
       });
     this.activeRebuilds.set(userId, rebuild);
     return rebuild.finally(() => {
