@@ -93,7 +93,7 @@
       "esbuild": "^0.25.12"
     },
     "multer": "^2.2.0",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.12",
     "lodash": "^4.17.24"
   },
   "license": "AGPL-3.0-or-later"
