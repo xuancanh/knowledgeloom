@@ -34,7 +34,7 @@
     "@nestjs/core": "^11.1.28",
     "@nestjs/platform-express": "^11.1.28",
     "@supabase/supabase-js": "^2.110.3",
-    "@tiptap/core": "^3.23.6",
+    "@tiptap/core": "^3.30.4",
     "@tiptap/extension-image": "^3.27.4",
     "@tiptap/extension-placeholder": "^3.27.4",
     "@tiptap/extension-table": "^3.27.4",
