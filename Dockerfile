@@ -4,7 +4,7 @@
 # docker-compose.yml). See docs/tech/SELF_HOSTING.md.
 
 # ── build stage ───────────────────────────────────────────────────────────────
-FROM node:22-slim AS build
+FROM node:25-slim AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -20,7 +20,7 @@ RUN npm run build
 RUN npm ci --omit=dev
 
 # ── runtime stage ─────────────────────────────────────────────────────────────
-FROM node:22-slim
+FROM node:25-slim
 ENV NODE_ENV=production
 WORKDIR /app
 
