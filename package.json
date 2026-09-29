@@ -92,7 +92,7 @@
     "@esbuild-kit/core-utils": {
       "esbuild": "^0.25.12"
     },
-    "multer": "^2.2.0",
+    "multer": "^2.4.0",
     "dompurify": "^3.4.11",
     "lodash": "^4.17.24"
   },
